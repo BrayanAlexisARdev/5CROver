@@ -81,6 +81,8 @@ public class Form1 : Form
 
 	private Color _cassetteColor = Color.FromArgb(40, 40, 40);
 
+	private Color _appColor = Color.Transparent;
+
 	private bool _isDraggingVolume;
 
 	private Timer? _slideTimer;
@@ -200,7 +202,45 @@ public class Form1 : Form
 		base.Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, base.Width, base.Height, 12, 12));
 		EnableDoubleBuffered(pnlCassetteContainer);
 		EnableDoubleBuffered(pnlEqualizer);
-		Control[] array = new Control[5] { timerPanel, pnlGrip, cassettesHeaderPanel, playerFooterPanel, tasksHeaderPanel };
+		EnableDoubleBuffered(playerFooterPanel);
+		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(pnlCassetteContainer, new object[2]
+		{
+			ControlStyles.SupportsTransparentBackColor,
+			true
+		});
+		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(playerFooterPanel, new object[2]
+		{
+			ControlStyles.SupportsTransparentBackColor,
+			true
+		});
+		EnableDoubleBuffered(timerPanel);
+		EnableDoubleBuffered(pnlTopButtons);
+		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(timerPanel, new object[2]
+		{
+			ControlStyles.SupportsTransparentBackColor,
+			true
+		});
+		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(pnlTopButtons, new object[2]
+		{
+			ControlStyles.SupportsTransparentBackColor,
+			true
+		});
+		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(lblHours, new object[2]
+		{
+			ControlStyles.SupportsTransparentBackColor,
+			true
+		});
+		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(lblMinutes, new object[2]
+		{
+			ControlStyles.SupportsTransparentBackColor,
+			true
+		});
+		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(lblSeconds, new object[2]
+		{
+			ControlStyles.SupportsTransparentBackColor,
+			true
+		});
+		Control[] array = new Control[6] { timerPanel, pnlGrip, cassettesHeaderPanel, playerFooterPanel, tasksHeaderPanel, pnlTopButtons };
 		foreach (Control p in array)
 		{
 			typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(p, new object[2]
@@ -216,7 +256,7 @@ public class Form1 : Form
 		btnP.Click += btnP_Click;
 		btnColor.Click += delegate
 		{
-			CycleTheme();
+			ShowColorMenu();
 		};
 		btnImage.Click += delegate
 		{
@@ -297,6 +337,15 @@ public class Form1 : Form
 		btnColor.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnImage.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnTheme.BackColor = Color.FromArgb(0, 0, 0, 0);
+		btnP.BackColor = Color.FromArgb(0, 0, 0, 0);
+		btnS.BackColor = Color.FromArgb(0, 0, 0, 0);
+		btnPrevM3u.BackColor = Color.FromArgb(0, 0, 0, 0);
+		btnNextM3u.BackColor = Color.FromArgb(0, 0, 0, 0);
+		picPlayer.BackColor = Color.Transparent;
+		picPlayerNext.BackColor = Color.Transparent;
+		lblHours.BackColor = Color.Transparent;
+		lblMinutes.BackColor = Color.Transparent;
+		lblSeconds.BackColor = Color.Transparent;
 		picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
 		picPlayer.Size = new Size(140, 88);
 		picPlayer.Left = (pnlCassetteContainer.Width - 140) / 2;
@@ -373,6 +422,20 @@ public class Form1 : Form
 			ControlStyles.SupportsTransparentBackColor,
 			true
 		});
+		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(pnlTopButtons, new object[2]
+		{
+			ControlStyles.SupportsTransparentBackColor,
+			true
+		});
+		timerPanel.Paint += delegate(object? s, PaintEventArgs e)
+		{
+			if (_appColor != Color.Transparent)
+			{
+				Color overlay = Color.FromArgb(102, _appColor);
+				using Brush brush = new SolidBrush(overlay);
+				e.Graphics.FillRectangle(brush, 0, 0, timerPanel.Width, timerPanel.Height);
+			}
+		};
 		UpdateTimerDisplay();
 	}
 
@@ -636,6 +699,106 @@ public class Form1 : Form
 		}
 	}
 
+	private void ShowColorMenu()
+	{
+		ContextMenuStrip menu = new ContextMenuStrip();
+		menu.BackColor = Color.FromArgb(40, 40, 40);
+		menu.ForeColor = Color.White;
+
+		ToolStripMenuItem blancoItem = new ToolStripMenuItem("BLANCO");
+		blancoItem.Click += delegate { ApplyAppColor(Color.White); };
+		menu.Items.Add(blancoItem);
+
+		ToolStripMenuItem negroItem = new ToolStripMenuItem("NEGRO");
+		negroItem.Click += delegate { ApplyAppColor(Color.Black); };
+		menu.Items.Add(negroItem);
+
+		menu.Items.Add(new ToolStripSeparator());
+
+		ToolStripMenuItem primarios = new ToolStripMenuItem("PRIMARIOS");
+		ToolStripMenuItem rojo = new ToolStripMenuItem("ROJO", null, delegate { ApplyAppColor(Color.Red); });
+		ToolStripMenuItem azul = new ToolStripMenuItem("AZUL", null, delegate { ApplyAppColor(Color.Blue); });
+		ToolStripMenuItem amarillo = new ToolStripMenuItem("AMARILLO", null, delegate { ApplyAppColor(Color.Yellow); });
+		primarios.DropDownItems.Add(rojo);
+		primarios.DropDownItems.Add(azul);
+		primarios.DropDownItems.Add(amarillo);
+		menu.Items.Add(primarios);
+
+		ToolStripMenuItem secundarios = new ToolStripMenuItem("SECUNDARIOS");
+		ToolStripMenuItem verde = new ToolStripMenuItem("VERDE", null, delegate { ApplyAppColor(Color.Lime); });
+		ToolStripMenuItem naranja = new ToolStripMenuItem("NARANJA", null, delegate { ApplyAppColor(Color.Orange); });
+		ToolStripMenuItem violeta = new ToolStripMenuItem("VIOLETA", null, delegate { ApplyAppColor(Color.Violet); });
+		secundarios.DropDownItems.Add(verde);
+		secundarios.DropDownItems.Add(naranja);
+		secundarios.DropDownItems.Add(violeta);
+		menu.Items.Add(secundarios);
+
+		menu.Items.Add(new ToolStripSeparator());
+
+		ToolStripMenuItem cyan = new ToolStripMenuItem("CYAN", null, delegate { ApplyAppColor(Color.Cyan); });
+		ToolStripMenuItem magenta = new ToolStripMenuItem("MAGENTA", null, delegate { ApplyAppColor(Color.Magenta); });
+		ToolStripMenuItem coral = new ToolStripMenuItem("CORAL", null, delegate { ApplyAppColor(Color.FromArgb(255, 127, 80)); });
+		ToolStripMenuItem teal = new ToolStripMenuItem("TEAL", null, delegate { ApplyAppColor(Color.Teal); });
+		ToolStripMenuItem rosa = new ToolStripMenuItem("ROSA", null, delegate { ApplyAppColor(Color.HotPink); });
+		ToolStripMenuItem dorado = new ToolStripMenuItem("DORADO", null, delegate { ApplyAppColor(Color.FromArgb(255, 215, 0)); });
+		menu.Items.Add(cyan);
+		menu.Items.Add(magenta);
+		menu.Items.Add(coral);
+		menu.Items.Add(teal);
+		menu.Items.Add(rosa);
+		menu.Items.Add(dorado);
+
+		menu.Show(btnColor, new Point(0, btnColor.Height));
+	}
+
+	private void ApplyAppColor(Color baseColor)
+	{
+		_appColor = baseColor;
+		Color transparent = Color.FromArgb(102, baseColor);
+		Color headerColor = Color.FromArgb(133, baseColor);
+		Color listColor = Color.FromArgb(100, ControlPaint.Dark(baseColor));
+		Color darkColor = Color.FromArgb(120, ControlPaint.Dark(baseColor));
+
+		try { BackColor = transparent; } catch { }
+		timerPanel.BackColor = Color.Transparent;
+		pnlTopButtons.BackColor = Color.Transparent;
+		pnlTimerControls.BackColor = Color.Transparent;
+		tasksHeaderPanel.BackColor = headerColor;
+		cassettesHeaderPanel.BackColor = headerColor;
+		playerFooterPanel.BackColor = Color.Transparent;
+		tasksListPanel.BackColor = listColor;
+		pnlCassetteContainer.BackColor = Color.Transparent;
+		pnlEqualizer.BackColor = darkColor;
+		pnlVolume.BackColor = darkColor;
+
+		lblHours.ForeColor = Color.White;
+		lblMinutes.ForeColor = Color.White;
+		lblSeconds.ForeColor = Color.White;
+
+		UpdateControlContrast(tasksHeaderPanel, headerColor);
+		UpdateControlContrast(cassettesHeaderPanel, headerColor);
+		UpdateControlContrast(playerFooterPanel, transparent);
+
+		foreach (Control c in tasksListPanel.Controls)
+		{
+			if (c is Panel p && p.Tag is TaskData)
+			{
+				p.BackColor = listColor;
+				UpdateControlContrast(p, listColor);
+			}
+			else if (c.Name == "pnlAddSlot")
+			{
+				c.BackColor = Color.FromArgb(100, ControlPaint.Dark(baseColor));
+				foreach (Control child in c.Controls)
+				{
+					if (child is Button b) b.BackColor = Color.FromArgb(67, ControlPaint.Dark(baseColor));
+				}
+			}
+		}
+
+		timerPanel.Invalidate();
+	}
+
 	private void CycleTheme()
 	{
 		_currentThemeIndex = (_currentThemeIndex + 1) % _themes.Length;
@@ -692,6 +855,7 @@ public class Form1 : Form
 
 	private void ApplyCurrentTheme()
 	{
+		_appColor = Color.Transparent;
 		(Color, Color, Color, Color) theme = _themes[_currentThemeIndex];
 		Color darkSolid = Color.FromArgb(20, 20, 20);
 		Color bgColor = Color.FromArgb(240, 20, 20, 20);
@@ -711,7 +875,7 @@ public class Form1 : Form
 		tasksHeaderPanel.BackColor = headerColor;
 		cassettesHeaderPanel.BackColor = headerColor;
 		tasksListPanel.BackColor = listColor;
-		playerFooterPanel.BackColor = panelColor;
+		playerFooterPanel.BackColor = Color.Transparent;
 		if (_currentThemeImage != null)
 		{
 			timerPanel.BackColor = Color.Transparent;
@@ -748,7 +912,13 @@ public class Form1 : Form
 			if (c is Label || c is Button || c is TextBox)
 			{
 				c.ForeColor = fg;
-				SetSafeBackColor(c, bg);
+				if (c is Label && c.BackColor == Color.Transparent)
+				{
+				}
+				else
+				{
+					SetSafeBackColor(c, bg);
+				}
 				if (c is Button b)
 				{
 					b.FlatAppearance.BorderColor = fg;
@@ -924,7 +1094,7 @@ public class Form1 : Form
 		{
 			Size = new Size(32, 32),
 			SizeMode = PictureBoxSizeMode.Zoom,
-			BackColor = Color.FromArgb(20, 20, 20),
+			BackColor = Color.Transparent,
 			Location = new Point(5, 12)
 		};
 		try
@@ -950,7 +1120,7 @@ public class Form1 : Form
 			Location = new Point(42, 8),
 			AutoSize = false,
 			Size = new Size(taskPanel.Width - 45, 20),
-			BackColor = Color.FromArgb(20, 20, 20),
+			BackColor = Color.Transparent,
 			Font = ((FontHelper.CustomFontFamily != null) ? new Font(FontHelper.CustomFontFamily, 8f, FontStyle.Bold) : new Font("Segoe UI", 8f, FontStyle.Bold))
 		};
 		string timeText = "";
@@ -960,9 +1130,19 @@ public class Form1 : Form
 			Text = timeText,
 			Location = new Point(42, 28),
 			AutoSize = true,
-			BackColor = Color.FromArgb(20, 20, 20),
+			BackColor = Color.Transparent,
 			Font = ((FontHelper.CustomFontFamily != null) ? new Font(FontHelper.CustomFontFamily, 7f, FontStyle.Regular) : new Font("Segoe UI", 7f, FontStyle.Regular))
 		};
+		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(lblTaskName, new object[2]
+		{
+			ControlStyles.SupportsTransparentBackColor,
+			true
+		});
+		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(lblTaskTime, new object[2]
+		{
+			ControlStyles.SupportsTransparentBackColor,
+			true
+		});
 		taskPanel.Click += delegate
 		{
 			ToggleTask(taskPanel, (TaskData)taskPanel.Tag);
@@ -1220,10 +1400,7 @@ public class Form1 : Form
 			try
 			{
 				Color baseColor = ColorTranslator.FromHtml(cass.Color);
-				_cassetteColor = Color.FromArgb(51, baseColor);
-				playerFooterPanel.BackColor = _cassetteColor;
-				cassettesHeaderPanel.BackColor = Color.FromArgb(102, baseColor);
-				tasksHeaderPanel.BackColor = Color.FromArgb(102, baseColor);
+				ApplyAppColor(baseColor);
 			}
 			catch { }
 		}
@@ -1472,13 +1649,15 @@ public class Form1 : Form
 				string tvPath = Path.Combine(imgDir, "old_TV.gif");
 				if (File.Exists(tvPath))
 				{
-					Image tvImg = Image.FromFile(tvPath);
-					base.Width = tvImg.Width;
-					timerPanel.Height = tvImg.Height - 4;
-					timerPanel.BackgroundImage = tvImg;
-					timerPanel.BackgroundImageLayout = ImageLayout.None;
-					pnlTopButtons.BackColor = Color.FromArgb(20, 20, 20);
-					picMainDisplay.BackColor = Color.Transparent;
+				Image tvImg = Image.FromFile(tvPath);
+				base.Width = tvImg.Width;
+				timerPanel.Height = tvImg.Height - 4;
+				timerPanel.BackgroundImage = tvImg;
+				timerPanel.BackgroundImageLayout = ImageLayout.None;
+				timerPanel.BackColor = Color.Transparent;
+				pnlTopButtons.BackColor = Color.Transparent;
+				pnlTimerControls.BackColor = Color.Transparent;
+				picMainDisplay.BackColor = Color.Transparent;
 					pnlTimerControls.BackColor = Color.Transparent;
 					btnP.BackColor = Color.Transparent;
 					btnS.BackColor = Color.Transparent;
@@ -1501,6 +1680,7 @@ public class Form1 : Form
 		{
 			AddEmptySlot();
 		}
+		ApplyCurrentTheme();
 		if (_cassettes.Count > 0)
 		{
 			ApplyCassette(0);
@@ -1509,7 +1689,6 @@ public class Form1 : Form
 		{
 			LoadCurrentM3u();
 		}
-		ApplyCurrentTheme();
 	}
 
 	private void LoadSpriteSheet(string path, int frameWidth, int frameHeight, int frameCount)
@@ -2053,20 +2232,22 @@ public class Form1 : Form
 		this.btnNextM3u.FlatAppearance.BorderSize = 0;
 		this.btnNextM3u.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 		this.btnNextM3u.Font = new System.Drawing.Font("Segoe UI", 12f, System.Drawing.FontStyle.Bold);
+		this.btnNextM3u.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
 		this.btnNextM3u.Location = new System.Drawing.Point(220, 20);
 		this.btnNextM3u.Name = "btnNextM3u";
 		this.btnNextM3u.Size = new System.Drawing.Size(30, 40);
 		this.btnNextM3u.TabIndex = 3;
-		this.btnNextM3u.Text = "\u02c3";
+		this.btnNextM3u.Text = "\u25B6";
 		this.btnNextM3u.UseVisualStyleBackColor = true;
 		this.btnPrevM3u.FlatAppearance.BorderSize = 0;
 		this.btnPrevM3u.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 		this.btnPrevM3u.Font = new System.Drawing.Font("Segoe UI", 12f, System.Drawing.FontStyle.Bold);
+		this.btnPrevM3u.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
 		this.btnPrevM3u.Location = new System.Drawing.Point(10, 20);
 		this.btnPrevM3u.Name = "btnPrevM3u";
 		this.btnPrevM3u.Size = new System.Drawing.Size(30, 40);
 		this.btnPrevM3u.TabIndex = 2;
-		this.btnPrevM3u.Text = "\u02c2";
+		this.btnPrevM3u.Text = "\u25C0";
 		this.btnPrevM3u.UseVisualStyleBackColor = true;
 		this.pnlCassetteContainer.BackColor = System.Drawing.Color.Transparent;
 		this.pnlCassetteContainer.Controls.Add(this.picPlayer);

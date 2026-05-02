@@ -2,7 +2,7 @@
 ;TITULO: Muestra en texto debajo de la imagen del cassette informacion;
 ;IMAGEN: Corresponde a la imagen del cassette;
 ;CONTENIDO: Es la stream sea mp3 aac y demás online, archivo de fuente;
-;COLOR: Es el color Elegido que afecta a la aplicación en general con un 20 Porciento de transparencia;
+;COLOR: Es el color Elegido que afecta a la aplicación en general con el Porciento de transparencia correspondiente a COLOR;
 ;PANTALLA_GIF: Corresponde a la imagen .gif que va la parte de TV;
 ;TEMA_FONDO: Imagen de fondo de la TV antes de Cassette, que abarca el menú con COLOR IMAGE THEME;
 ;TEMA_TV: Imagen de fondo que abarca a CASSETTES y TAREAS;
