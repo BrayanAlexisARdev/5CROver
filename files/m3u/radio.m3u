@@ -1,0 +1,8 @@
+#EXTM3U
+#CASSETTE:cass004.png
+#EXTINF:-1,RPGN Radio
+http://listen.rpgamers.net/rpgn
+#EXTINF:-1,RPGN Radio
+https://listen.rpgamers.net/rpgn
+#EXTINF:-1,RPGN Radio
+http://listen.rpgamers.net:8000/rpgn
