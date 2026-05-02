@@ -40,6 +40,7 @@ public class Form1 : Form
 	private Timer? _metaTimer;
 
 	private string _currentM3uName = "";
+	private string _currentCassetteTitle = "";
 
 	private string _lastTitle = "";
 
@@ -185,6 +186,11 @@ public class Form1 : Form
 
 	private Panel pnlVolumeThumb;
 
+	private Panel pnlVolButtons;
+	private Button btnVolLow;
+	private Button btnVolMid;
+	private Button btnVolMax;
+
 	private Label lblVolumeLabel;
 
 	private Panel pnlGrip;
@@ -325,6 +331,22 @@ public class Form1 : Form
 		{
 			_isDraggingVolume = false;
 		};
+		pnlVolumeThumb.Paint += delegate(object? s, PaintEventArgs e)
+		{
+			using Brush brush = new SolidBrush(Color.White);
+			int w = pnlVolumeThumb.Width;
+			int h = pnlVolumeThumb.Height;
+			Point[] triangle = new Point[3]
+			{
+				new Point(w / 2, 0),
+				new Point(0, h),
+				new Point(w, h)
+			};
+			e.Graphics.FillPolygon(brush, triangle);
+		};
+		btnVolLow.Click += delegate { SetVolumePreset(3); };
+		btnVolMid.Click += delegate { SetVolumePreset(9); };
+		btnVolMax.Click += delegate { SetVolumePreset(15); };
 		_slideTimer = new Timer
 		{
 			Interval = 8
@@ -350,6 +372,9 @@ public class Form1 : Form
 		btnS.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnPrevM3u.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnNextM3u.BackColor = Color.FromArgb(0, 0, 0, 0);
+		btnVolLow.BackColor = Color.FromArgb(0, 0, 0, 0);
+		btnVolMid.BackColor = Color.FromArgb(0, 0, 0, 0);
+		btnVolMax.BackColor = Color.FromArgb(0, 0, 0, 0);
 		picPlayer.BackColor = Color.Transparent;
 		picPlayerNext.BackColor = Color.Transparent;
 		lblHours.BackColor = Color.Transparent;
@@ -551,6 +576,16 @@ public class Form1 : Form
 		}
 	}
 
+	private void SetVolumePreset(int percent)
+	{
+		if (_wmp == null) return;
+		_wmp.settings.volume = percent;
+		UpdateVolumeVisual(percent);
+		btnVolLow.Font = new Font("Segoe UI", 5.5f, percent == 3 ? FontStyle.Bold | FontStyle.Underline : FontStyle.Bold);
+		btnVolMid.Font = new Font("Segoe UI", 5.5f, percent == 9 ? FontStyle.Bold | FontStyle.Underline : FontStyle.Bold);
+		btnVolMax.Font = new Font("Segoe UI", 5.5f, percent == 15 ? FontStyle.Bold | FontStyle.Underline : FontStyle.Bold);
+	}
+
 	private void UpdateVolumeFromMouse(int mouseX)
 	{
 		int x = Math.Max(0, Math.Min(mouseX - pnlVolumeLine.Left, pnlVolumeLine.Width));
@@ -558,7 +593,8 @@ public class Form1 : Form
 		pnlVolumeThumb.Left = x - thumbCenter;
 		if (_wmp != null)
 		{
-			int volume = (int)((double)x / (double)pnlVolumeLine.Width * 100.0);
+			double raw = (double)x / (double)pnlVolumeLine.Width;
+			int volume = (int)(Math.Max(0.03, Math.Min(0.15, raw)) * 100.0);
 			_wmp.settings.volume = volume;
 		}
 	}
@@ -605,6 +641,7 @@ public class Form1 : Form
 		{
 			_currentM3uIndex = (_currentM3uIndex + direction + _m3uFiles.Count) % _m3uFiles.Count;
 			_slideDirection = -direction;
+			ResetCassetteTitle();
 			string path = _m3uFiles[_currentM3uIndex];
 			PlayM3u(path);
 			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
@@ -666,7 +703,7 @@ public class Form1 : Form
 		e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
 		string text = lbl.Text;
 		Font font = lbl.Font;
-		Color glowColor = Color.FromArgb(100, Color.Cyan);
+		Color glowColor = (_appColor != Color.Transparent) ? _appColor : Color.Cyan;
 		for (int i = 1; i <= 3; i++)
 		{
 			using Brush glowBrush = new SolidBrush(Color.FromArgb(50 / i, glowColor));
@@ -807,6 +844,9 @@ public class Form1 : Form
 		}
 
 		timerPanel.Invalidate();
+		lblHours.Invalidate();
+		lblMinutes.Invalidate();
+		lblSeconds.Invalidate();
 	}
 
 	private void CycleTheme()
@@ -866,6 +906,11 @@ public class Form1 : Form
 
 		timerPanel.Invalidate();
 		Invalidate();
+	}
+
+	private void ResetCassetteTitle()
+	{
+		_currentCassetteTitle = "";
 	}
 
 	private void UpdateTVFrame(string themePath)
@@ -995,7 +1040,7 @@ public class Form1 : Form
 			if (type != null)
 			{
 				_wmp = Activator.CreateInstance(type);
-				_wmp.settings.volume = 40;
+				_wmp.settings.autoStart = true;
 				_metaTimer = new Timer
 				{
 					Interval = 2000
@@ -1050,6 +1095,7 @@ public class Form1 : Form
 			if (!string.IsNullOrEmpty(title) && title != _lastTitle)
 			{
 				_lastTitle = title;
+				lblM3uTitle.Text = _currentCassetteTitle;
 				lblMetadata.Text = title.ToUpper();
 				string line2 = ((!string.IsNullOrEmpty(artist)) ? artist : genre);
 				if (!string.IsNullOrEmpty(album))
@@ -1358,12 +1404,12 @@ public class Form1 : Form
 		{
 			_metaTimer?.Stop();
 			_wmp.URL = path;
-			_wmp.settings.volume = 40;
 			_wmp.controls.play();
 			UpdateVolumeVisual(40);
 			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
 			_lastTitle = "";
-			lblM3uTitle.Text = _currentM3uName;
+			if (string.IsNullOrEmpty(_currentCassetteTitle))
+				lblM3uTitle.Text = _currentM3uName;
 			lblMetadata.Text = "";
 			lblExtraMetadata.Text = "";
 			lblM3uTitle.Visible = true;
@@ -1442,6 +1488,7 @@ public class Form1 : Form
 		_currentCassetteIndex = index;
 
 		lblM3uTitle.Text = cass.Titulo.ToUpper();
+		_currentCassetteTitle = cass.Titulo.ToUpper();
 		lblMetadata.Text = "";
 		lblExtraMetadata.Text = "";
 
@@ -1542,9 +1589,11 @@ public class Form1 : Form
 	{
 		try
 		{
-			int x = (int)((double)volumePercent / 100.0 * (double)pnlVolumeLine.Width);
+			double normalized = (double)(volumePercent - 3) / 12.0;
+			normalized = Math.Max(0, Math.Min(1, normalized));
+			int x = (int)(normalized * (double)pnlVolumeLine.Width);
 			int thumbCenter = pnlVolumeThumb.Width / 2;
-			pnlVolumeThumb.Left = x + pnlVolumeLine.Left - thumbCenter;
+			pnlVolumeThumb.Left = x - thumbCenter;
 		}
 		catch
 		{
@@ -1740,6 +1789,7 @@ public class Form1 : Form
 		{
 			LoadCurrentM3u();
 		}
+		SetVolumePreset(3);
 	}
 
 	private void LoadSpriteSheet(string path, int frameWidth, int frameHeight, int frameCount)
@@ -2033,6 +2083,10 @@ public class Form1 : Form
 		this.lblVolumeLabel = new System.Windows.Forms.Label();
 		this.pnlVolumeLine = new System.Windows.Forms.Panel();
 		this.pnlVolumeThumb = new System.Windows.Forms.Panel();
+		this.pnlVolButtons = new System.Windows.Forms.Panel();
+		this.btnVolLow = new System.Windows.Forms.Button();
+		this.btnVolMid = new System.Windows.Forms.Button();
+		this.btnVolMax = new System.Windows.Forms.Button();
 		this.btnNextM3u = new System.Windows.Forms.Button();
 		this.btnPrevM3u = new System.Windows.Forms.Button();
 		this.pnlCassetteContainer = new System.Windows.Forms.Panel();
@@ -2229,7 +2283,7 @@ public class Form1 : Form
 		this.playerFooterPanel.Dock = System.Windows.Forms.DockStyle.Top;
 		this.playerFooterPanel.Location = new System.Drawing.Point(0, 200);
 		this.playerFooterPanel.Name = "playerFooterPanel";
-		this.playerFooterPanel.Size = new System.Drawing.Size(260, 185);
+		this.playerFooterPanel.Size = new System.Drawing.Size(260, 230);
 		this.playerFooterPanel.TabIndex = 3;
 		this.pnlEqualizer.BackColor = System.Drawing.Color.Transparent;
 		this.pnlEqualizer.Location = new System.Drawing.Point(28, 95);
@@ -2240,46 +2294,84 @@ public class Form1 : Form
 		this.pnlVolume.Controls.Add(this.btnPlayPlayer);
 		this.pnlVolume.Controls.Add(this.lblVolumeLabel);
 		this.pnlVolume.Controls.Add(this.pnlVolumeLine);
-		this.pnlVolume.Location = new System.Drawing.Point(5, 158);
+		this.pnlVolume.Controls.Add(this.pnlVolButtons);
+		this.pnlVolume.Controls.Add(this.pnlVolumeThumb);
+		this.pnlVolume.Location = new System.Drawing.Point(5, 155);
 		this.pnlVolume.Name = "pnlVolume";
-		this.pnlVolume.Size = new System.Drawing.Size(250, 25);
+		this.pnlVolume.Size = new System.Drawing.Size(250, 75);
 		this.pnlVolume.TabIndex = 5;
-		this.btnStopPlayer.FlatAppearance.BorderSize = 0;
-		this.btnStopPlayer.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-		this.btnStopPlayer.Font = new System.Drawing.Font("Segoe UI", 6f, System.Drawing.FontStyle.Bold);
-		this.btnStopPlayer.Location = new System.Drawing.Point(48, 2);
-		this.btnStopPlayer.Name = "btnStopPlayer";
-		this.btnStopPlayer.Size = new System.Drawing.Size(45, 20);
-		this.btnStopPlayer.TabIndex = 3;
-		this.btnStopPlayer.Text = "STOP";
-		this.btnStopPlayer.UseVisualStyleBackColor = true;
 		this.btnPlayPlayer.FlatAppearance.BorderSize = 0;
 		this.btnPlayPlayer.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-		this.btnPlayPlayer.Font = new System.Drawing.Font("Segoe UI", 6f, System.Drawing.FontStyle.Bold);
-		this.btnPlayPlayer.Location = new System.Drawing.Point(0, 2);
+		this.btnPlayPlayer.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Bold);
+		this.btnPlayPlayer.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
+		this.btnPlayPlayer.ForeColor = System.Drawing.Color.White;
+		this.btnPlayPlayer.Location = new System.Drawing.Point(5, 22);
 		this.btnPlayPlayer.Name = "btnPlayPlayer";
-		this.btnPlayPlayer.Size = new System.Drawing.Size(45, 20);
+		this.btnPlayPlayer.Size = new System.Drawing.Size(48, 20);
 		this.btnPlayPlayer.TabIndex = 2;
 		this.btnPlayPlayer.Text = "PLAY";
-		this.btnPlayPlayer.UseVisualStyleBackColor = true;
+		this.btnPlayPlayer.UseVisualStyleBackColor = false;
+		this.btnPlayPlayer.Padding = new System.Windows.Forms.Padding(0);
+		this.btnStopPlayer.FlatAppearance.BorderSize = 0;
+		this.btnStopPlayer.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+		this.btnStopPlayer.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Bold);
+		this.btnStopPlayer.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
+		this.btnStopPlayer.ForeColor = System.Drawing.Color.White;
+		this.btnStopPlayer.Location = new System.Drawing.Point(53, 22);
+		this.btnStopPlayer.Name = "btnStopPlayer";
+		this.btnStopPlayer.Size = new System.Drawing.Size(48, 20);
+		this.btnStopPlayer.TabIndex = 3;
+		this.btnStopPlayer.Text = "STOP";
+		this.btnStopPlayer.UseVisualStyleBackColor = false;
+		this.btnStopPlayer.Padding = new System.Windows.Forms.Padding(0);
 		this.lblVolumeLabel.AutoSize = true;
-		this.lblVolumeLabel.Font = new System.Drawing.Font("Segoe UI", 6f, System.Drawing.FontStyle.Bold);
-		this.lblVolumeLabel.Location = new System.Drawing.Point(175, 5);
+		this.lblVolumeLabel.BackColor = System.Drawing.Color.Transparent;
+		this.lblVolumeLabel.Font = new System.Drawing.Font("Segoe UI", 7f, System.Drawing.FontStyle.Bold);
+		this.lblVolumeLabel.ForeColor = System.Drawing.Color.White;
+		this.lblVolumeLabel.Location = new System.Drawing.Point(108, 5);
 		this.lblVolumeLabel.Name = "lblVolumeLabel";
-		this.lblVolumeLabel.Size = new System.Drawing.Size(70, 15);
+		this.lblVolumeLabel.Size = new System.Drawing.Size(45, 15);
 		this.lblVolumeLabel.TabIndex = 1;
 		this.lblVolumeLabel.Text = "VOLUMEN";
 		this.pnlVolumeLine.BackColor = System.Drawing.Color.Gray;
 		this.pnlVolumeLine.Controls.Add(this.pnlVolumeThumb);
-		this.pnlVolumeLine.Location = new System.Drawing.Point(100, 10);
+		this.pnlVolumeLine.Location = new System.Drawing.Point(105, 30);
 		this.pnlVolumeLine.Name = "pnlVolumeLine";
-		this.pnlVolumeLine.Size = new System.Drawing.Size(70, 4);
+		this.pnlVolumeLine.Size = new System.Drawing.Size(140, 4);
 		this.pnlVolumeLine.TabIndex = 0;
-		this.pnlVolumeThumb.BackColor = System.Drawing.Color.Cyan;
-		this.pnlVolumeThumb.Location = new System.Drawing.Point(55, -4);
+		this.pnlVolumeThumb.BackColor = System.Drawing.Color.White;
+		this.pnlVolumeThumb.Location = new System.Drawing.Point(0, -4);
 		this.pnlVolumeThumb.Name = "pnlVolumeThumb";
 		this.pnlVolumeThumb.Size = new System.Drawing.Size(12, 12);
 		this.pnlVolumeThumb.TabIndex = 0;
+		this.pnlVolButtons.Location = new System.Drawing.Point(105, 46);
+		this.pnlVolButtons.Name = "pnlVolButtons";
+		this.pnlVolButtons.Size = new System.Drawing.Size(140, 28);
+		this.pnlVolButtons.BackColor = System.Drawing.Color.Transparent;
+		this.btnVolLow.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+		this.btnVolLow.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Underline | System.Drawing.FontStyle.Bold);
+		this.btnVolLow.ForeColor = System.Drawing.Color.White;
+		this.btnVolLow.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
+		this.btnVolLow.Location = new System.Drawing.Point(0, 0);
+		this.btnVolLow.Size = new System.Drawing.Size(42, 28);
+		this.btnVolLow.Text = "LOW";
+		this.btnVolMid.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+		this.btnVolMid.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Bold);
+		this.btnVolMid.ForeColor = System.Drawing.Color.White;
+		this.btnVolMid.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
+		this.btnVolMid.Location = new System.Drawing.Point(44, 0);
+		this.btnVolMid.Size = new System.Drawing.Size(42, 28);
+		this.btnVolMid.Text = "MID";
+		this.btnVolMax.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+		this.btnVolMax.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Bold);
+		this.btnVolMax.ForeColor = System.Drawing.Color.White;
+		this.btnVolMax.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
+		this.btnVolMax.Location = new System.Drawing.Point(88, 0);
+		this.btnVolMax.Size = new System.Drawing.Size(45, 28);
+		this.btnVolMax.Text = "MAX";
+		this.pnlVolButtons.Controls.Add(this.btnVolLow);
+		this.pnlVolButtons.Controls.Add(this.btnVolMid);
+		this.pnlVolButtons.Controls.Add(this.btnVolMax);
 		this.btnNextM3u.FlatAppearance.BorderSize = 0;
 		this.btnNextM3u.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 		this.btnNextM3u.Font = new System.Drawing.Font("Segoe UI", 12f, System.Drawing.FontStyle.Bold);

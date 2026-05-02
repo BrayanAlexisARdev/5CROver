@@ -57,7 +57,7 @@ TEMA_FONDO: 04_TH.gif
 TEMA_TV: flowbk_TV.gif
 
 [CASSETTE 06]
-TITULO: ROCK and ROLL
+TITULO: RAD CLASSIC ROCK
 IMAGEN: cass001.png
 CONTENIDO: https://classicrock.streamingmedia.it/audio.aac
 COLOR: #1A1A1A
