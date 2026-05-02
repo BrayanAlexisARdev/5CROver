@@ -203,6 +203,15 @@ public class Form1 : Form
 		EnableDoubleBuffered(pnlCassetteContainer);
 		EnableDoubleBuffered(pnlEqualizer);
 		EnableDoubleBuffered(playerFooterPanel);
+		playerFooterPanel.Paint += delegate(object? s, PaintEventArgs e)
+		{
+			if (_appColor != Color.Transparent)
+			{
+				Color overlay = Color.FromArgb(102, _appColor);
+				using Brush brush = new SolidBrush(overlay);
+				e.Graphics.FillRectangle(brush, 0, 0, playerFooterPanel.Width, playerFooterPanel.Height);
+			}
+		};
 		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(pnlCassetteContainer, new object[2]
 		{
 			ControlStyles.SupportsTransparentBackColor,
@@ -766,6 +775,7 @@ public class Form1 : Form
 		tasksHeaderPanel.BackColor = headerColor;
 		cassettesHeaderPanel.BackColor = headerColor;
 		playerFooterPanel.BackColor = Color.Transparent;
+		playerFooterPanel.Invalidate();
 		tasksListPanel.BackColor = listColor;
 		pnlCassetteContainer.BackColor = Color.Transparent;
 		pnlEqualizer.BackColor = darkColor;
@@ -805,17 +815,57 @@ public class Form1 : Form
 		ApplyCurrentTheme();
 	}
 
+	private List<(string TvPath, string ThPath)> _themesList = new();
+	private int _currentCustomThemeIndex;
+
+	private void LoadThemesFile()
+	{
+		string imgDir = Path.Combine(Application.StartupPath, "files", "img");
+		if (!Directory.Exists(imgDir)) imgDir = Path.Combine(Path.GetFullPath(Path.Combine(Application.StartupPath, "..", "..", "..")), "files", "img");
+		string themeFile = Path.Combine(imgDir, "THEME.txt");
+		if (!File.Exists(themeFile)) return;
+
+		_themesList.Clear();
+		foreach (string line in File.ReadAllLines(themeFile))
+		{
+			string t = line.Trim();
+			if (t.StartsWith(";") || string.IsNullOrEmpty(t)) continue;
+			if (t.StartsWith("[TEMA"))
+			{
+				int close = t.IndexOf(']');
+				string parts = t.Substring(close + 1).Trim();
+				string[] arr = parts.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+				if (arr.Length >= 2)
+				{
+					string tvPath = Path.Combine(imgDir, arr[0]);
+					string thPath = Path.Combine(imgDir, arr[1]);
+					if (File.Exists(tvPath) && File.Exists(thPath))
+						_themesList.Add((tvPath, thPath));
+				}
+			}
+		}
+	}
+
 	private void CycleThemeImage()
 	{
-		if (_themeImages.Count != 0)
+		if (_themesList.Count == 0) return;
+		_currentCustomThemeIndex = (_currentCustomThemeIndex + 1) % _themesList.Count;
+		var theme = _themesList[_currentCustomThemeIndex];
+
+		Image tvImg = Image.FromFile(theme.TvPath);
+		timerPanel.BackgroundImage = tvImg;
+		timerPanel.Height = tvImg.Height - 4;
+		timerPanel.BackColor = Color.Transparent;
+
+		string thDir = Path.GetDirectoryName(theme.ThPath) ?? "";
+		if (File.Exists(theme.ThPath))
 		{
-			_currentThemeImageIndex = (_currentThemeImageIndex + 1) % _themeImages.Count;
-			_currentThemeImage = _themeImages[_currentThemeImageIndex];
+			_currentThemeImage = Image.FromFile(theme.ThPath);
 			BackgroundImage = null;
-			UpdateTVFrame(_themeFilePaths[_currentThemeImageIndex]);
-			ApplyCurrentTheme();
-			Invalidate();
 		}
+
+		timerPanel.Invalidate();
+		Invalidate();
 	}
 
 	private void UpdateTVFrame(string themePath)
@@ -1681,6 +1731,7 @@ public class Form1 : Form
 			AddEmptySlot();
 		}
 		ApplyCurrentTheme();
+		LoadThemesFile();
 		if (_cassettes.Count > 0)
 		{
 			ApplyCassette(0);

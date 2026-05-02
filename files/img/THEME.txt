@@ -1,0 +1,14 @@
+;ACLARACION DE THEME;
+;SE USARAN EN DUPLA LOS FONDOS CORRESPONDIENTES;
+[TEMA 1] bluesk_TV.gif 01_TH.gif
+[TEMA 2] steel_TV.gif 02_TH.gif
+[TEMA 3] gcard_TV.gif 03_TH.gif
+[TEMA 4] flowbk_TV.gif 04_TH.gif
+[TEMA 5] old_TV.gif 05_TH.gif
+[TEMA 6] steel_TV.gif 06_TH.gif
+[TEMA 7] rain_TV.gif 07_TH.gif
+[TEMA 8] ancient_TV.gif 08_TH.gif
+[TEMA 9] rpgnrad_TV.gif 09_TH.gif
+[TEMA 10] vocca_TV.gif 10_TH.gif
+[TEMA 11] segg_TV.gif 11_TH.gif
+[TEMA 12] club_TV.gif 12_TH.gif
