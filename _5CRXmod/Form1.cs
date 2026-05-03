@@ -1041,6 +1041,37 @@ public class Form1 : Form
 			{
 				_wmp = Activator.CreateInstance(type);
 				_wmp.settings.autoStart = true;
+				bool isRestarting = false;
+				_wmp.PlayStateChange += (s, e) =>
+				{
+					if (isRestarting) return;
+					if ((int)e == 8 || (int)e == 1)
+					{
+						dynamic wmpLocal = _wmp;
+						string url = wmpLocal.URL ?? "";
+						if (url.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase))
+						{
+							isRestarting = true;
+							string saved = url;
+							Task.Delay(1000).ContinueWith(_ =>
+							{
+								try
+								{
+									if (_wmp != null && !string.IsNullOrEmpty(saved))
+									{
+										dynamic wmp = _wmp;
+										wmp.URL = saved;
+										wmp.controls.play();
+									}
+								}
+								finally
+								{
+									isRestarting = false;
+								}
+							});
+						}
+					}
+				};
 				_metaTimer = new Timer
 				{
 					Interval = 2000
