@@ -1405,7 +1405,6 @@ public class Form1 : Form
 			_metaTimer?.Stop();
 			_wmp.URL = path;
 			_wmp.controls.play();
-			UpdateVolumeVisual(40);
 			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
 			_lastTitle = "";
 			if (string.IsNullOrEmpty(_currentCassetteTitle))
@@ -1417,6 +1416,7 @@ public class Form1 : Form
 			lblExtraMetadata.Visible = true;
 			_metaTimer?.Start();
 			_eqTimer?.Start();
+			SetVolumePreset(3);
 		}
 		catch
 		{
