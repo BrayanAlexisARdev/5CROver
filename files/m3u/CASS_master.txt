@@ -9,7 +9,7 @@
 ;Este esquema ordenado de cassettes debe respetarse e implementarse el código correspondiente para que funcione;
 ; =================================================== ;
 ; CONFIGURACIÓN MAESTRA DE CASSETTES 5CRX (v1.1) ;
-; =================================================== ;
+; ===CANTIDAD DE CASSETTES 17==80=;
 
 [CASSETTE 01]
 TITULO: LO-FI CHILL
@@ -140,7 +140,7 @@ TEMA_TV: ancient_TV.gif
 [CASSETTE 15]
 TITULO: FREECODECAMP RADIO
 IMAGEN: cass015.png
-CONTENIDO: https://coderadio-admin-v2.freecodecamp.org/listen/coderadio/radio.mp3
+CONTENIDO: https://coderadio-admin-v2.freecodecamp.org/listen/coderadio/low.mp3
 COLOR: #78cf00
 PANTALLA_GIF: girl6_ANI.gif
 TEMA_FONDO: 08_TH.gif
@@ -155,13 +155,68 @@ PANTALLA_GIF: car2_ANI.gif
 TEMA_FONDO: 12_TH.gif
 TEMA_TV: club_TV.gif
 
-[CASSETTE 16]
+[CASSETTE 17]
 TITULO: SLAY Radio
-IMAGEN: cass001.png
+IMAGEN: cass017.png
 CONTENIDO: http://relay4.slayradio.org:8000/
-COLOR: #bd2402
+COLOR: #d769f5
 PANTALLA_GIF: girl1_ANI.gif
-TEMA_FONDO: 12_TH.gif
-TEMA_TV: steel_TV.gif
+TEMA_FONDO: 14_TH.gif
+TEMA_TV: slayy_TV.gif
+
+[CASSETTE 18]
+TITULO: CAPRICE CLASS PIANO
+IMAGEN: cass016.png
+CONTENIDO: http://79.120.39.202:8002/classpiano
+COLOR: #8a0000
+PANTALLA_GIF: fairy_ANI.gif
+TEMA_FONDO: 13_TH.gif
+TEMA_TV: piano_TV.gif
+
+[CASSETTE 19]
+TITULO:SpriteLayer VGR
+IMAGEN: cass018.png
+CONTENIDO: https://radio.spritelayerradio.com:8010/all
+COLOR: #2b004d
+PANTALLA_GIF: yixu_ANI.gif
+TEMA_FONDO: 15_TH.gif
+TEMA_TV: segg_TV.gif
+
+[CASSETTE 20]
+TITULO:POSITIVE
+IMAGEN: cass018.png
+CONTENIDO: https://streaming.positivity.radio/pr/workoutrelax/icecast.audio
+COLOR: #2b004d
+PANTALLA_GIF: girl2.gif
+TEMA_FONDO: 15_TH.gif
+TEMA_TV: segg_TV.gif
+
+[CASSETTE 21]
+TITULO:R Workout 160 BPM
+IMAGEN: cass018.png
+CONTENIDO: https://drive.uber.radio/uber-app/sportifybpm160/icecast.audio
+COLOR: #2b004d
+PANTALLA_GIF: girl2.gif
+TEMA_FONDO: 15_TH.gif
+TEMA_TV: segg_TV.gif
+
+[CASSETTE 22]
+TITULO: Hip Hop Workout
+IMAGEN: cass018.png
+CONTENIDO: https://drive.uber.radio/uber-app/sportifyrandb/icecast.audio
+COLOR: #2b004d
+PANTALLA_GIF: girl2.gif
+TEMA_FONDO: 15_TH.gif
+TEMA_TV: segg_TV.gif
+
+[CASSETTE 23]
+TITULO: BEATLES
+IMAGEN: cass018.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/beatles/icecast.audio
+COLOR: #2b004d
+PANTALLA_GIF: girl3.gif
+TEMA_FONDO: 15_TH.gif
+TEMA_TV: segg_TV.gif
+
 
 
