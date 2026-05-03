@@ -87,6 +87,7 @@ public class Form1 : Form
 	private bool _isDraggingVolume;
 
 	private Timer? _slideTimer;
+	private Timer? _m3u8WatchTimer;
 
 	private int _slideStep = 6;
 
@@ -1041,36 +1042,28 @@ public class Form1 : Form
 			{
 				_wmp = Activator.CreateInstance(type);
 				_wmp.settings.autoStart = true;
-				bool isRestarting = false;
-				_wmp.PlayStateChange += (s, e) =>
+				_m3u8WatchTimer = new Timer
 				{
-					if (isRestarting) return;
-					if ((int)e == 8 || (int)e == 1)
+					Interval = 3000
+				};
+				_m3u8WatchTimer.Tick += delegate
+				{
+					if (_wmp == null) return;
+					try
 					{
-						dynamic wmpLocal = _wmp;
-						string url = wmpLocal.URL ?? "";
-						if (url.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase))
+						int state = (int)_wmp.playState;
+						string url = _wmp.URL ?? "";
+						if (state == 1 || state == 8)
 						{
-							isRestarting = true;
-							string saved = url;
-							Task.Delay(1000).ContinueWith(_ =>
+							if (url.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase))
 							{
-								try
-								{
-									if (_wmp != null && !string.IsNullOrEmpty(saved))
-									{
-										dynamic wmp = _wmp;
-										wmp.URL = saved;
-										wmp.controls.play();
-									}
-								}
-								finally
-								{
-									isRestarting = false;
-								}
-							});
+								string saved = url;
+								_wmp.URL = saved;
+								_wmp.controls.play();
+							}
 						}
 					}
+					catch { }
 				};
 				_metaTimer = new Timer
 				{
@@ -1434,6 +1427,7 @@ public class Form1 : Form
 		try
 		{
 			_metaTimer?.Stop();
+			_m3u8WatchTimer?.Stop();
 			_wmp.URL = path;
 			_wmp.controls.play();
 			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
@@ -1448,6 +1442,10 @@ public class Form1 : Form
 			_metaTimer?.Start();
 			_eqTimer?.Start();
 			SetVolumePreset(3);
+			if (path.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase))
+			{
+				_m3u8WatchTimer?.Start();
+			}
 		}
 		catch
 		{
@@ -1640,6 +1638,7 @@ public class Form1 : Form
 		try
 		{
 			_metaTimer?.Stop();
+			_m3u8WatchTimer?.Stop();
 			_wmp.controls.stop();
 			_lastTitle = "";
 			lblMetadata.Text = "";
