@@ -25,6 +25,17 @@ public class CassetteData
 
 public class Form1 : Form
 {
+	protected override CreateParams CreateParams
+	{
+		get
+		{
+			const int CS_DROPSHADOW = 0x20000;
+			CreateParams cp = base.CreateParams;
+			cp.ClassStyle |= CS_DROPSHADOW;
+			return cp;
+		}
+	}
+
 	private TimeSpan _timeRemaining;
 
 	private bool _timerRunning;
@@ -197,6 +208,7 @@ public class Form1 : Form
 	private Panel pnlGrip;
 
 	private Button btnCloseApp;
+private PictureBox picCincross;
 
 	[DllImport("Gdi32.dll")]
 	private static extern nint CreateRoundRectRgn(int nLeftRect, int nTopRect, int RightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
@@ -451,7 +463,7 @@ public class Form1 : Form
 				e.Graphics.DrawImage(_currentThemeImage, x, y, _currentThemeImage.Width, _currentThemeImage.Height);
 			}
 		};
-		pnlGrip.Height = 25;
+		pnlGrip.Height = 20;
 		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(timerPanel, new object[2]
 		{
 			ControlStyles.SupportsTransparentBackColor,
@@ -477,21 +489,18 @@ public class Form1 : Form
 	private void pnlGrip_Paint(object? sender, PaintEventArgs e)
 	{
 		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-		int spacing = 12;
-		int gradientThickness = 3;
-		for (int i = 0; i < gradientThickness; i++)
+		int lineHeight = 2;
+		int lineSpacing = 4;
+		int totalHeight = 3 * lineHeight + 2 * lineSpacing;
+		int startY = (pnlGrip.Height - totalHeight) / 2;
+		using Pen linePen = new Pen(Color.FromArgb(120, 120, 120), lineHeight);
+		linePen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+		linePen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+		int margin = 80;
+		for (int i = 0; i < 3; i++)
 		{
-			using Pen gradientPen = new Pen(Color.FromArgb((byte)(200.0 * (1.0 - (double)i / (double)gradientThickness)), 100, 100, 100));
-			e.Graphics.DrawLine(gradientPen, 0, i, pnlGrip.Width - 1, i);
-			e.Graphics.DrawLine(gradientPen, 0, pnlGrip.Height - 1 - i, pnlGrip.Width - 1, pnlGrip.Height - 1 - i);
-			e.Graphics.DrawLine(gradientPen, i, 0, i, pnlGrip.Height - 1);
-			e.Graphics.DrawLine(gradientPen, pnlGrip.Width - 1 - i, 0, pnlGrip.Width - 1 - i, pnlGrip.Height - 1);
-		}
-		using Brush brush = new SolidBrush(pnlGrip.ForeColor);
-		using Font font = new Font("Segoe UI", 9f, FontStyle.Bold);
-		for (int x = 0; x < pnlGrip.Width; x += spacing)
-		{
-			e.Graphics.DrawString(":", font, brush, x, 3f);
+			int y = startY + i * (lineHeight + lineSpacing);
+			e.Graphics.DrawLine(linePen, margin, y, pnlGrip.Width - margin, y);
 		}
 	}
 
@@ -964,8 +973,8 @@ public class Form1 : Form
 		catch
 		{
 		}
-		pnlGrip.BackColor = Color.FromArgb(255, 0, 0, 0);
-		pnlGrip.Height = 25;
+		pnlGrip.BackColor = Color.FromArgb(40, 40, 40);
+		pnlGrip.Height = 20;
 		pnlGrip.BorderStyle = BorderStyle.None;
 		Color headerColor = Color.FromArgb(200, 60, 60, 60);
 		tasksHeaderPanel.BackColor = headerColor;
@@ -1671,7 +1680,7 @@ public class Form1 : Form
 		int screenWidth = screen?.WorkingArea.Width ?? 1920;
 		base.Location = new Point(screenWidth - base.Width, 150);
 		LoadCassetteMaster();
-		AddAutoButtons();
+		//AddAutoButtons();
 		LoadCustomFont();
 		try
 		{
@@ -1805,7 +1814,7 @@ public class Form1 : Form
 		AddTaskToPanel("EXER", TimeSpan.FromMinutes(30L), "", "exerc_TSK.png", isFixed: true);
 		AddTaskToPanel("WORK", TimeSpan.FromMinutes(30L), "", "progress_TSK.png", isFixed: true);
 		AddTaskToPanel("RLAX", TimeSpan.FromMinutes(30L), "", "music_TSK.png", isFixed: true);
-		for (int i2 = 0; i2 < 4; i2++)
+		for (int i2 = 0; i2 < 2; i2++)
 		{
 			AddEmptySlot();
 		}
@@ -2128,13 +2137,14 @@ public class Form1 : Form
 		this.tasksListPanel = new System.Windows.Forms.FlowLayoutPanel();
 		this.pnlGrip = new System.Windows.Forms.Panel();
 		this.btnCloseApp = new System.Windows.Forms.Button();
+		this.picCincross = new System.Windows.Forms.PictureBox();
 		this.timerPanel.SuspendLayout();
 		((System.ComponentModel.ISupportInitialize)this.picPlayer).BeginInit();
 		((System.ComponentModel.ISupportInitialize)this.picPlayerNext).BeginInit();
 		base.SuspendLayout();
-		this.pnlGrip.BackColor = System.Drawing.Color.Black;
+		this.pnlGrip.BackColor = System.Drawing.Color.FromArgb(40, 40, 40);
 		this.pnlGrip.Dock = System.Windows.Forms.DockStyle.Top;
-		this.pnlGrip.Height = 25;
+		this.pnlGrip.Height = 20;
 		this.pnlGrip.Name = "pnlGrip";
 		this.pnlGrip.TabIndex = 6;
 		this.pnlGrip.Paint += new System.Windows.Forms.PaintEventHandler(pnlGrip_Paint);
@@ -2144,12 +2154,23 @@ public class Form1 : Form
 		this.btnCloseApp.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 		this.btnCloseApp.Font = new System.Drawing.Font("Segoe UI", 9f, System.Drawing.FontStyle.Bold);
 		this.btnCloseApp.ForeColor = System.Drawing.Color.White;
-		this.btnCloseApp.Height = 35;
+		this.btnCloseApp.Height = 30;
 		this.btnCloseApp.Name = "btnCloseApp";
 		this.btnCloseApp.TabIndex = 7;
-		this.btnCloseApp.Text = "X CERRAR";
+		this.btnCloseApp.Text = "X CLOSE";
 		this.btnCloseApp.UseVisualStyleBackColor = false;
 		this.btnCloseApp.Click += new System.EventHandler(btnCloseApp_Click);
+		string cincrossPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "files", "img", "cincross.png");
+		if (System.IO.File.Exists(cincrossPath))
+		{
+			this.picCincross.Image = System.Drawing.Image.FromFile(cincrossPath);
+		}
+		this.picCincross.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+		this.picCincross.Height = 60;
+		this.picCincross.Dock = System.Windows.Forms.DockStyle.Bottom;
+		this.picCincross.Name = "picCincross";
+		this.picCincross.TabIndex = 8;
+		this.picCincross.TabStop = false;
 		this.timerPanel.BackColor = System.Drawing.Color.Black;
 		this.timerPanel.Controls.Add(this.picOverlay);
 		this.timerPanel.Controls.Add(this.picMainDisplay);
@@ -2467,11 +2488,11 @@ public class Form1 : Form
 		this.tasksListPanel.Dock = System.Windows.Forms.DockStyle.Fill;
 		this.tasksListPanel.Location = new System.Drawing.Point(0, 410);
 		this.tasksListPanel.Name = "tasksListPanel";
-		this.tasksListPanel.Size = new System.Drawing.Size(260, 340);
+		this.tasksListPanel.Size = new System.Drawing.Size(260, 840);
 		this.tasksListPanel.TabIndex = 5;
 		base.AutoScaleDimensions = new System.Drawing.SizeF(10f, 25f);
 		base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-		base.ClientSize = new System.Drawing.Size(260, 810);
+		base.ClientSize = new System.Drawing.Size(260, 825);
 		base.Controls.Add(this.tasksListPanel);
 		base.Controls.Add(this.tasksHeaderPanel);
 		base.Controls.Add(this.playerFooterPanel);
@@ -2479,6 +2500,7 @@ public class Form1 : Form
 		base.Controls.Add(this.pnlGrip);
 		base.Controls.Add(this.timerPanel);
 		base.Controls.Add(this.btnCloseApp);
+		base.Controls.Add(this.picCincross);
 		base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
 		base.MaximizeBox = false;
 		base.Name = "Form1";
