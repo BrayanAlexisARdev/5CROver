@@ -187,7 +187,7 @@ TITULO:POSITIVE
 IMAGEN: cass018.png
 CONTENIDO: https://streaming.positivity.radio/pr/workoutrelax/icecast.audio
 COLOR: #2b004d
-PANTALLA_GIF: girl2.gif
+PANTALLA_GIF: posi_ANI.gif
 TEMA_FONDO: 15_TH.gif
 TEMA_TV: segg_TV.gif
 
@@ -196,7 +196,7 @@ TITULO:R Workout 160 BPM
 IMAGEN: cass018.png
 CONTENIDO: https://drive.uber.radio/uber-app/sportifybpm160/icecast.audio
 COLOR: #2b004d
-PANTALLA_GIF: girl2.gif
+PANTALLA_GIF: girl11_ANI.gif
 TEMA_FONDO: 15_TH.gif
 TEMA_TV: segg_TV.gif
 
@@ -205,7 +205,7 @@ TITULO: Hip Hop Workout
 IMAGEN: cass018.png
 CONTENIDO: https://drive.uber.radio/uber-app/sportifyrandb/icecast.audio
 COLOR: #2b004d
-PANTALLA_GIF: girl2.gif
+PANTALLA_GIF: girl2_ANI.gif
 TEMA_FONDO: 15_TH.gif
 TEMA_TV: segg_TV.gif
 
@@ -213,10 +213,133 @@ TEMA_TV: segg_TV.gif
 TITULO: BEATLES
 IMAGEN: cass018.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/beatles/icecast.audio
+COLOR: #006fde
+PANTALLA_GIF: beat_ANI.gif
+TEMA_FONDO: 19_TH.gif
+TEMA_TV: voldoff_TV.gif
+
+[CASSETTE 24]
+TITULO: AC DC
+IMAGEN: cass018.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/acdc/icecast.audio
 COLOR: #2b004d
-PANTALLA_GIF: girl3.gif
-TEMA_FONDO: 15_TH.gif
-TEMA_TV: segg_TV.gif
+PANTALLA_GIF: acdc_ANI.gif
+TEMA_FONDO: 18_TH.gif
+TEMA_TV: steel_TV.gif
 
+[CASSETTE 25]
+TITULO: GUNS AND ROSES
+IMAGEN: cass018.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/gunsnroses/icecast.audio
+COLOR: #2b004d
+PANTALLA_GIF: guns_ANI.gif
+TEMA_FONDO: 06_TH.gif
+TEMA_TV: steel_TV.gif
 
+[CASSETTE 26]
+TITULO: METALLICA
+IMAGEN: cass018.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/metallica/icecast.audio
+COLOR: #2b004d
+PANTALLA_GIF: metall_ANI.gif
+TEMA_FONDO: 06_TH.gif
+TEMA_TV: steel_TV.gif
 
+[CASSETTE 27]
+TITULO: IRON MAIDEN
+IMAGEN: cass018.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/ironmaiden/icecast.audio
+COLOR: #2b004d
+PANTALLA_GIF: ironm_ANI.gif
+TEMA_FONDO: 06_TH.gif
+TEMA_TV: steel_TV.gif
+
+[CASSETTE 28]
+TITULO: MOTORHEAD
+IMAGEN: cass018.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/motorhead/icecast.audio
+COLOR: #2b004d
+PANTALLA_GIF: motorh_ANI.gif
+TEMA_FONDO: 06_TH.gif
+TEMA_TV: steel_TV.gif
+
+[CASSETTE 29]
+TITULO: BOSTON
+IMAGEN: cass018.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/boston/icecast.audio
+COLOR: #2b004d
+PANTALLA_GIF: boston_ANI.gif
+TEMA_FONDO: 06_TH.gif
+TEMA_TV: vold_TV.gif
+
+[CASSETTE 30]
+TITULO: BILLY IDOL
+IMAGEN: cass021.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/billyidol/icecast.audio
+COLOR: #261d25
+PANTALLA_GIF: billy_ANI.gif
+TEMA_FONDO: 16_TH.gif
+TEMA_TV: slayy_TV.gif
+
+[CASSETTE 31]
+TITULO: HUEY LEWIS
+IMAGEN: cass020.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/hueylewis/icecast.audio
+COLOR: #4a2525
+PANTALLA_GIF: huey_ANI.gif
+TEMA_FONDO: 06_TH.gif
+TEMA_TV: steel_TV.gif
+
+[CASSETTE 32]
+TITULO: CHICAGO
+IMAGEN: cass018.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/chicago/icecast.audio
+COLOR: #4a2525
+PANTALLA_GIF: chicago_ANI.gif
+TEMA_FONDO: 06_TH.gif
+TEMA_TV: steel_TV.gif
+
+[CASSETTE 33]
+TITULO: BON JOVI
+IMAGEN: cass018.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/bonjovi/icecast.audio
+COLOR: #4a2525
+PANTALLA_GIF: bonj_ANI.gif
+TEMA_FONDO: 06_TH.gif
+TEMA_TV: steel_TV.gif
+
+[CASSETTE 34]
+TITULO: ELVIS PRESLEY
+IMAGEN: cass018.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/elvispresley/icecast.audio
+COLOR: #de0f00
+PANTALLA_GIF: elvis_ANI.gif
+TEMA_FONDO: 17_TH.gif
+TEMA_TV: vold_TV.gif
+
+[CASSETTE 35]
+TITULO: AEROSMITH
+IMAGEN: cass018.png
+CONTENIDO: http://streaming.exclusive.radio/er-app/aerosmith/icecast.audio
+COLOR: #ffc919
+PANTALLA_GIF: aero_ANI.gif
+TEMA_FONDO: 06_TH.gif
+TEMA_TV: steel_TV.gif
+
+[CASSETTE 36]
+TITULO: ZZ TOP
+IMAGEN: cass018.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/zztop/icecast.audio
+COLOR: #800317
+PANTALLA_GIF: zztop_ANI.gif
+TEMA_FONDO: 20_TH.gif
+TEMA_TV: steel_TV.gif
+
+[CASSETTE 37]
+TITULO: TikTok TRENDING
+IMAGEN: cass019.png
+CONTENIDO: https://streaming.exclusive.radio/er-app/tiktoktrending/icecast.audio
+COLOR: #de5480
+PANTALLA_GIF: tktk_ANI.gif
+TEMA_FONDO: 14_TH.gif
+TEMA_TV: vocca_TV.gif
