@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -21,6 +22,15 @@ public class CassetteData
 	public string PantallaGif { get; set; } = "";
 	public string TemaFondo { get; set; } = "";
 	public string TemaTV { get; set; } = "";
+}
+
+public class FavoriteData
+{
+	public int CassetteIndex { get; set; }
+	public string CassetteTitle { get; set; } = "";
+	public string ColorHex { get; set; } = "";
+	public string TemaTV { get; set; } = "";
+	public string TemaFondo { get; set; } = "";
 }
 
 public class Form1 : Form
@@ -88,8 +98,12 @@ public class Form1 : Form
 	private List<Image> _cassetteImages = new List<Image>();
 
 	private List<CassetteData> _cassettes = new List<CassetteData>();
+	private List<FavoriteData> _favorites = new List<FavoriteData>();
 
 	private int _currentCassetteIndex;
+	private string _currentColorHex = "";
+	private string _currentTvPath = "";
+	private string _currentFondoPath = "";
 
 	private Color _cassetteColor = Color.FromArgb(40, 40, 40);
 
@@ -112,6 +126,7 @@ public class Form1 : Form
 	private int _fadeFrameIndex;
 	private Image? _nextCassetteImage;
 	private int _pendingCassetteIndex = -1;
+	private FavoriteData? _pendingFavOverride;
 
 	private const int PictureBoxWidth = 140;
 
@@ -169,6 +184,8 @@ public class Form1 : Form
 	private TextBox txtCassetteNum;
 	private Label lblCassetteTotal;
 	private Button btnCassetteList;
+	private Button btnFavList;
+	private Button btnAddFav;
 	private Panel pnlFullListRow;
 
 	private Panel tasksHeaderPanel;
@@ -575,6 +592,12 @@ private PictureBox picCincross;
 					int idx = _pendingCassetteIndex;
 					_pendingCassetteIndex = -1;
 					ApplyCassette(idx);
+					if (_pendingFavOverride != null)
+					{
+						var ov = _pendingFavOverride;
+						_pendingFavOverride = null;
+						ApplyFavOverride(ov);
+					}
 				}
 				_fadePhase = 1;
 				_fadeFrameIndex = 0;
@@ -881,6 +904,7 @@ private PictureBox picCincross;
 	private void ApplyAppColor(Color baseColor)
 	{
 		_appColor = baseColor;
+		_currentColorHex = ColorTranslator.ToHtml(baseColor);
 		Color transparent = Color.FromArgb(102, baseColor);
 		Color headerColor = Color.FromArgb(133, baseColor);
 		Color listColor = Color.FromArgb(100, ControlPaint.Dark(baseColor));
@@ -977,11 +1001,13 @@ private PictureBox picCincross;
 		timerPanel.BackgroundImage = tvImg;
 		timerPanel.Height = tvImg.Height - 4;
 		timerPanel.BackColor = Color.Transparent;
+		_currentTvPath = theme.TvPath;
 
 		string thDir = Path.GetDirectoryName(theme.ThPath) ?? "";
 		if (File.Exists(theme.ThPath))
 		{
 			_currentThemeImage = Image.FromFile(theme.ThPath);
+			_currentFondoPath = theme.ThPath;
 			BackgroundImage = null;
 		}
 
@@ -1252,10 +1278,10 @@ private PictureBox picCincross;
 			lblMinutes.Font = new Font(_pfc.Families[0], 15f, FontStyle.Bold);
 			lblSeconds.Font = new Font(_pfc.Families[0], 11f, FontStyle.Bold);
 		}
-		string[] excludes = new string[14]
+		string[] excludes = new string[16]
 		{
 			"lblHours", "lblMinutes", "lblSeconds", "btnP", "btnS", "btnColor", "btnStyle", "btnImage", "btnTheme", "btnPrevM3u",
-			"btnNextM3u", "btnPlayPlayer", "btnStopPlayer", "btnCassetteList"
+			"btnNextM3u", "btnPlayPlayer", "btnStopPlayer", "btnCassetteList", "btnFavList", "btnAddFav"
 		};
 		FontHelper.ApplyFont(this, 10f, FontStyle.Regular, excludes);
 		if (FontHelper.CustomFontFamily != null)
@@ -1647,6 +1673,7 @@ private PictureBox picCincross;
 				timerPanel.BackgroundImage = tvImg;
 				timerPanel.BackgroundImageLayout = ImageLayout.None;
 				timerPanel.Height = tvImg.Height - 4;
+				_currentTvPath = tvPath;
 			}
 		}
 
@@ -1656,6 +1683,7 @@ private PictureBox picCincross;
 			if (File.Exists(fondoPath))
 			{
 				_currentThemeImage = Image.FromFile(fondoPath);
+				_currentFondoPath = fondoPath;
 				BackgroundImage = null;
 				Invalidate();
 			}
@@ -1757,6 +1785,73 @@ private PictureBox picCincross;
 		if (t.TotalHours >= 1.0)
 			return $"{(int)t.TotalHours}H {t.Minutes}M";
 		return $"{(int)t.TotalMinutes} MIN";
+	}
+
+	private void btnAddFav_Click(object? sender, EventArgs e)
+	{
+		if (_currentCassetteIndex < 0 || _currentCassetteIndex >= _cassettes.Count) return;
+		CassetteData cass = _cassettes[_currentCassetteIndex];
+		string title = cass.Titulo;
+		if (string.IsNullOrWhiteSpace(title)) title = $"Cassette {_currentCassetteIndex + 1}";
+
+		_favorites.RemoveAll(f => f.CassetteIndex == _currentCassetteIndex);
+		_favorites.Add(new FavoriteData
+		{
+			CassetteIndex = _currentCassetteIndex,
+			CassetteTitle = title,
+			ColorHex = _currentColorHex,
+			TemaTV = _currentTvPath,
+			TemaFondo = _currentFondoPath
+		});
+	}
+
+	private void btnFavList_Click(object? sender, EventArgs e)
+	{
+		using var form = new FavoritesListForm(_favorites.ToArray());
+		form.Location = new Point(Left - form.Width, Top);
+		if (form.ShowDialog(this) == DialogResult.OK && form.SelectedIndex >= 0)
+		{
+			var fav = _favorites[form.SelectedIndex];
+			ApplyFavorite(fav);
+		}
+	}
+
+	private void ApplyFavorite(FavoriteData fav)
+	{
+		_pendingFavOverride = fav;
+		if (fav.CassetteIndex == _currentCassetteIndex)
+			_currentCassetteIndex = -1;
+		GoToCassette(fav.CassetteIndex);
+		if (_slideTimer == null || !_slideTimer.Enabled)
+		{
+			ApplyFavOverride(fav);
+			_pendingFavOverride = null;
+		}
+	}
+
+	private void ApplyFavOverride(FavoriteData fav)
+	{
+		if (!string.IsNullOrEmpty(fav.ColorHex))
+		{
+			try { ApplyAppColor(ColorTranslator.FromHtml(fav.ColorHex)); } catch { }
+		}
+		if (!string.IsNullOrEmpty(fav.TemaTV))
+		{
+			if (File.Exists(fav.TemaTV))
+			{
+				timerPanel.BackgroundImage = Image.FromFile(fav.TemaTV);
+				timerPanel.Height = timerPanel.BackgroundImage.Height - 4;
+			}
+		}
+		if (!string.IsNullOrEmpty(fav.TemaFondo))
+		{
+			if (File.Exists(fav.TemaFondo))
+			{
+				_currentThemeImage = Image.FromFile(fav.TemaFondo);
+				_currentFondoPath = fav.TemaFondo;
+				Invalidate();
+			}
+		}
 	}
 
 	private void LayoutCassetteHeader()
@@ -2370,6 +2465,20 @@ private PictureBox picCincross;
 		this.btnTheme.TabIndex = 3;
 		this.btnTheme.Text = "THEME";
 		this.btnTheme.UseVisualStyleBackColor = true;
+		this.btnAddFav = new Button();
+		this.btnAddFav.BackColor = System.Drawing.Color.FromArgb(40, 40, 40);
+		this.btnAddFav.FlatAppearance.BorderSize = 0;
+		this.btnAddFav.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+		this.btnAddFav.Font = new System.Drawing.Font("Segoe UI", 6f);
+		this.btnAddFav.ForeColor = System.Drawing.Color.White;
+		this.btnAddFav.Location = new System.Drawing.Point(0, 75);
+		this.btnAddFav.Name = "btnAddFav";
+		this.btnAddFav.Size = new System.Drawing.Size(80, 25);
+		this.btnAddFav.TabIndex = 4;
+		this.btnAddFav.Text = "ADD FAV";
+		this.btnAddFav.UseVisualStyleBackColor = false;
+		this.btnAddFav.Click += new EventHandler(btnAddFav_Click);
+		this.pnlTimerControls.Controls.Add(this.btnAddFav);
 		this.btnImage.FlatAppearance.BorderSize = 0;
 		this.btnImage.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 		this.btnImage.Font = new System.Drawing.Font("Segoe UI", 6f);
@@ -2513,6 +2622,19 @@ private PictureBox picCincross;
 		this.btnCassetteList.UseVisualStyleBackColor = false;
 		this.btnCassetteList.Click += new EventHandler(this.btnCassetteList_Click);
 
+		this.btnFavList = new Button();
+		this.btnFavList.BackColor = System.Drawing.Color.FromArgb(50, 50, 50);
+		this.btnFavList.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+		this.btnFavList.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Bold);
+		this.btnFavList.ForeColor = System.Drawing.Color.White;
+		this.btnFavList.Location = new System.Drawing.Point(30, 0);
+		this.btnFavList.Name = "btnFavList";
+		this.btnFavList.Size = new System.Drawing.Size(110, 28);
+		this.btnFavList.TabIndex = 3;
+		this.btnFavList.Text = "FAV LIST";
+		this.btnFavList.UseVisualStyleBackColor = false;
+		this.btnFavList.Click += new EventHandler(this.btnFavList_Click);
+
 		this.cassettesHeaderPanel.Controls.Add(this.lblCassetteTotal);
 		this.cassettesHeaderPanel.Controls.Add(this.txtCassetteNum);
 		this.cassettesHeaderPanel.Controls.Add(this.lblCassettes);
@@ -2522,6 +2644,7 @@ private PictureBox picCincross;
 		this.pnlFullListRow.Dock = System.Windows.Forms.DockStyle.Top;
 		this.pnlFullListRow.Height = 28;
 		this.pnlFullListRow.Name = "pnlFullListRow";
+		this.pnlFullListRow.Controls.Add(this.btnFavList);
 		this.pnlFullListRow.Controls.Add(this.btnCassetteList);
 
 		this.playerFooterPanel.BackColor = System.Drawing.Color.White;
