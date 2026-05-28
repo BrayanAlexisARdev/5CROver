@@ -1,0 +1,40 @@
+[
+  {
+    "level": 1,
+    "title": "Nivel 1 - Vocabulario básico",
+    "questions": [
+      { "type": "truefalse", "text": "'Hello' significa 'Adiós'", "correctAnswer": false, "points": 10 },
+      { "type": "truefalse", "text": "'Big' es sinónimo de 'Large'", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "'Cat' significa 'Gato'", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "'Happy' significa 'Feliz'", "correctAnswer": true, "points": 10 },
+      { "type": "complete", "text": "El pasado de 'go' es:", "options": ["goed", "went", "gone", "going"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "'Beautiful' significa:", "options": ["Feo", "Bonito", "Grande", "Pequeño"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "El plural de 'child' es:", "options": ["childs", "children", "childrens", "child"], "correctIndex": 1, "points": 15 }
+    ]
+  },
+  {
+    "level": 2,
+    "title": "Nivel 2 - Tiempos verbales",
+    "questions": [
+      { "type": "truefalse", "text": "'I have eaten' es presente perfecto", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "'She will go' es pasado simple", "correctAnswer": false, "points": 10 },
+      { "type": "truefalse", "text": "'They are playing' es presente continuo", "correctAnswer": true, "points": 10 },
+      { "type": "complete", "text": "'I ___ to the store yesterday'", "options": ["go", "went", "gone", "going"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "'She ___ a book right now'", "options": ["read", "reads", "is reading", "reading"], "correctIndex": 2, "points": 15 },
+      { "type": "complete", "text": "'We ___ been waiting for an hour'", "options": ["have", "has", "had", "are"], "correctIndex": 0, "points": 15 },
+      { "type": "complete", "text": "Completa: 'He ___ to school every day'", "options": ["walk", "walks", "walked", "walking"], "correctIndex": 1, "points": 15 }
+    ]
+  },
+  {
+    "level": 3,
+    "title": "Nivel 3 - Phrasal verbs y condicionales",
+    "questions": [
+      { "type": "truefalse", "text": "'Give up' significa 'rendirse'", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "'Look after' significa 'buscar'", "correctAnswer": false, "points": 10 },
+      { "type": "truefalse", "text": "'If I had known' es un tercer condicional", "correctAnswer": true, "points": 10 },
+      { "type": "complete", "text": "'___ up! The bus is leaving'", "options": ["Stand", "Hurry", "Look", "Get"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "'If I ___ you, I would study harder'", "options": ["am", "was", "were", "be"], "correctIndex": 2, "points": 15 },
+      { "type": "complete", "text": "'She ___ up with a great idea'", "options": ["came", "gave", "put", "made"], "correctIndex": 0, "points": 15 }
+    ]
+  }
+]

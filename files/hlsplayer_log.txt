@@ -1,0 +1,129 @@
+00:35:05.712 [HlsPlayer] HlsPlayer constructor start
+00:35:05.733 [HlsPlayer] Trying native dir: C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\libvlc\win-x64
+00:35:05.733 [HlsPlayer] libvlc.dll exists: True
+00:35:05.734 [HlsPlayer] SetDllDirectory OK
+00:35:05.734 [HlsPlayer] Plugin path: C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\libvlc\win-x64\plugins exists: True
+00:35:05.911 [HlsPlayer] LibVLC created OK
+00:35:05.922 [HlsPlayer] MediaPlayer created OK
+00:35:06.281 [HlsPlayer] MediaPlayer Stopped
+00:35:15.573 [HlsPlayer] Play(https://mega.stweb.tv/mega983/live/playlist.m3u8)
+00:35:15.575 [HlsPlayer] OnMediaChanged
+00:35:15.576 [HlsPlayer]   Title: playlist.m3u8, Artist: 
+00:35:15.577 [HlsPlayer]   Play() result: True
+00:35:15.578 [HlsPlayer]   IsPlaying: False
+00:35:15.583 [HlsPlayer] MediaPlayer EncounteredError
+00:35:15.586 [HlsPlayer]   State: Opening
+00:35:15.604 [HlsPlayer] MediaPlayer Stopped
+00:35:20.786 [HlsPlayer] Play(https://mega.stweb.tv/mega983/live/playlist.m3u8)
+00:35:20.786 [HlsPlayer] MediaPlayer Stopped
+00:35:20.786 [HlsPlayer] OnMediaChanged
+00:35:20.786 [HlsPlayer]   Title: playlist.m3u8, Artist: 
+00:35:20.787 [HlsPlayer]   Play() result: True
+00:35:20.788 [HlsPlayer]   IsPlaying: False
+00:35:20.788 [HlsPlayer]   State: NothingSpecial
+00:35:20.796 [HlsPlayer] MediaPlayer EncounteredError
+00:35:20.810 [HlsPlayer] MediaPlayer Stopped
+01:04:13.407 [HlsPlayer] HlsPlayer constructor start
+01:04:13.415 [HlsPlayer] Trying native dir: C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\libvlc\win-x64
+01:04:13.416 [HlsPlayer] libvlc.dll exists: True
+01:04:13.416 [HlsPlayer] SetDllDirectory OK
+01:04:13.417 [HlsPlayer] Plugin path: C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\libvlc\win-x64\plugins exists: True
+01:04:13.417 [HlsPlayer] VLC_PLUGIN_PATH set
+01:04:13.575 [HlsPlayer] LibVLC created OK
+01:04:13.630 [HlsPlayer] MediaPlayer created OK
+01:04:13.961 [HlsPlayer] MediaPlayer Stopped
+01:04:19.610 [HlsPlayer] Play(https://mega.stweb.tv/mega983/live/playlist.m3u8)
+01:04:19.612 [HlsPlayer] OnMediaChanged
+01:04:19.612 [HlsPlayer]   Title: playlist.m3u8, Artist: 
+01:04:19.614 [HlsPlayer]   Play() result: True
+01:04:19.615 [HlsPlayer]   IsPlaying: False
+01:04:19.616 [HlsPlayer]   State: NothingSpecial
+01:04:19.620 [HlsPlayer] VLC [Error] cannot open file C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\https:\\mega.stweb.tv\mega983\live\playlist.m3u8 (No error)
+01:04:19.620 [HlsPlayer] VLC [Error] Your input can't be opened
+01:04:19.709 [HlsPlayer] MediaPlayer Stopped
+01:04:28.355 [HlsPlayer] Play(https://mega.stweb.tv/mega983/live/playlist.m3u8)
+01:04:28.355 [HlsPlayer] MediaPlayer Stopped
+01:04:28.356 [HlsPlayer] OnMediaChanged
+01:04:28.356 [HlsPlayer]   Title: playlist.m3u8, Artist: 
+01:04:28.359 [HlsPlayer]   Play() result: True
+01:04:28.360 [HlsPlayer]   IsPlaying: False
+01:04:28.362 [HlsPlayer]   State: NothingSpecial
+01:04:28.370 [HlsPlayer] MediaPlayer EncounteredError
+01:04:28.369 [HlsPlayer] VLC [Error] cannot open file C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\https:\\mega.stweb.tv\mega983\live\playlist.m3u8 (No error)
+01:04:28.445 [HlsPlayer] MediaPlayer Stopped
+01:13:55.530 [HlsPlayer] HlsPlayer constructor start
+01:13:55.542 [HlsPlayer] Trying native dir: C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\libvlc\win-x64
+01:13:55.542 [HlsPlayer] libvlc.dll exists: True
+01:13:55.543 [HlsPlayer] SetDllDirectory OK
+01:13:55.543 [HlsPlayer] Plugin path: C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\libvlc\win-x64\plugins exists: True
+01:13:55.543 [HlsPlayer] VLC_PLUGIN_PATH set
+01:13:55.736 [HlsPlayer] LibVLC created OK
+01:13:55.786 [HlsPlayer] VLC [Debug] mmdevice: using default device
+01:13:55.812 [HlsPlayer] VLC [Debug] mmdevice: display name changed: VLC media player (LibVLC 3.0.23)
+01:13:55.813 [HlsPlayer] VLC [Debug] main: using audio output module "mmdevice"
+01:13:55.816 [HlsPlayer] VLC [Debug] main: keeping audio output
+01:13:55.840 [HlsPlayer] MediaPlayer created OK
+01:13:56.261 [HlsPlayer] MediaPlayer Stopped
+01:13:56.262 [HlsPlayer] VLC [Debug] main: removing module "mmdevice"
+01:14:01.807 [HlsPlayer] Play(https://mega.stweb.tv/mega983/live/playlist.m3u8)
+01:14:01.809 [HlsPlayer] OnMediaChanged
+01:14:01.809 [HlsPlayer]   Title: playlist.m3u8, Artist: 
+01:14:01.811 [HlsPlayer] VLC [Debug] main: Creating an input for 'playlist.m3u8'
+01:14:01.811 [HlsPlayer]   Play() result: True
+01:14:01.812 [HlsPlayer]   IsPlaying: False
+01:14:01.813 [HlsPlayer]   State: NothingSpecial
+01:14:01.835 [HlsPlayer] VLC [Debug] main: using timeshift path: C:\Users\alexi\AppData\Local\Temp
+01:14:01.836 [HlsPlayer] VLC [Debug] main: looking for access_demux module matching "file": 11 candidates
+01:14:01.891 [HlsPlayer] VLC [Debug] main:  (path: C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\http:\\mega.stweb.tv\mega983\live\playlist.m3u8)
+01:14:01.951 [HlsPlayer] VLC [Error] main: VLC is unable to open the MRL 'file:///C:/Users/alexi/Downloads/CUATRI002/PP1/Proyecto/RECUP/bin/Debug/netcoreapp9.0-windows/http%3A//mega.stweb.tv/mega983/live/playlist.m3u8'. Check the log for details.
+01:14:01.967 [HlsPlayer] MediaPlayer EncounteredError
+01:14:02.016 [HlsPlayer] MediaPlayer Stopped
+01:14:06.818 [HlsPlayer] Play(https://mega.stweb.tv/mega983/live/playlist.m3u8)
+01:14:06.819 [HlsPlayer] MediaPlayer Stopped
+01:14:06.820 [HlsPlayer] OnMediaChanged
+01:14:06.820 [HlsPlayer]   Title: playlist.m3u8, Artist: 
+01:14:06.822 [HlsPlayer] VLC [Debug] main: Creating an input for 'playlist.m3u8'
+01:14:06.823 [HlsPlayer]   Play() result: True
+01:14:06.824 [HlsPlayer]   IsPlaying: False
+01:14:06.825 [HlsPlayer]   State: NothingSpecial
+01:14:06.830 [HlsPlayer] VLC [Debug] main: using timeshift granularity of 50 MiB
+01:14:06.830 [HlsPlayer] VLC [Debug] main: using timeshift path: C:\Users\alexi\AppData\Local\Temp
+01:14:06.831 [HlsPlayer] VLC [Debug] main: creating demux: access='file' demux='any' location='/C:/Users/alexi/Downloads/CUATRI002/PP1/Proyecto/RECUP/bin/Debug/netcoreapp9.0-windows/http%3A//mega.stweb.tv/mega983/live/playlist.m3u8' file='C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\http:\\mega.stweb.tv\mega983\live\playlist.m3u8'
+01:14:06.832 [HlsPlayer] VLC [Debug] main:  (path: C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\http:\\mega.stweb.tv\mega983\live\playlist.m3u8)
+01:14:06.874 [HlsPlayer] VLC [Error] filesystem: cannot open file C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\http:\\mega.stweb.tv\mega983\live\playlist.m3u8 (No error)
+01:14:06.880 [HlsPlayer] VLC [Debug] main: no access modules matched
+01:14:06.881 [HlsPlayer] VLC [Error] main: Your input can't be opened
+01:14:07.033 [HlsPlayer] MediaPlayer Stopped
+01:14:10.363 [HlsPlayer] Play(https://mega.stweb.tv/mega983/live/playlist.m3u8)
+01:14:10.365 [HlsPlayer] MediaPlayer Stopped
+01:14:10.365 [HlsPlayer] OnMediaChanged
+01:14:10.365 [HlsPlayer]   Title: playlist.m3u8, Artist: 
+01:14:10.367 [HlsPlayer] VLC [Debug] main: Creating an input for 'playlist.m3u8'
+01:14:10.368 [HlsPlayer]   Play() result: True
+01:14:10.369 [HlsPlayer]   IsPlaying: False
+01:14:10.369 [HlsPlayer]   State: NothingSpecial
+01:14:10.374 [HlsPlayer] VLC [Debug] main: using timeshift granularity of 50 MiB
+01:14:10.375 [HlsPlayer] VLC [Debug] main: creating demux: access='file' demux='any' location='/C:/Users/alexi/Downloads/CUATRI002/PP1/Proyecto/RECUP/bin/Debug/netcoreapp9.0-windows/http%3A//mega.stweb.tv/mega983/live/playlist.m3u8' file='C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\http:\\mega.stweb.tv\mega983\live\playlist.m3u8'
+01:14:10.379 [HlsPlayer] VLC [Debug] main: creating access: file:///C:/Users/alexi/Downloads/CUATRI002/PP1/Proyecto/RECUP/bin/Debug/netcoreapp9.0-windows/http%3A//mega.stweb.tv/mega983/live/playlist.m3u8
+01:14:10.445 [HlsPlayer] VLC [Error] filesystem: cannot open file C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\http:\\mega.stweb.tv\mega983\live\playlist.m3u8 (No error)
+01:14:10.478 [HlsPlayer] VLC [Debug] main: no access modules matched
+01:14:10.505 [HlsPlayer] MediaPlayer EncounteredError
+01:14:10.552 [HlsPlayer] MediaPlayer Stopped
+01:14:14.322 [HlsPlayer] Play(https://mega.stweb.tv/mega983/live/playlist.m3u8)
+01:14:14.323 [HlsPlayer] MediaPlayer Stopped
+01:14:14.323 [HlsPlayer] OnMediaChanged
+01:14:14.324 [HlsPlayer]   Title: playlist.m3u8, Artist: 
+01:14:14.325 [HlsPlayer] VLC [Debug] main: Creating an input for 'playlist.m3u8'
+01:14:14.326 [HlsPlayer]   Play() result: True
+01:14:14.327 [HlsPlayer]   IsPlaying: False
+01:14:14.327 [HlsPlayer]   State: NothingSpecial
+01:14:14.333 [HlsPlayer] VLC [Debug] main: using timeshift granularity of 50 MiB
+01:14:14.333 [HlsPlayer] VLC [Debug] main: `file:///C:/Users/alexi/Downloads/CUATRI002/PP1/Proyecto/RECUP/bin/Debug/netcoreapp9.0-windows/http%3A//mega.stweb.tv/mega983/live/playlist.m3u8' gives access `file' demux `any' path `/C:/Users/alexi/Downloads/CUATRI002/PP1/Proyecto/RECUP/bin/Debug/netcoreapp9.0-windows/http%3A//mega.stweb.tv/mega983/live/playlist.m3u8'
+01:14:14.334 [HlsPlayer] VLC [Debug] main: looking for access_demux module matching "file": 11 candidates
+01:14:14.335 [HlsPlayer] VLC [Debug] main:  (path: C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\http:\\mega.stweb.tv\mega983\live\playlist.m3u8)
+01:14:14.392 [HlsPlayer] VLC [Error] filesystem: cannot open file C:\Users\alexi\Downloads\CUATRI002\PP1\Proyecto\RECUP\bin\Debug\netcoreapp9.0-windows\http:\\mega.stweb.tv\mega983\live\playlist.m3u8 (No error)
+01:14:14.465 [HlsPlayer] MediaPlayer EncounteredError
+01:14:14.465 [HlsPlayer] VLC [Error] main: Your input can't be opened
+01:14:14.425 [HlsPlayer] VLC [Debug] main: no access modules matched
+01:14:14.488 [HlsPlayer] MediaPlayer Stopped
+01:14:22.109 [HlsPlayer] MediaPlayer Stopped

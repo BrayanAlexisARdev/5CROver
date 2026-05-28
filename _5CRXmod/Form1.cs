@@ -71,6 +71,19 @@ public class Form1 : Form
 
 	private string? _noiseFile;
 
+	private string? _avatarPath;
+	private string? _savedDisplayPath;
+	private string? _preLearnDisplayPath;
+	private Bitmap? _tvCharacterComposite;
+	private string? _avatarHead;
+	private string? _avatarHair;
+	private string? _avatarBody;
+	private string? _avatarFace;
+	private string? _avatarAccessories;
+	private string? _avatarBg;
+	private string? _avatarFullOutfit;
+	private string? _avatarPet;
+
 	private List<Image> _themeImages = new List<Image>();
 
 	private List<string> _themeFilePaths = new List<string>();
@@ -104,6 +117,12 @@ public class Form1 : Form
 	private string _currentColorHex = "";
 	private string _currentTvPath = "";
 	private string _currentFondoPath = "";
+
+	private LearningData _learningData = LearningData.CreateDefault();
+
+	private bool _isLearningSession;
+
+	private string _currentSubject = "";
 
 	private Color _cassetteColor = Color.FromArgb(40, 40, 40);
 
@@ -186,6 +205,8 @@ public class Form1 : Form
 	private Button btnCassetteList;
 	private Button btnFavList;
 	private Button btnAddFav;
+	private Button btnLearn;
+	private Button btnInfo;
 	private Panel pnlFullListRow;
 
 	private Panel tasksHeaderPanel;
@@ -312,6 +333,7 @@ private PictureBox picCincross;
 		base.Load += Form1_Load;
 		btnS.Click += btnS_Click;
 		btnP.Click += btnP_Click;
+		btnLearn.Click += btnLearn_Click;
 		btnColor.Click += delegate
 		{
 			ShowColorMenu();
@@ -1278,10 +1300,10 @@ private PictureBox picCincross;
 			lblMinutes.Font = new Font(_pfc.Families[0], 15f, FontStyle.Bold);
 			lblSeconds.Font = new Font(_pfc.Families[0], 11f, FontStyle.Bold);
 		}
-		string[] excludes = new string[16]
+		string[] excludes = new string[18]
 		{
 			"lblHours", "lblMinutes", "lblSeconds", "btnP", "btnS", "btnColor", "btnStyle", "btnImage", "btnTheme", "btnPrevM3u",
-			"btnNextM3u", "btnPlayPlayer", "btnStopPlayer", "btnCassetteList", "btnFavList", "btnAddFav"
+			"btnNextM3u", "btnPlayPlayer", "btnStopPlayer", "btnCassetteList", "btnFavList", "btnAddFav", "btnLearn", "btnInfo"
 		};
 		FontHelper.ApplyFont(this, 10f, FontStyle.Regular, excludes);
 		if (FontHelper.CustomFontFamily != null)
@@ -1299,6 +1321,9 @@ private PictureBox picCincross;
 			btnStyle.Font = miniFont;
 			btnImage.Font = miniFont;
 			btnTheme.Font = miniFont;
+			btnLearn.Font = miniFont;
+			btnAddFav.Font = miniFont;
+			btnInfo.Font = miniFont;
 			btnPlayPlayer.Font = miniFont;
 			btnStopPlayer.Font = miniFont;
 		}
@@ -1805,6 +1830,251 @@ private PictureBox picCincross;
 		});
 	}
 
+	private void btnInfo_Click(object? sender, EventArgs e)
+	{
+		using var form = new InfoForm();
+		form.Location = new Point(Left - form.Width, Top);
+		form.ShowDialog(this);
+	}
+
+	private void btnLearn_Click(object? sender, EventArgs e)
+	{
+		// Save original display and show welcome avatar
+		_preLearnDisplayPath = picMainDisplay.ImageLocation;
+		string welcomePath = ResolveImgPath("AVMAGO_AV.gif");
+		if (File.Exists(welcomePath))
+			picMainDisplay.ImageLocation = welcomePath;
+
+		btnLearn.Enabled = false;
+		btnAddFav.Enabled = false;
+
+		var form = new LearnForm(_learningData, 0);
+		form.Location = new Point(Left - form.Width, Top);
+
+		form.StartRequested += (subjectName, minutes) =>
+		{
+			// Quiz runs inside LearnForm — no action needed from Form1
+		};
+
+		form.FormClosed += (_, _) =>
+		{
+			btnLearn.Enabled = true;
+			btnAddFav.Enabled = true;
+
+			if (!string.IsNullOrEmpty(_preLearnDisplayPath))
+				picMainDisplay.ImageLocation = _preLearnDisplayPath;
+			_preLearnDisplayPath = null;
+			form.Dispose();
+		};
+
+		form.Show(this);
+	}
+
+	private void PicMainDisplay_Paint(object? sender, PaintEventArgs e)
+	{
+		if (_tvCharacterComposite != null)
+			e.Graphics.DrawImage(_tvCharacterComposite, 0, 0,
+				_tvCharacterComposite.Width, _tvCharacterComposite.Height);
+	}
+
+	private void StartLearningSession(string subjectName, int minutes)
+	{
+		_isLearningSession = true;
+		_currentSubject = subjectName;
+
+		_timeRemaining = TimeSpan.FromMinutes(minutes);
+		_activeTaskPanel = null;
+		UpdateTimerDisplay();
+		StartTimer();
+
+		// Save current display
+		_savedDisplayPath = picMainDisplay.ImageLocation;
+
+		// Hide sprite overlay during learning session
+		if (_spriteTimer != null)
+			_spriteTimer.Stop();
+		picOverlay.Visible = false;
+
+		// Composite base avatar with overlays (z-order: first = bottom)
+		List<string> overlays = new List<string>(4);
+		if (!string.IsNullOrEmpty(_avatarBody))
+			overlays.Add(_avatarBody);         // CUERPO
+		if (!string.IsNullOrEmpty(_avatarHead))
+			overlays.Add(_avatarHead);         // CABEZA
+		if (!string.IsNullOrEmpty(_avatarHair))
+			overlays.Add(_avatarHair);         // CABELLO
+		if (!string.IsNullOrEmpty(_avatarFace))
+			overlays.Add(_avatarFace);         // EXPRESION (sobre cabello)
+		if (!string.IsNullOrEmpty(_avatarFullOutfit))
+			overlays.Add(_avatarFullOutfit);   // TRAJE
+		if (!string.IsNullOrEmpty(_avatarAccessories))
+			overlays.Add(_avatarAccessories);  // ACCESORIO
+		if (!string.IsNullOrEmpty(_avatarPet))
+			overlays.Add(_avatarPet);          // MASCOTA (top)
+
+		string basePath = ResolveImgPath(_avatarPath);
+		if (File.Exists(basePath))
+		{
+			Image? old = picMainDisplay.Image;
+			picMainDisplay.Image = null;
+			picMainDisplay.ImageLocation = null;
+			if (_tvCharacterComposite != null)
+			{
+				picMainDisplay.Paint -= PicMainDisplay_Paint;
+				_tvCharacterComposite.Dispose();
+				_tvCharacterComposite = null;
+			}
+			old?.Dispose();
+
+			// Composite character layers (no background)
+			using Image baseImg = Image.FromFile(basePath);
+			int w = baseImg.Width;
+			int h = baseImg.Height;
+			Bitmap character = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+			using (Graphics g = Graphics.FromImage(character))
+			{
+				g.DrawImage(baseImg, 0, 0, w, h);
+				foreach (string ov in overlays)
+				{
+					string ovPath = ResolveImgPath(ov);
+					if (!File.Exists(ovPath)) continue;
+					using Image ovImg = Image.FromFile(ovPath);
+					g.DrawImage(ovImg, 0, 0, w, h);
+				}
+			}
+
+			if (!string.IsNullOrEmpty(_avatarBg))
+			{
+				string bgPath = ResolveImgPath(_avatarBg);
+				if (File.Exists(bgPath))
+				{
+					// Background animated GIF — set as Image, draw character on top via Paint
+					_tvCharacterComposite = character;
+					picMainDisplay.Image = Image.FromFile(bgPath);
+					picMainDisplay.Paint += PicMainDisplay_Paint;
+				}
+				else
+				{
+					picMainDisplay.Image = character;
+				}
+			}
+			else
+			{
+				picMainDisplay.Image = character;
+			}
+		}
+
+		using var quiz = new QuizForm(subjectName, minutes);
+		quiz.Location = new Point(Left - quiz.Width, Top);
+
+		if (quiz.ShowDialog(this) == DialogResult.OK)
+		{
+			int quizXp = quiz.TotalScore;
+			int actualMinutes = Math.Max(1, quiz.MinutesStudied);
+			AwardLearningSession(quizXp, actualMinutes);
+		}
+
+		StopTimer();
+		_timeRemaining = TimeSpan.Zero;
+		UpdateTimerDisplay();
+		_isLearningSession = false;
+
+		// Clean up paint hook
+		if (_tvCharacterComposite != null)
+		{
+			picMainDisplay.Paint -= PicMainDisplay_Paint;
+			_tvCharacterComposite.Dispose();
+			_tvCharacterComposite = null;
+		}
+
+		// Restore display
+		if (!string.IsNullOrEmpty(_savedDisplayPath))
+		{
+			Image? old = picMainDisplay.Image;
+			picMainDisplay.Image = null;
+			picMainDisplay.ImageLocation = _savedDisplayPath;
+			old?.Dispose();
+		}
+		_savedDisplayPath = null;
+
+		// Restore sprite overlay
+		picOverlay.Visible = true;
+		if (_spriteTimer != null)
+			_spriteTimer.Start();
+	}
+
+	private void AwardLearningSession(int quizXp, int actualMinutes)
+	{
+		SubjectData? subj = _learningData.Subjects.Find(s => s.Name == _currentSubject);
+		if (subj == null) return;
+
+		int prevLevel = subj.Level;
+		int prevStreak = subj.CurrentStreak;
+
+		subj.CompleteSession(actualMinutes, quizXp);
+
+		_learningData.Save();
+
+		if (subj.CurrentStreak > prevStreak)
+		{
+			FlashMessage($"🔥 ¡Racha de {subj.CurrentStreak} días!", Color.FromArgb(255, 150, 0));
+		}
+
+		if (subj.Level > prevLevel)
+		{
+			FlashMessage($"🎉 ¡SUBISTE AL NIVEL {subj.Level} en {subj.DisplayName}!", Color.FromArgb(88, 204, 2));
+		}
+
+		if (subj.TodayMinutesStudied >= _learningData.DailyGoalMinutes)
+		{
+			FlashMessage($"🎯 ¡META DIARIA COMPLETADA!", Color.FromArgb(88, 204, 2));
+		}
+	}
+
+	private void CompleteLearningSession()
+	{
+		if (!_isLearningSession) return;
+		_isLearningSession = false;
+
+		SubjectData? subj = _learningData.Subjects.Find(s => s.Name == _currentSubject);
+		if (subj == null) return;
+
+		int prevLevel = subj.Level;
+		int prevStreak = subj.CurrentStreak;
+		int minutes = (int)(_timeRemaining.TotalMinutes > 0 ? _timeRemaining.TotalMinutes : 0);
+
+		int sessionMinutes = Math.Max(1, minutes);
+		subj.CompleteSession(sessionMinutes);
+
+		_learningData.Save();
+
+		if (subj.CurrentStreak > prevStreak)
+		{
+			FlashMessage($"🔥 ¡Racha de {subj.CurrentStreak} días!", Color.FromArgb(255, 150, 0));
+		}
+
+		if (subj.Level > prevLevel)
+		{
+			FlashMessage($"🎉 ¡SUBISTE AL NIVEL {subj.Level} en {subj.DisplayName}!", Color.FromArgb(88, 204, 2));
+		}
+
+		if (subj.TodayMinutesStudied >= _learningData.DailyGoalMinutes)
+		{
+			FlashMessage($"🎯 ¡META DIARIA COMPLETADA!", Color.FromArgb(88, 204, 2));
+		}
+	}
+
+	private async void FlashMessage(string message, Color color)
+	{
+		string origText = lblMetadata.Text;
+		Color origColor = lblMetadata.ForeColor;
+		lblMetadata.Text = message;
+		lblMetadata.ForeColor = color;
+		await Task.Delay(3000);
+		lblMetadata.Text = origText;
+		lblMetadata.ForeColor = origColor;
+	}
+
 	private void btnFavList_Click(object? sender, EventArgs e)
 	{
 		using var form = new FavoritesListForm(_favorites.ToArray());
@@ -2070,6 +2340,9 @@ private PictureBox picCincross;
 		{
 			AddEmptySlot();
 		}
+		var loaded = LearningData.Load();
+		if (loaded != null)
+			_learningData = loaded;
 		ApplyCurrentTheme();
 		LoadThemesFile();
 		if (_cassettes.Count > 0)
@@ -2199,13 +2472,18 @@ private PictureBox picCincross;
 			return;
 		}
 		countdownTimer.Stop();
-		StopM3u();
-		PlayDoneSound();
 		_timerRunning = false;
 		btnP.Text = "▶";
 		btnS.Text = "⏹";
 		_timeRemaining = TimeSpan.Zero;
 		UpdateTimerDisplay();
+		if (_isLearningSession)
+		{
+			return;
+		}
+		StopM3u();
+		PlayDoneSound();
+		CompleteLearningSession();
 		if (_activeTaskPanel != null)
 		{
 			UpdateTaskProgress();
@@ -2339,6 +2617,7 @@ private PictureBox picCincross;
 	{
 		if (disposing)
 		{
+			_learningData?.Save();
 			_hlsPlayer?.Dispose();
 			components?.Dispose();
 		}
@@ -2466,7 +2745,6 @@ private PictureBox picCincross;
 		this.btnTheme.Text = "THEME";
 		this.btnTheme.UseVisualStyleBackColor = true;
 		this.btnAddFav = new Button();
-		this.btnAddFav.BackColor = System.Drawing.Color.FromArgb(40, 40, 40);
 		this.btnAddFav.FlatAppearance.BorderSize = 0;
 		this.btnAddFav.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 		this.btnAddFav.Font = new System.Drawing.Font("Segoe UI", 6f);
@@ -2476,9 +2754,35 @@ private PictureBox picCincross;
 		this.btnAddFav.Size = new System.Drawing.Size(80, 25);
 		this.btnAddFav.TabIndex = 4;
 		this.btnAddFav.Text = "ADD FAV";
-		this.btnAddFav.UseVisualStyleBackColor = false;
+		this.btnAddFav.UseVisualStyleBackColor = true;
 		this.btnAddFav.Click += new EventHandler(btnAddFav_Click);
 		this.pnlTimerControls.Controls.Add(this.btnAddFav);
+		this.btnLearn = new Button();
+		this.btnLearn.FlatAppearance.BorderSize = 0;
+		this.btnLearn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+		this.btnLearn.Font = new System.Drawing.Font("Segoe UI", 6f);
+		this.btnLearn.ForeColor = System.Drawing.Color.White;
+		this.btnLearn.Location = new System.Drawing.Point(0, 100);
+		this.btnLearn.Name = "btnLearn";
+		this.btnLearn.Size = new System.Drawing.Size(80, 25);
+		this.btnLearn.TabIndex = 6;
+		this.btnLearn.Text = "LEARN";
+		this.btnLearn.UseVisualStyleBackColor = true;
+		this.pnlTimerControls.Controls.Add(this.btnLearn);
+		this.btnInfo = new Button();
+		this.btnInfo.BackColor = System.Drawing.Color.FromArgb(40, 40, 40);
+		this.btnInfo.FlatAppearance.BorderSize = 0;
+		this.btnInfo.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+		this.btnInfo.Font = new System.Drawing.Font("Segoe UI", 6f);
+		this.btnInfo.ForeColor = System.Drawing.Color.White;
+		this.btnInfo.Location = new System.Drawing.Point(0, 125);
+		this.btnInfo.Name = "btnInfo";
+		this.btnInfo.Size = new System.Drawing.Size(80, 25);
+		this.btnInfo.TabIndex = 7;
+		this.btnInfo.Text = "+ INFO";
+		this.btnInfo.UseVisualStyleBackColor = false;
+		this.btnInfo.Click += new EventHandler(btnInfo_Click);
+		this.pnlTimerControls.Controls.Add(this.btnInfo);
 		this.btnImage.FlatAppearance.BorderSize = 0;
 		this.btnImage.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 		this.btnImage.Font = new System.Drawing.Font("Segoe UI", 6f);

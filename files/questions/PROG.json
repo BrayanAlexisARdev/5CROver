@@ -1,0 +1,41 @@
+[
+  {
+    "level": 1,
+    "title": "Nivel 1 - Fundamentos de programación",
+    "questions": [
+      { "type": "truefalse", "text": "HTML es un lenguaje de programación", "correctAnswer": false, "points": 10 },
+      { "type": "truefalse", "text": "Una variable puede cambiar de valor", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "if permite ejecutar código condicional", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "for se usa para crear funciones", "correctAnswer": false, "points": 10 },
+      { "type": "complete", "text": "Python usa ___ para definir una función:", "options": ["function", "def", "fun", "define"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "Para imprimir en consola en JS se usa:", "options": ["print()", "console.log()", "echo()", "write()"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "Un bucle que itera mientras se cumple una condición:", "options": ["for", "while", "do", "loop"], "correctIndex": 1, "points": 15 }
+    ]
+  },
+  {
+    "level": 2,
+    "title": "Nivel 2 - POO y estructuras de datos",
+    "questions": [
+      { "type": "truefalse", "text": "Una clase es una plantilla para crear objetos", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "La herencia permite reutilizar código", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "Un array tiene tamaño dinámico siempre", "correctAnswer": false, "points": 10 },
+      { "type": "complete", "text": "Encapsulación oculta:",
+        "options": ["El código", "Los datos internos", "La herencia", "Las funciones"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "Un diccionario guarda pares:", "options": ["clave-valor", "valor-valor", "clave-clave", "índice-valor"], "correctIndex": 0, "points": 15 },
+      { "type": "complete", "text": "Polimorfismo significa:", "options": ["Una forma única", "Muchas formas", "Sin forma", "Forma fija"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "Para heredar en Java se usa:", "options": ["extends", "implements", "inherits", "using"], "correctIndex": 0, "points": 15 }
+    ]
+  },
+  {
+    "level": 3,
+    "title": "Nivel 3 - Algoritmos y complejidad",
+    "questions": [
+      { "type": "truefalse", "text": "Big O mide la eficiencia de un algoritmo", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "Una pila (stack) es FIFO", "correctAnswer": false, "points": 10 },
+      { "type": "truefalse", "text": "La recursión se llama a sí misma", "correctAnswer": true, "points": 10 },
+      { "type": "complete", "text": "O(n²) corresponde a:", "options": ["Búsqueda binaria", "Burbuja", "Hash", "Lineal"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "Una cola (queue) es:", "options": ["LIFO", "FIFO", "LILO", "FILO"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "La complejidad de búsqueda binaria es:", "options": ["O(n)", "O(log n)", "O(n²)", "O(1)"], "correctIndex": 1, "points": 15 }
+    ]
+  }
+]
