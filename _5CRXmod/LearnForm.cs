@@ -16,7 +16,25 @@ public class LearnForm : Form
     private readonly Label _lblSubjectName;
     private readonly Button _btnSubjectLeft;
     private readonly Button _btnSubjectRight;
+    private readonly Button _btnLevelLeft;
+    private readonly Button _btnLevelRight;
+    private readonly Label _lblLevelName;
+    private int _levelIndex;
     private int _subjectIndex;
+
+    // Section buttons
+    private readonly Button _btnProgreso;
+    private readonly Button _btnBoosters;
+    private readonly Button _btnPassword;
+    private readonly Button _btnOpciones;
+
+    // Section overlay panels
+    private Panel? _panelProgreso;
+    private Panel? _panelBoosters;
+    private Panel? _panelPassword;
+    private Panel? _panelOpciones;
+
+    private readonly Button[] _sideButtons;
 
     // Info panel (always visible)
     private readonly Label _lblAliasTitle;
@@ -44,6 +62,18 @@ public class LearnForm : Form
     private int _bodyIdx;
     private int _accessoriesIdx;
     private int _bgIdx;
+
+    // Color schemes
+    private static readonly (string Name, Color Accent, Color Correct, Color Wrong)[] ColorSchemes =
+    {
+        ("Verde",   Color.FromArgb(88, 204, 2),  Color.FromArgb(30, 144, 255), Color.FromArgb(255, 68, 68)),
+        ("Azul",    Color.FromArgb(30, 144, 255), Color.FromArgb(88, 204, 2),  Color.FromArgb(148, 0, 211)),
+        ("Naranja", Color.FromArgb(255, 140, 0),  Color.FromArgb(255, 200, 0), Color.FromArgb(148, 0, 211)),
+        ("Amarillo",Color.FromArgb(255, 200, 0),  Color.FromArgb(88, 204, 2),  Color.FromArgb(255, 68, 68)),
+        ("Violeta", Color.FromArgb(148, 0, 211),  Color.FromArgb(255, 200, 0), Color.FromArgb(255, 68, 68)),
+    };
+    private int _currentSchemeIndex;
+    private int _savedSchemeIndex;
 
     // Available files per slot (index 0 = "Ninguno/none", populated at runtime)
     private string?[] _fullOutfitFiles = Array.Empty<string?>();
@@ -139,6 +169,14 @@ public class LearnForm : Form
     private static string? GetItem(string?[] files, int idx) =>
         idx >= 0 && idx < files.Length ? files[idx] : null;
 
+    private static int IndexOfFile(string?[] files, string prefix)
+    {
+        for (int i = 0; i < files.Length; i++)
+            if (files[i] != null && files[i].StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return i;
+        return 0;
+    }
+
     private static Region RoundedRect(int w, int h, int r)
     {
         var path = new System.Drawing.Drawing2D.GraphicsPath();
@@ -167,6 +205,12 @@ public class LearnForm : Form
         _avatarChoice = initialAvatarChoice;
 
         LoadCustomizationFiles();
+
+        // Default avatar presets
+        _headIdx = IndexOfFile(_headFiles, "000_CA");
+        _fullOutfitIdx = IndexOfFile(_fullOutfitFiles, "001_T");
+        _hairIdx = IndexOfFile(_hairFiles, "002_HA");
+        _faceIdx = IndexOfFile(_faceFiles, "001_EX");
 
         Text = "";
         FormBorderStyle = FormBorderStyle.None;
@@ -209,6 +253,45 @@ public class LearnForm : Form
         };
         // preview will be updated after combo boxes are created
 
+        // Side icon buttons (avatar category cyclers)
+        string[] leftIcons = { "01_ICA.png", "02_ICA.png", "03_ICA.png", "04_ICA.png" };
+        string[] rightIcons = { "05_ICA.png", "06_ICA.png", "07_ICA.png", "08_ICA.png" };
+        int sideBtnW = 30, sideBtnH = 24;
+        int sideTop = 45 + 13;
+        string imgDir = ImgDir;
+        var sideBtns = new Button[8];
+
+        Button MakeSideBtn(Point loc, string iconFile)
+        {
+            var btn = new Button
+            {
+                Location = loc,
+                Size = new Size(sideBtnW, sideBtnH),
+                FlatStyle = FlatStyle.Flat,
+                FlatAppearance = { BorderSize = 0 },
+                BackColor = Color.FromArgb(45, 45, 45),
+                BackgroundImageLayout = ImageLayout.Zoom,
+                TabStop = false
+            };
+            string ip = Path.Combine(imgDir, iconFile);
+            if (File.Exists(ip)) btn.BackgroundImage = Image.FromFile(ip);
+            return btn;
+        }
+
+        for (int i = 0; i < 4; i++)
+        {
+            int iy = sideTop + i * (sideBtnH + 13);
+            int idxL = i;
+            int idxR = i + 4;
+            sideBtns[idxL] = MakeSideBtn(new Point(0, iy), leftIcons[i]);
+            sideBtns[idxL].Click += (_, _) => CycleCategory(idxL);
+            Controls.Add(sideBtns[idxL]);
+            sideBtns[idxR] = MakeSideBtn(new Point(190, iy), rightIcons[i]);
+            sideBtns[idxR].Click += (_, _) => CycleCategory(idxR);
+            Controls.Add(sideBtns[idxR]);
+        }
+        _sideButtons = sideBtns;
+
         y += 170;
 
         // --- Info panel (always visible) ---
@@ -217,7 +300,7 @@ public class LearnForm : Form
         _lblAliasTitle = new Label
         {
             Text = "ALIAS:",
-            Location = new Point(10, infoY),
+            Location = new Point(12, infoY),
             AutoSize = true,
             ForeColor = Color.Gray,
             Font = new Font("Segoe UI", 7f, FontStyle.Bold)
@@ -227,7 +310,7 @@ public class LearnForm : Form
         _lblAlias = new Label
         {
             Text = _alias,
-            Location = new Point(60, infoY),
+            Location = new Point(62, infoY),
             AutoSize = true,
             ForeColor = Color.White,
             Font = new Font("Segoe UI", 8f, FontStyle.Bold),
@@ -239,8 +322,8 @@ public class LearnForm : Form
         _editAlias = new TextBox
         {
             Text = _alias,
-            Location = new Point(60, infoY - 2),
-            Width = 140,
+            Location = new Point(62, infoY - 2),
+            Width = 138,
             Height = 20,
             BackColor = Color.FromArgb(50, 50, 50),
             ForeColor = Color.White,
@@ -261,7 +344,7 @@ public class LearnForm : Form
         _lblClass = new Label
         {
             Text = "CLASE: NOVATO",
-            Location = new Point(10, infoY),
+            Location = new Point(12, infoY),
             AutoSize = true,
             ForeColor = Color.FromArgb(180, 180, 180),
             Font = new Font("Segoe UI", 7f, FontStyle.Bold)
@@ -273,7 +356,7 @@ public class LearnForm : Form
         _lblNivel = new Label
         {
             Text = "NIVEL: 1",
-            Location = new Point(10, infoY),
+            Location = new Point(12, infoY),
             AutoSize = true,
             ForeColor = Color.FromArgb(88, 204, 2),
             Font = new Font("Segoe UI", 7f, FontStyle.Bold)
@@ -285,11 +368,11 @@ public class LearnForm : Form
         // EXP bar background
         _expBarBg = new Panel
         {
-            Location = new Point(10, infoY + 2),
-            Size = new Size(200, 12),
+            Location = new Point(12, infoY + 2),
+            Size = new Size(196, 12),
             BackColor = Color.FromArgb(40, 40, 40)
         };
-        _expBarBg.Region = RoundedRect(200, 12, 6);
+        _expBarBg.Region = RoundedRect(196, 12, 6);
 
         _expFill = new Panel
         {
@@ -302,80 +385,53 @@ public class LearnForm : Form
 
         y = infoY + 16;
 
-        // --- Customization slots (setup mode only) ---
-        Label lblEditCharacter = new Label
+        // --- Section buttons ---
+        int sectionBtnW = 196;
+        int sectionBtnH = 30;
+
+        Button MakeSectionBtn(string text)
         {
-            Text = "EDITAR PERSONAJE:",
-            Location = new Point(10, y),
-            AutoSize = true,
-            ForeColor = Color.Gray,
-            Font = new Font("Segoe UI", 7f, FontStyle.Bold)
-        };
-        Controls.Add(lblEditCharacter);
-        y += 20;
+            var btn = new Button
+            {
+                Text = text,
+                Location = new Point(12, y),
+                Size = new Size(sectionBtnW, sectionBtnH),
+                FlatStyle = FlatStyle.Flat,
+                FlatAppearance = { BorderSize = 1, BorderColor = Color.FromArgb(60, 60, 60) },
+                BackColor = Color.FromArgb(45, 45, 45),
+                ForeColor = Color.FromArgb(200, 200, 200),
+                Font = new Font("Segoe UI", 9f, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleCenter,
+                TabStop = false
+            };
+            return btn;
+        }
 
-        int colW = 116;
+        _btnProgreso = MakeSectionBtn("PROGRESO");
+        _btnProgreso.Click += (_, _) => ShowPanel(ref _panelProgreso, CreatePanelProgreso);
+        Controls.Add(_btnProgreso);
+        y += sectionBtnH + 4;
 
-        // Pair 1: TRAJE + MASCOTA
-        AddSpinnerRow("TRAJE", "MASCOTA", y, colW,
-            _fullOutfitFiles, _fullOutfitIdx, v => { _fullOutfitIdx = v; UpdatePreview(); },
-            _petFiles, _petIdx, v => { _petIdx = v; UpdatePreview(); });
-        y += 50;
+        _btnBoosters = MakeSectionBtn("BOOSTERS");
+        _btnBoosters.Click += (_, _) => ShowPanel(ref _panelBoosters, CreatePanelBoosters);
+        Controls.Add(_btnBoosters);
+        y += sectionBtnH + 4;
 
-        // Pair 2: CABEZA + CABELLO
-        AddSpinnerRow("CABEZA", "CABELLO", y, colW,
-            _headFiles, _headIdx, v => { _headIdx = v; UpdatePreview(); },
-            _hairFiles, _hairIdx, v => { _hairIdx = v; UpdatePreview(); });
-        y += 50;
+        _btnPassword = MakeSectionBtn("PASSWORD");
+        _btnPassword.Click += (_, _) => ShowPanel(ref _panelPassword, CreatePanelPassword);
+        Controls.Add(_btnPassword);
+        y += sectionBtnH + 4;
 
-        // Pair 3: EXPRESION + CUERPO
-        AddSpinnerRow("EXPRESION", "CUERPO", y, colW,
-            _faceFiles, _faceIdx, v => { _faceIdx = v; UpdatePreview(); },
-            _bodyFiles, _bodyIdx, v => { _bodyIdx = v; UpdatePreview(); });
-        y += 50;
-
-        // Pair 4: ACCESORIO + FONDO (was ACCESORIOS)
-        AddSpinnerRow("ACCESORIO", "FONDO", y, colW,
-            _accessoriesFiles, _accessoriesIdx, v => { _accessoriesIdx = v; UpdatePreview(); },
-            _bgFiles, _bgIdx, v => { _bgIdx = v; UpdatePreview(); });
-        y += 50;
-
-        y += 6;
-
-        // --- Shop section ---
-        Panel shopPanel = new Panel
-        {
-            Location = new Point(10, y),
-            Size = new Size(200, 50),
-            BackColor = Color.FromArgb(45, 45, 45)
-        };
-        Label lblShopTitle = new Label
-        {
-            Text = "🛒 TIENDA",
-            Location = new Point(8, 4),
-            AutoSize = true,
-            ForeColor = Color.FromArgb(255, 200, 0),
-            Font = new Font("Segoe UI", 8f, FontStyle.Bold)
-        };
-        Label lblShopPlaceholder = new Label
-        {
-            Text = "Próximamente...",
-            Location = new Point(8, 24),
-            AutoSize = true,
-            ForeColor = Color.Gray,
-            Font = new Font("Segoe UI", 7f)
-        };
-        shopPanel.Controls.Add(lblShopTitle);
-        shopPanel.Controls.Add(lblShopPlaceholder);
-        Controls.Add(shopPanel);
-
-        y += 60;
+        _btnOpciones = MakeSectionBtn("OPCIONES");
+        _btnOpciones.Click += (_, _) => ShowPanel(ref _panelOpciones, CreatePanelOpciones);
+        Controls.Add(_btnOpciones);
+        y += sectionBtnH + 10;
 
         // --- Subject spinner ---
         Label lblSubjectLabel = new Label
         {
             Text = "MATERIA",
-            Location = new Point(10, y),
+            Location = new Point(12, y),
             AutoSize = true,
             ForeColor = Color.Gray,
             Font = new Font("Segoe UI", 8f, FontStyle.Bold)
@@ -384,12 +440,12 @@ public class LearnForm : Form
         y += 20;
 
         int btnSize = 22;
-        int numW = 100;
+        int numW = 96;
 
         _btnSubjectLeft = new Button
         {
             Text = "◀",
-            Location = new Point(10, y),
+            Location = new Point(12, y),
             Size = new Size(btnSize, btnSize),
             BackColor = Color.FromArgb(50, 50, 50),
             ForeColor = Color.White,
@@ -402,7 +458,7 @@ public class LearnForm : Form
         _lblSubjectName = new Label
         {
             Text = "",
-            Location = new Point(10 + btnSize, y),
+            Location = new Point(12 + btnSize, y),
             Size = new Size(numW, btnSize),
             TextAlign = ContentAlignment.MiddleCenter,
             ForeColor = Color.White,
@@ -413,7 +469,7 @@ public class LearnForm : Form
         _btnSubjectRight = new Button
         {
             Text = "▶",
-            Location = new Point(10 + btnSize + numW, y),
+            Location = new Point(12 + btnSize + numW, y),
             Size = new Size(btnSize, btnSize),
             BackColor = Color.FromArgb(50, 50, 50),
             ForeColor = Color.White,
@@ -430,14 +486,75 @@ public class LearnForm : Form
         Controls.Add(_lblSubjectName);
         Controls.Add(_btnSubjectRight);
 
+        y += 25;
+
+        // --- Level spinner ---
+        Label lblLevelLabel = new Label
+        {
+            Text = "NIVEL",
+            Location = new Point(12, y),
+            AutoSize = true,
+            ForeColor = Color.Gray,
+            Font = new Font("Segoe UI", 8f, FontStyle.Bold)
+        };
+        Controls.Add(lblLevelLabel);
+        y += 20;
+
+        int lvlBtnSize = 22;
+        int lvlNumW = 96;
+
+        _btnLevelLeft = new Button
+        {
+            Text = "◀",
+            Location = new Point(12, y),
+            Size = new Size(lvlBtnSize, lvlBtnSize),
+            BackColor = Color.FromArgb(50, 50, 50),
+            ForeColor = Color.White,
+            FlatStyle = FlatStyle.Flat,
+            Font = new Font("Segoe UI", 7f, FontStyle.Bold),
+            TabStop = false
+        };
+        _btnLevelLeft.FlatAppearance.BorderSize = 0;
+
+        _lblLevelName = new Label
+        {
+            Text = "LV 1",
+            Location = new Point(12 + lvlBtnSize, y),
+            Size = new Size(lvlNumW, lvlBtnSize),
+            TextAlign = ContentAlignment.MiddleCenter,
+            ForeColor = Color.FromArgb(88, 204, 2),
+            BackColor = Color.FromArgb(40, 40, 40),
+            Font = new Font("Segoe UI", 9f, FontStyle.Bold)
+        };
+
+        _btnLevelRight = new Button
+        {
+            Text = "▶",
+            Location = new Point(12 + lvlBtnSize + lvlNumW, y),
+            Size = new Size(lvlBtnSize, lvlBtnSize),
+            BackColor = Color.FromArgb(50, 50, 50),
+            ForeColor = Color.White,
+            FlatStyle = FlatStyle.Flat,
+            Font = new Font("Segoe UI", 7f, FontStyle.Bold),
+            TabStop = false
+        };
+        _btnLevelRight.FlatAppearance.BorderSize = 0;
+
+        _btnLevelLeft.Click += (_, _) => ChangeLevel(-1);
+        _btnLevelRight.Click += (_, _) => ChangeLevel(1);
+
+        Controls.Add(_btnLevelLeft);
+        Controls.Add(_lblLevelName);
+        Controls.Add(_btnLevelRight);
+
         y += 30;
 
         // --- COMENZAR ---
         _btnStart = new Button
         {
             Text = "▶  COMENZAR",
-            Location = new Point(10, y),
-            Size = new Size(200, 40),
+            Location = new Point(12, y),
+            Size = new Size(196, 40),
             FlatStyle = FlatStyle.Flat,
             FlatAppearance = { BorderSize = 0 },
             BackColor = Color.FromArgb(88, 204, 2),
@@ -451,10 +568,10 @@ public class LearnForm : Form
         _btnSalir = new Button
         {
             Text = "SALIR",
-            Location = new Point(10, y),
-            Size = new Size(200, 30),
+            Location = new Point(12, y),
+            Size = new Size(196, 30),
             FlatStyle = FlatStyle.Flat,
-            FlatAppearance = { BorderSize = 1, BorderColor = Color.FromArgb(80, 80, 80) },
+            FlatAppearance = { BorderSize = 3, BorderColor = ColorSchemes[_currentSchemeIndex].Accent },
             BackColor = Color.FromArgb(45, 45, 45),
             ForeColor = Color.White,
             Font = new Font("Segoe UI", 8f, FontStyle.Bold)
@@ -484,7 +601,7 @@ public class LearnForm : Form
             Height = 24,
             Dock = DockStyle.Top,
             BackColor = Color.FromArgb(50, 50, 50),
-            ForeColor = Color.FromArgb(88, 204, 2),
+            ForeColor = ColorSchemes[_currentSchemeIndex].Accent,
             Font = new Font("Segoe UI", 8f, FontStyle.Bold),
             TextAlign = ContentAlignment.MiddleCenter
         };
@@ -603,97 +720,12 @@ public class LearnForm : Form
         if (_subjectIndex < 0) _subjectIndex = 0;
         UpdateSubjectDisplay();
 
+        // Color scheme
+        _savedSchemeIndex = Math.Clamp(_data.ColorSchemeIndex, 0, ColorSchemes.Length - 1);
+        ApplyLearnColorScheme(_savedSchemeIndex);
+
         UpdatePreview();
         UpdateInfoPanel();
-    }
-
-    private void AddSpinnerRow(string label1, string label2, int y, int colW,
-        string?[] files1, int idx1, Action<int> setIdx1,
-        string?[] files2, int idx2, Action<int> setIdx2)
-    {
-        int btnSize = 22;
-        int numW = 40;
-        int totalW = btnSize + numW + btnSize; // ◀ + number + ▶
-        int x1 = 10;
-        int x2 = 10 + colW;
-
-        // Helper to create a spinner group
-        void CreateSpinner(string label, int x, string?[] files, int idx, Action<int> setIdx)
-        {
-            int maxIdx = files.Length - 1;
-
-            Label lbl = new Label
-            {
-                Text = label,
-                Location = new Point(x, y),
-                AutoSize = true,
-                ForeColor = Color.FromArgb(180, 180, 180),
-                Font = new Font("Segoe UI", 7f)
-            };
-            Controls.Add(lbl);
-
-            int sy = y + 14;
-            Button btnLeft = new Button
-            {
-                Text = "◀",
-                Location = new Point(x, sy),
-                Size = new Size(btnSize, btnSize),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 7f, FontStyle.Bold),
-                TabStop = false
-            };
-            btnLeft.FlatAppearance.BorderSize = 0;
-
-            Label lblNum = new Label
-            {
-                Text = idx.ToString(),
-                Location = new Point(x + btnSize, sy),
-                Size = new Size(numW, btnSize),
-                TextAlign = ContentAlignment.MiddleCenter,
-                ForeColor = Color.White,
-                BackColor = Color.FromArgb(40, 40, 40),
-                Font = new Font("Segoe UI", 9f, FontStyle.Bold)
-            };
-
-            Button btnRight = new Button
-            {
-                Text = "▶",
-                Location = new Point(x + btnSize + numW, sy),
-                Size = new Size(btnSize, btnSize),
-                BackColor = Color.FromArgb(50, 50, 50),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 7f, FontStyle.Bold),
-                TabStop = false
-            };
-            btnRight.FlatAppearance.BorderSize = 0;
-
-            btnLeft.Click += (_, _) =>
-            {
-                int cur = int.Parse(lblNum.Text);
-                int v = cur - 1;
-                if (v < 0) v = maxIdx;
-                setIdx(v);
-                lblNum.Text = v.ToString();
-            };
-            btnRight.Click += (_, _) =>
-            {
-                int cur = int.Parse(lblNum.Text);
-                int v = cur + 1;
-                if (v > maxIdx) v = 0;
-                setIdx(v);
-                lblNum.Text = v.ToString();
-            };
-
-            Controls.Add(btnLeft);
-            Controls.Add(lblNum);
-            Controls.Add(btnRight);
-        }
-
-        CreateSpinner(label1, x1, files1, idx1, setIdx1);
-        CreateSpinner(label2, x2, files2, idx2, setIdx2);
     }
 
     private void UpdatePreview()
@@ -820,6 +852,484 @@ public class LearnForm : Form
         _data.LastActiveSubject = _selectedSubject.Name;
     }
 
+    private void ChangeLevel(int delta)
+    {
+        _levelIndex = Math.Clamp(_levelIndex + delta, 0, 2);
+        UpdateLevelDisplay();
+    }
+
+    private void UpdateLevelDisplay()
+    {
+        _lblLevelName.Text = $"LV {_levelIndex + 1}";
+    }
+
+    private void CycleCategory(int btnIdx)
+    {
+        switch (btnIdx)
+        {
+            case 0: _headIdx = (_headIdx + 1) % _headFiles.Length; break;
+            case 1: _bodyIdx = (_bodyIdx + 1) % _bodyFiles.Length; break;
+            case 2: _fullOutfitIdx = (_fullOutfitIdx + 1) % _fullOutfitFiles.Length; break;
+            case 3: _petIdx = (_petIdx + 1) % _petFiles.Length; break;
+            case 4: _faceIdx = (_faceIdx + 1) % _faceFiles.Length; break;
+            case 5: _hairIdx = (_hairIdx + 1) % _hairFiles.Length; break;
+            case 6: _accessoriesIdx = (_accessoriesIdx + 1) % _accessoriesFiles.Length; break;
+            case 7: _bgIdx = (_bgIdx + 1) % _bgFiles.Length; break;
+        }
+        UpdatePreview();
+    }
+
+    private void ApplyLearnColorScheme(int index)
+    {
+        _currentSchemeIndex = index;
+        var scheme = ColorSchemes[index];
+        Color accent = scheme.Accent;
+        _lblNivel.ForeColor = accent;
+        _lblLevelName.ForeColor = accent;
+        _expFill.BackColor = accent;
+        _btnStart.BackColor = accent;
+        // Update header label inside _headerPanel
+        foreach (Control c in _headerPanel.Controls)
+            if (c is Label lbl)
+                lbl.ForeColor = accent;
+        // Refresh section panel header labels and SALIR borders (if panels exist)
+        Panel?[] sectionPanels = { _panelProgreso, _panelBoosters, _panelPassword, _panelOpciones };
+        foreach (Panel? p in sectionPanels)
+        {
+            if (p == null) continue;
+            foreach (Control c in p.Controls)
+            {
+                if (c is Label lblH && lblH.Dock == DockStyle.Top)
+                    lblH.ForeColor = accent;
+                if (c is Button b && b.Text == "SALIR")
+                    b.FlatAppearance.BorderColor = accent;
+            }
+        }
+        // Update main SALIR button border
+        _btnSalir.FlatAppearance.BorderColor = accent;
+        // Update side avatar-category buttons
+        if (_sideButtons != null)
+            foreach (Button b in _sideButtons)
+                b.BackColor = accent;
+    }
+
+    // --- Section overlay panels ---
+
+    private void ShowPanel(ref Panel? panel, Func<Panel> factory)
+    {
+        if (panel == null)
+        {
+            panel = factory();
+            Controls.Add(panel);
+        }
+        panel.Visible = true;
+        panel.BringToFront();
+    }
+
+    private void HidePanel(ref Panel? panel)
+    {
+        if (panel != null)
+            panel.Visible = false;
+    }
+
+    private Panel CreateBasePanel(string title)
+    {
+        Panel p = new Panel
+        {
+            Location = new Point(0, 288),
+            Size = new Size(220, 537),
+            BackColor = Color.FromArgb(35, 35, 35),
+            AutoScroll = true,
+            Visible = true
+        };
+
+        Label lblHeader = new Label
+        {
+            Text = title,
+            Height = 24,
+            Dock = DockStyle.Top,
+            BackColor = Color.FromArgb(50, 50, 50),
+            ForeColor = ColorSchemes[_currentSchemeIndex].Accent,
+            Font = new Font("Segoe UI", 9f, FontStyle.Bold),
+            TextAlign = ContentAlignment.MiddleCenter
+        };
+        p.Controls.Add(lblHeader);
+
+        return p;
+    }
+
+    private void AddSalirButton(Panel p, int yPos)
+    {
+        Button btnSalir = new Button
+        {
+            Text = "SALIR",
+            Location = new Point(10, yPos),
+            Size = new Size(200, 30),
+            FlatStyle = FlatStyle.Flat,
+            FlatAppearance = { BorderSize = 3, BorderColor = ColorSchemes[_currentSchemeIndex].Accent },
+            BackColor = Color.FromArgb(45, 45, 45),
+            ForeColor = Color.White,
+            Font = new Font("Segoe UI", 8f, FontStyle.Bold),
+            TabStop = false
+        };
+        btnSalir.Click += (_, _) => p.Visible = false;
+        p.Controls.Add(btnSalir);
+    }
+
+    private Panel CreatePanelProgreso()
+    {
+        Panel p = CreateBasePanel("PROGRESO");
+        int py = 35;
+
+        Label lblAutosave = new Label
+        {
+            Text = "AUTOGUARDADO",
+            Location = new Point(10, py),
+            AutoSize = true,
+            ForeColor = Color.Gray,
+            Font = new Font("Segoe UI", 8f, FontStyle.Bold)
+        };
+        p.Controls.Add(lblAutosave);
+        py += 22;
+
+        CheckBox chkAutosave = new CheckBox
+        {
+            Text = "Habilitado",
+            Location = new Point(10, py),
+            AutoSize = true,
+            ForeColor = Color.White,
+            Font = new Font("Segoe UI", 8f),
+            Checked = true
+        };
+        p.Controls.Add(chkAutosave);
+        py += 30;
+
+        Label lblSlots = new Label
+        {
+            Text = "SLOTS",
+            Location = new Point(10, py),
+            AutoSize = true,
+            ForeColor = Color.Gray,
+            Font = new Font("Segoe UI", 8f, FontStyle.Bold)
+        };
+        p.Controls.Add(lblSlots);
+        py += 22;
+
+        string[] slotLabels = { "SLOT 1", "SLOT 2", "SLOT 3" };
+        for (int si = 0; si < slotLabels.Length; si++)
+        {
+            bool isSlot1 = si == 0;
+            Button btnSlot = new Button
+            {
+                Text = isSlot1 ? "SLOT 1 «" : slotLabels[si],
+                Location = new Point(10, py),
+                Size = new Size(200, 28),
+                FlatStyle = FlatStyle.Flat,
+                FlatAppearance = { BorderSize = 1, BorderColor = isSlot1 ? ColorSchemes[_currentSchemeIndex].Accent : Color.FromArgb(60, 60, 60) },
+                BackColor = Color.FromArgb(50, 50, 50),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 8f, FontStyle.Bold),
+                TabStop = false
+            };
+            p.Controls.Add(btnSlot);
+            py += 34;
+        }
+
+        AddSalirButton(p, py);
+        return p;
+    }
+
+    private Panel CreatePanelPersonalizar()
+    {
+        Panel p = CreateBasePanel("PERSONALIZAR");
+        int py = 35;
+        int colW = 100;
+
+        // --- Edit character spinners ---
+        Label lblEdit = new Label
+        {
+            Text = "EDITAR PERSONAJE:",
+            Location = new Point(10, py),
+            AutoSize = true,
+            ForeColor = Color.Gray,
+            Font = new Font("Segoe UI", 7f, FontStyle.Bold)
+        };
+        p.Controls.Add(lblEdit);
+        py += 20;
+
+        AddSpinnerRowToPanel(p, "TRAJE", "MASCOTA", ref py, colW,
+            _fullOutfitFiles, _fullOutfitIdx, v => { _fullOutfitIdx = v; UpdatePreview(); },
+            _petFiles, _petIdx, v => { _petIdx = v; UpdatePreview(); });
+
+        AddSpinnerRowToPanel(p, "CABEZA", "CABELLO", ref py, colW,
+            _headFiles, _headIdx, v => { _headIdx = v; UpdatePreview(); },
+            _hairFiles, _hairIdx, v => { _hairIdx = v; UpdatePreview(); });
+
+        AddSpinnerRowToPanel(p, "EXPRESION", "CUERPO", ref py, colW,
+            _faceFiles, _faceIdx, v => { _faceIdx = v; UpdatePreview(); },
+            _bodyFiles, _bodyIdx, v => { _bodyIdx = v; UpdatePreview(); });
+
+        AddSpinnerRowToPanel(p, "ACCESORIO", "FONDO", ref py, colW,
+            _accessoriesFiles, _accessoriesIdx, v => { _accessoriesIdx = v; UpdatePreview(); },
+            _bgFiles, _bgIdx, v => { _bgIdx = v; UpdatePreview(); });
+
+        py += 10;
+
+        // --- Tienda section ---
+        Panel shopP = new Panel
+        {
+            Location = new Point(10, py),
+            Size = new Size(200, 50),
+            BackColor = Color.FromArgb(45, 45, 45)
+        };
+        Label lblShop = new Label
+        {
+            Text = "TIENDA",
+            Location = new Point(8, 4),
+            AutoSize = true,
+            ForeColor = Color.FromArgb(255, 200, 0),
+            Font = new Font("Segoe UI", 8f, FontStyle.Bold)
+        };
+        Label lblPlaceholder = new Label
+        {
+            Text = "Próximamente...",
+            Location = new Point(8, 24),
+            AutoSize = true,
+            ForeColor = Color.Gray,
+            Font = new Font("Segoe UI", 7f)
+        };
+        shopP.Controls.Add(lblShop);
+        shopP.Controls.Add(lblPlaceholder);
+        p.Controls.Add(shopP);
+        py += 60;
+
+        AddSalirButton(p, py);
+        return p;
+    }
+
+    private void AddSpinnerRowToPanel(Panel parent, string label1, string label2, ref int py, int colW,
+        string?[] files1, int idx1, Action<int> setter1,
+        string?[] files2, int idx2, Action<int> setter2)
+    {
+        // Left spinner
+        Button btnLeft1 = new Button
+        {
+            Text = "◀",
+            Location = new Point(10, py),
+            Size = new Size(16, 20),
+            BackColor = Color.FromArgb(50, 50, 50),
+            ForeColor = Color.White,
+            FlatStyle = FlatStyle.Flat,
+            Font = new Font("Segoe UI", 6f, FontStyle.Bold),
+            TabStop = false
+        };
+        btnLeft1.FlatAppearance.BorderSize = 0;
+
+        Label lblName1 = new Label
+        {
+            Text = Path.GetFileNameWithoutExtension(files1[Math.Max(0, idx1)] ?? label1),
+            Location = new Point(26, py),
+            Size = new Size(colW - 32, 20),
+            TextAlign = ContentAlignment.MiddleCenter,
+            ForeColor = Color.White,
+            BackColor = Color.FromArgb(40, 40, 40),
+            Font = new Font("Segoe UI", 6f)
+        };
+
+        Button btnRight1 = new Button
+        {
+            Text = "▶",
+            Location = new Point(26 + colW - 32, py),
+            Size = new Size(16, 20),
+            BackColor = Color.FromArgb(50, 50, 50),
+            ForeColor = Color.White,
+            FlatStyle = FlatStyle.Flat,
+            Font = new Font("Segoe UI", 6f, FontStyle.Bold),
+            TabStop = false
+        };
+        btnRight1.FlatAppearance.BorderSize = 0;
+
+        int cur1 = idx1;
+        btnLeft1.Click += (_, _) => { if (cur1 > 0) { cur1--; setter1(cur1); lblName1.Text = Path.GetFileNameWithoutExtension(files1[cur1] ?? label1); } };
+        btnRight1.Click += (_, _) => { if (cur1 < files1.Length - 1) { cur1++; setter1(cur1); lblName1.Text = Path.GetFileNameWithoutExtension(files1[cur1] ?? label1); } };
+
+        parent.Controls.Add(btnLeft1);
+        parent.Controls.Add(lblName1);
+        parent.Controls.Add(btnRight1);
+
+        // Label under left spinner
+        Label lblTitle1 = new Label
+        {
+            Text = label1,
+            Location = new Point(10, py + 20),
+            Size = new Size(colW, 14),
+            TextAlign = ContentAlignment.MiddleCenter,
+            ForeColor = Color.Gray,
+            Font = new Font("Segoe UI", 6f)
+        };
+        parent.Controls.Add(lblTitle1);
+
+        // Right spinner
+        int rx = 10 + colW;
+        Button btnLeft2 = new Button
+        {
+            Text = "◀",
+            Location = new Point(rx, py),
+            Size = new Size(16, 20),
+            BackColor = Color.FromArgb(50, 50, 50),
+            ForeColor = Color.White,
+            FlatStyle = FlatStyle.Flat,
+            Font = new Font("Segoe UI", 6f, FontStyle.Bold),
+            TabStop = false
+        };
+        btnLeft2.FlatAppearance.BorderSize = 0;
+
+        Label lblName2 = new Label
+        {
+            Text = Path.GetFileNameWithoutExtension(files2[Math.Max(0, idx2)] ?? label2),
+            Location = new Point(rx + 16, py),
+            Size = new Size(colW - 32, 20),
+            TextAlign = ContentAlignment.MiddleCenter,
+            ForeColor = Color.White,
+            BackColor = Color.FromArgb(40, 40, 40),
+            Font = new Font("Segoe UI", 6f)
+        };
+
+        Button btnRight2 = new Button
+        {
+            Text = "▶",
+            Location = new Point(rx + 16 + colW - 32, py),
+            Size = new Size(16, 20),
+            BackColor = Color.FromArgb(50, 50, 50),
+            ForeColor = Color.White,
+            FlatStyle = FlatStyle.Flat,
+            Font = new Font("Segoe UI", 6f, FontStyle.Bold),
+            TabStop = false
+        };
+        btnRight2.FlatAppearance.BorderSize = 0;
+
+        int cur2 = idx2;
+        btnLeft2.Click += (_, _) => { if (cur2 > 0) { cur2--; setter2(cur2); lblName2.Text = Path.GetFileNameWithoutExtension(files2[cur2] ?? label2); } };
+        btnRight2.Click += (_, _) => { if (cur2 < files2.Length - 1) { cur2++; setter2(cur2); lblName2.Text = Path.GetFileNameWithoutExtension(files2[cur2] ?? label2); } };
+
+        parent.Controls.Add(btnLeft2);
+        parent.Controls.Add(lblName2);
+        parent.Controls.Add(btnRight2);
+
+        Label lblTitle2 = new Label
+        {
+            Text = label2,
+            Location = new Point(rx, py + 20),
+            Size = new Size(colW, 14),
+            TextAlign = ContentAlignment.MiddleCenter,
+            ForeColor = Color.Gray,
+            Font = new Font("Segoe UI", 6f)
+        };
+        parent.Controls.Add(lblTitle2);
+
+        py += 36;
+    }
+
+    private Panel CreatePanelBoosters()
+    {
+        Panel p = CreateBasePanel("BOOSTERS");
+        int py = 35;
+
+        Label lblPlaceholder = new Label
+        {
+            Text = "Próximamente...",
+            Location = new Point(10, py),
+            AutoSize = true,
+            ForeColor = Color.Gray,
+            Font = new Font("Segoe UI", 9f)
+        };
+        p.Controls.Add(lblPlaceholder);
+
+        AddSalirButton(p, py);
+        return p;
+    }
+
+    private Panel CreatePanelPassword()
+    {
+        Panel p = CreateBasePanel("PASSWORD");
+        int py = 35;
+
+        Label lblPrompt = new Label
+        {
+            Text = "INGRESE PASSWORD:",
+            Location = new Point(10, py),
+            AutoSize = true,
+            ForeColor = Color.Gray,
+            Font = new Font("Segoe UI", 8f, FontStyle.Bold)
+        };
+        p.Controls.Add(lblPrompt);
+        py += 22;
+
+        TextBox txtPassword = new TextBox
+        {
+            Location = new Point(10, py),
+            Size = new Size(200, 22),
+            BackColor = Color.FromArgb(50, 50, 50),
+            ForeColor = Color.White,
+            BorderStyle = BorderStyle.FixedSingle,
+            Font = new Font("Segoe UI", 9f),
+            PasswordChar = '*',
+            ReadOnly = true
+        };
+        txtPassword.Text = "(de momento ninguno)";
+        p.Controls.Add(txtPassword);
+        py += 30;
+
+        AddSalirButton(p, py);
+        return p;
+    }
+
+    private Panel CreatePanelOpciones()
+    {
+        Panel p = CreateBasePanel("OPCIONES");
+        int py = 35;
+
+        Label lblColor = new Label
+        {
+            Text = "COLOR PRINCIPAL",
+            Location = new Point(10, py),
+            AutoSize = true,
+            ForeColor = Color.Gray,
+            Font = new Font("Segoe UI", 8f, FontStyle.Bold)
+        };
+        p.Controls.Add(lblColor);
+        py += 22;
+
+        for (int i = 0; i < ColorSchemes.Length; i++)
+        {
+            int ci = i;
+            Button btnColor = new Button
+            {
+                Text = ColorSchemes[i].Name,
+                Location = new Point(10, py),
+                Size = new Size(200, 28),
+                FlatStyle = FlatStyle.Flat,
+                FlatAppearance = { BorderSize = 0 },
+                BackColor = ColorSchemes[i].Accent,
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 8f, FontStyle.Bold),
+                TabStop = false
+            };
+            btnColor.Click += (_, _) =>
+            {
+                ApplyLearnColorScheme(ci);
+                _data.ColorSchemeIndex = ci;
+                _data.Save();
+            };
+            p.Controls.Add(btnColor);
+            py += 34;
+        }
+
+        py += 10;
+        AddSalirButton(p, py);
+        return p;
+    }
+
     private void UpdateInfoPanel(int extraXp = 0)
     {
         if (_selectedSubject == null) return;
@@ -855,6 +1365,12 @@ public class LearnForm : Form
             ctrl.Visible = false;
         }
 
+        // Hide any open section panels
+        HidePanel(ref _panelProgreso);
+        HidePanel(ref _panelBoosters);
+        HidePanel(ref _panelPassword);
+        HidePanel(ref _panelOpciones);
+
         _quizContentPanel.Visible = true;
 
         // Show info panel controls
@@ -873,7 +1389,7 @@ public class LearnForm : Form
             _lblQuizQuestion.Text = "No hay preguntas disponibles.";
             return;
         }
-        _quizQuestions = QuestionBank.GetRandomQuestions(levels, 15, 3);
+        _quizQuestions = QuestionBank.GetRandomQuestions(levels, 15, _levelIndex + 1);
         if (_quizQuestions.Count == 0)
         {
             _lblQuizQuestion.Text = "No hay preguntas disponibles.";
@@ -923,12 +1439,12 @@ public class LearnForm : Form
         }
         else if (_lastAnswerCorrect == true)
         {
-            _lblQuizHeader.ForeColor = Color.FromArgb(88, 204, 2);
+            _lblQuizHeader.ForeColor = ColorSchemes[_currentSchemeIndex].Accent;
             _lblQuizHeader.Text = $"{name}⭐ +{_lastPointsDelta}pts";
         }
         else
         {
-            _lblQuizHeader.ForeColor = Color.FromArgb(255, 68, 68);
+            _lblQuizHeader.ForeColor = ColorSchemes[_currentSchemeIndex].Wrong;
             _lblQuizHeader.Text = $"{name}⭐ -{Math.Abs(_lastPointsDelta)}pts";
         }
 
@@ -945,8 +1461,8 @@ public class LearnForm : Form
 
     private void CreateQuizTrueFalseButtons(Question q)
     {
-        Color correctColor = Color.FromArgb(88, 204, 2);
-        Color wrongColor = Color.FromArgb(255, 68, 68);
+        Color correctColor = ColorSchemes[_currentSchemeIndex].Correct;
+        Color wrongColor = ColorSchemes[_currentSchemeIndex].Wrong;
 
         Button btnTrue = new Button
         {
@@ -1071,6 +1587,12 @@ public class LearnForm : Form
             ctrl.Visible = true;
         }
 
+        // Hide any open section panels (after foreach so they don't get shown again)
+        HidePanel(ref _panelProgreso);
+        HidePanel(ref _panelBoosters);
+        HidePanel(ref _panelPassword);
+        HidePanel(ref _panelOpciones);
+
         ClientSize = new Size(220, 825);
         UpdateInfoPanel();
         _isQuizMode = false;
@@ -1107,7 +1629,7 @@ public class LearnForm : Form
             Location = new Point(20, 95),
             FlatStyle = FlatStyle.Flat,
             FlatAppearance = { BorderSize = 0 },
-            BackColor = Color.FromArgb(88, 204, 2),
+            BackColor = ColorSchemes[_currentSchemeIndex].Correct,
             ForeColor = Color.White,
             Font = new Font("Segoe UI", 8f, FontStyle.Bold)
         };
@@ -1210,8 +1732,8 @@ public class LearnForm : Form
 
     private void ShowQuizTrueFalseCorrection(Question q, bool userCorrect)
     {
-        Color correctColor = Color.FromArgb(88, 204, 2);
-        Color wrongColor = Color.FromArgb(255, 68, 68);
+        Color correctColor = ColorSchemes[_currentSchemeIndex].Correct;
+        Color wrongColor = ColorSchemes[_currentSchemeIndex].Wrong;
         Color neutralColor = Color.FromArgb(50, 50, 50);
 
         Color trueColor = q.CorrectAnswer ? correctColor : neutralColor;
@@ -1258,8 +1780,8 @@ public class LearnForm : Form
 
     private void ShowQuizOptionsCorrection(Question q, AnswerRecord rec)
     {
-        Color correctColor = Color.FromArgb(88, 204, 2);
-        Color wrongColor = Color.FromArgb(255, 68, 68);
+        Color correctColor = ColorSchemes[_currentSchemeIndex].Correct;
+        Color wrongColor = ColorSchemes[_currentSchemeIndex].Wrong;
 
         int y = 5;
         int btnH = 35;

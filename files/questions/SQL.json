@@ -9,7 +9,11 @@
       { "type": "truefalse", "text": "INSERT agrega nuevas filas a una tabla", "correctAnswer": true, "points": 10 },
       { "type": "complete", "text": "Para seleccionar todo de una tabla se usa:", "options": ["SELECT ALL", "SELECT *", "SELECT FULL", "SELECT EVERYTHING"], "correctIndex": 1, "points": 15 },
       { "type": "complete", "text": "Para contar registros se usa:", "options": ["SUM()", "COUNT()", "TOTAL()", "ADD()"], "correctIndex": 1, "points": 15 },
-      { "type": "complete", "text": "Para ordenar resultados se usa:", "options": ["SORT BY", "ORDER BY", "ARRANGE BY", "SORT"], "correctIndex": 1, "points": 15 }
+      { "type": "complete", "text": "Para ordenar resultados se usa:", "options": ["SORT BY", "ORDER BY", "ARRANGE BY", "SORT"], "correctIndex": 1, "points": 15 },
+      { "type": "truefalse", "text": "UPDATE modifica datos existentes", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "CREATE TABLE borra una tabla", "correctAnswer": false, "points": 10 },
+      { "type": "complete", "text": "Para insertar datos se usa:", "options": ["INSERT INTO", "ADD ROW", "PUT DATA", "NEW ROW"], "correctIndex": 0, "points": 15 },
+      { "type": "complete", "text": "LIKE se usa con patrones de:", "options": ["números exactos", "texto", "fechas", "booleanos"], "correctIndex": 1, "points": 15 }
     ]
   },
   {
@@ -22,7 +26,11 @@
       { "type": "complete", "text": "LEFT JOIN devuelve:", "options": ["Solo filas que coinciden", "Todas de izquierda + coincidencias", "Todas de ambas", "Solo izquierda"], "correctIndex": 1, "points": 15 },
       { "type": "complete", "text": "AVG() devuelve:", "options": ["Suma", "Promedio", "Mínimo", "Máximo"], "correctIndex": 1, "points": 15 },
       { "type": "complete", "text": "Para agrupar por categoría se usa:", "options": ["ORDER BY categoria", "SORT BY categoria", "GROUP BY categoria", "FILTER BY categoria"], "correctIndex": 2, "points": 15 },
-      { "type": "complete", "text": "UNION combina resultados de:", "options": ["Una tabla", "Dos consultas", "Dos columnas", "Una fila"], "correctIndex": 1, "points": 15 }
+      { "type": "complete", "text": "UNION combina resultados de:", "options": ["Una tabla", "Dos consultas", "Dos columnas", "Una fila"], "correctIndex": 1, "points": 15 },
+      { "type": "truefalse", "text": "INNER JOIN solo devuelve filas que coinciden", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "SUM() cuenta filas de una tabla", "correctAnswer": false, "points": 10 },
+      { "type": "complete", "text": "MAX() devuelve el valor:", "options": ["mínimo", "máximo", "promedio", "suma"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "Para filtrar después de GROUP BY se usa:", "options": ["WHERE", "HAVING", "FILTER", "CHECK"], "correctIndex": 1, "points": 15 }
     ]
   },
   {
@@ -34,7 +42,10 @@
       { "type": "truefalse", "text": "DROP TABLE solo borra los datos", "correctAnswer": false, "points": 10 },
       { "type": "complete", "text": "Para evitar duplicados se usa:", "options": ["UNIQUE", "DISTINCT", "DIFFERENT", "SINGLE"], "correctIndex": 1, "points": 15 },
       { "type": "complete", "text": "Una clave foránea (FOREIGN KEY) sirve para:", "options": ["Identificar una fila", "Relacionar dos tablas", "Crear un índice", "Borrar datos"], "correctIndex": 1, "points": 15 },
-      { "type": "complete", "text": "BETWEEN se usa para filtrar por:", "options": ["Texto exacto", "Rango de valores", "Valores nulos", "Patrones"], "correctIndex": 1, "points": 15 }
+      { "type": "complete", "text": "BETWEEN se usa para filtrar por:", "options": ["Texto exacto", "Rango de valores", "Valores nulos", "Patrones"], "correctIndex": 1, "points": 15 },
+      { "type": "truefalse", "text": "EXISTS devuelve true si hay al menos una fila", "correctAnswer": true, "points": 10 },
+      { "type": "complete", "text": "CREATE VIEW crea:", "options": ["una tabla", "una vista virtual", "un índice", "un procedimiento"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "ROLLBACK deshace:", "options": ["una transacción", "una tabla", "una consulta", "un índice"], "correctIndex": 0, "points": 15 }
     ]
   }
 ]

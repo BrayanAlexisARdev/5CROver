@@ -9,7 +9,10 @@
       { "type": "truefalse", "text": "for se usa para crear funciones", "correctAnswer": false, "points": 10 },
       { "type": "complete", "text": "Python usa ___ para definir una función:", "options": ["function", "def", "fun", "define"], "correctIndex": 1, "points": 15 },
       { "type": "complete", "text": "Para imprimir en consola en JS se usa:", "options": ["print()", "console.log()", "echo()", "write()"], "correctIndex": 1, "points": 15 },
-      { "type": "complete", "text": "Un bucle que itera mientras se cumple una condición:", "options": ["for", "while", "do", "loop"], "correctIndex": 1, "points": 15 }
+      { "type": "complete", "text": "Un bucle que itera mientras se cumple una condición:", "options": ["for", "while", "do", "loop"], "correctIndex": 1, "points": 15 },
+      { "type": "truefalse", "text": "Un array empieza en índice 1", "correctAnswer": false, "points": 10 },
+      { "type": "truefalse", "text": "Un string es una cadena de caracteres", "correctAnswer": true, "points": 10 },
+      { "type": "complete", "text": "Para declarar una variable en JS se usa:", "options": ["var", "int", "string", "declare"], "correctIndex": 0, "points": 15 }
     ]
   },
   {
@@ -23,7 +26,10 @@
         "options": ["El código", "Los datos internos", "La herencia", "Las funciones"], "correctIndex": 1, "points": 15 },
       { "type": "complete", "text": "Un diccionario guarda pares:", "options": ["clave-valor", "valor-valor", "clave-clave", "índice-valor"], "correctIndex": 0, "points": 15 },
       { "type": "complete", "text": "Polimorfismo significa:", "options": ["Una forma única", "Muchas formas", "Sin forma", "Forma fija"], "correctIndex": 1, "points": 15 },
-      { "type": "complete", "text": "Para heredar en Java se usa:", "options": ["extends", "implements", "inherits", "using"], "correctIndex": 0, "points": 15 }
+      { "type": "complete", "text": "Para heredar en Java se usa:", "options": ["extends", "implements", "inherits", "using"], "correctIndex": 0, "points": 15 },
+      { "type": "truefalse", "text": "Un método estático pertenece a la clase", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "Una interfaz solo tiene métodos abstractos", "correctAnswer": true, "points": 10 },
+      { "type": "complete", "text": "Una lista enlazada usa:", "options": ["nodos", "arrays", "tablas", "pilas"], "correctIndex": 0, "points": 15 }
     ]
   },
   {
@@ -35,7 +41,11 @@
       { "type": "truefalse", "text": "La recursión se llama a sí misma", "correctAnswer": true, "points": 10 },
       { "type": "complete", "text": "O(n²) corresponde a:", "options": ["Búsqueda binaria", "Burbuja", "Hash", "Lineal"], "correctIndex": 1, "points": 15 },
       { "type": "complete", "text": "Una cola (queue) es:", "options": ["LIFO", "FIFO", "LILO", "FILO"], "correctIndex": 1, "points": 15 },
-      { "type": "complete", "text": "La complejidad de búsqueda binaria es:", "options": ["O(n)", "O(log n)", "O(n²)", "O(1)"], "correctIndex": 1, "points": 15 }
+      { "type": "complete", "text": "La complejidad de búsqueda binaria es:", "options": ["O(n)", "O(log n)", "O(n²)", "O(1)"], "correctIndex": 1, "points": 15 },
+      { "type": "truefalse", "text": "Un HashMap tiene clave-valor", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "La ordenación por inserción es O(n²)", "correctAnswer": true, "points": 10 },
+      { "type": "complete", "text": "Un árbol binario tiene máximo:", "options": ["1 hijo", "2 hijos", "3 hijos", "4 hijos"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "La memoria dinámica en C++ se asigna con:", "options": ["malloc", "free", "delete", "alloc"], "correctIndex": 0, "points": 15 }
     ]
   }
 ]

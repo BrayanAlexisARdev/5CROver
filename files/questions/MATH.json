@@ -9,7 +9,10 @@
       { "type": "truefalse", "text": "9 × 6 = 54", "correctAnswer": true, "points": 10 },
       { "type": "complete", "text": "15 + 27 =", "options": ["42", "43", "41", "44"], "correctIndex": 0, "points": 15 },
       { "type": "complete", "text": "100 - 38 =", "options": ["62", "72", "52", "68"], "correctIndex": 0, "points": 15 },
-      { "type": "complete", "text": "8 × 7 =", "options": ["48", "54", "56", "64"], "correctIndex": 2, "points": 15 }
+      { "type": "complete", "text": "8 × 7 =", "options": ["48", "54", "56", "64"], "correctIndex": 2, "points": 15 },
+      { "type": "truefalse", "text": "15 - 8 = 7", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "2 + 3 × 4 = 20", "correctAnswer": false, "points": 10 },
+      { "type": "complete", "text": "48 ÷ 6 =", "options": ["6", "7", "8", "9"], "correctIndex": 2, "points": 15 }
     ]
   },
   {
@@ -22,7 +25,10 @@
       { "type": "complete", "text": "El 15% de 300 es:", "options": ["35", "45", "55", "65"], "correctIndex": 1, "points": 15 },
       { "type": "complete", "text": "2/5 en decimal es:", "options": ["0.25", "0.4", "0.5", "0.2"], "correctIndex": 1, "points": 15 },
       { "type": "complete", "text": "Si ahorras el 20% de $500, ahorras:", "options": ["$50", "$80", "$100", "$120"], "correctIndex": 2, "points": 15 },
-      { "type": "complete", "text": "1/8 + 3/8 =", "options": ["1/2", "3/8", "4/8", "5/8"], "correctIndex": 0, "points": 15 }
+      { "type": "complete", "text": "1/8 + 3/8 =", "options": ["1/2", "3/8", "4/8", "5/8"], "correctIndex": 0, "points": 15 },
+      { "type": "truefalse", "text": "0.75 es igual a 3/4", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "10% de 500 es 50", "correctAnswer": true, "points": 10 },
+      { "type": "complete", "text": "3/5 + 1/5 =", "options": ["3/5", "4/5", "2/5", "1"], "correctIndex": 1, "points": 15 }
     ]
   },
   {
@@ -34,7 +40,11 @@
       { "type": "truefalse", "text": "2x + 3 = 7 entonces x = 2", "correctAnswer": true, "points": 10 },
       { "type": "complete", "text": "El área de un círculo de radio 3 (π≈3.14) es:", "options": ["28.26", "18.84", "9.42", "31.4"], "correctIndex": 0, "points": 15 },
       { "type": "complete", "text": "Si 3x - 6 = 12, x =", "options": ["4", "5", "6", "7"], "correctIndex": 2, "points": 15 },
-      { "type": "complete", "text": "La raíz cuadrada de 144 es:", "options": ["11", "12", "13", "14"], "correctIndex": 1, "points": 15 }
+      { "type": "complete", "text": "La raíz cuadrada de 144 es:", "options": ["11", "12", "13", "14"], "correctIndex": 1, "points": 15 },
+      { "type": "truefalse", "text": "El perímetro de un cuadrado de lado 5 es 20", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "x² = 25 entonces x = 5", "correctAnswer": true, "points": 10 },
+      { "type": "complete", "text": "El volumen de un cubo de lado 3 es:", "options": ["9", "18", "27", "36"], "correctIndex": 2, "points": 15 },
+      { "type": "complete", "text": "Si 2x + 5 = 15, x =", "options": ["3", "4", "5", "6"], "correctIndex": 2, "points": 15 }
     ]
   }
 ]

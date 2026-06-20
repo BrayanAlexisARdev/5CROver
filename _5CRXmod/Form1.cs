@@ -73,7 +73,6 @@ public class Form1 : Form
 
 	private string? _avatarPath;
 	private string? _savedDisplayPath;
-	private string? _preLearnDisplayPath;
 	private Bitmap? _tvCharacterComposite;
 	private string? _avatarHead;
 	private string? _avatarHair;
@@ -153,9 +152,9 @@ public class Form1 : Form
 
 	private Timer? _eqTimer;
 
-	private int[] _eqBars = new int[25];
+	private float _eqAnimationOffset;
 
-	private Random _rnd = new Random();
+	private bool _isPlaying;
 
 	private readonly (Color timer, Color header, Color list, Color footer)[] _themes = new(Color, Color, Color, Color)[8]
 	{
@@ -294,16 +293,6 @@ private PictureBox picCincross;
 		});
 		EnableDoubleBuffered(timerPanel);
 		EnableDoubleBuffered(pnlTopButtons);
-		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(timerPanel, new object[2]
-		{
-			ControlStyles.SupportsTransparentBackColor,
-			true
-		});
-		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(pnlTopButtons, new object[2]
-		{
-			ControlStyles.SupportsTransparentBackColor,
-			true
-		});
 		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(lblHours, new object[2]
 		{
 			ControlStyles.SupportsTransparentBackColor,
@@ -329,7 +318,6 @@ private PictureBox picCincross;
 			});
 		}
 		LoadCustomFont();
-		InitPlayer();
 		base.Load += Form1_Load;
 		btnS.Click += btnS_Click;
 		btnP.Click += btnP_Click;
@@ -367,13 +355,12 @@ private PictureBox picCincross;
 			{
 				_wmp?.controls.play();
 			}
-			_eqTimer?.Start();
+			_isPlaying = true;
 		};
 		btnStopPlayer.Click += delegate
 		{
 			StopM3u();
-			_eqTimer?.Stop();
-			ResetEq();
+			_isPlaying = false;
 		};
 		pnlVolume.MouseDown += delegate(object? s, MouseEventArgs e)
 		{
@@ -433,10 +420,7 @@ private PictureBox picCincross;
 		};
 		_eqTimer.Tick += delegate
 		{
-			for (int j = 0; j < _eqBars.Length; j++)
-			{
-				_eqBars[j] = _rnd.Next(2, pnlEqualizer.Height);
-			}
+			_eqAnimationOffset += 0.15f;
 			pnlEqualizer.Invalidate();
 		};
 		pnlEqualizer.Paint += pnlEqualizer_Paint;
@@ -526,16 +510,6 @@ private PictureBox picCincross;
 			}
 		};
 		pnlGrip.Height = 20;
-		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(timerPanel, new object[2]
-		{
-			ControlStyles.SupportsTransparentBackColor,
-			true
-		});
-		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(pnlTopButtons, new object[2]
-		{
-			ControlStyles.SupportsTransparentBackColor,
-			true
-		});
 		timerPanel.Paint += delegate(object? s, PaintEventArgs e)
 		{
 			if (_appColor != Color.Transparent)
@@ -571,29 +545,40 @@ private PictureBox picCincross;
 		Application.Exit();
 	}
 
-	private void ResetEq()
-	{
-		for (int i = 0; i < _eqBars.Length; i++)
-		{
-			_eqBars[i] = 0;
-		}
-		pnlEqualizer.Invalidate();
-	}
-
 	private void pnlEqualizer_Paint(object? sender, PaintEventArgs e)
 	{
-		if (_eqBars == null)
+		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+		int w = pnlEqualizer.Width;
+		int h = pnlEqualizer.Height;
+		Color themeColor = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
+
+		if (_isPlaying)
 		{
-			return;
+			int barCount = 12;
+			int gap = 3;
+			int barWidth = (w - gap * (barCount + 1)) / barCount;
+			if (barWidth < 2) barWidth = 2;
+			for (int i = 0; i < barCount; i++)
+			{
+				float phase = (float)i / barCount * MathF.PI * 2f + _eqAnimationOffset;
+				float normalized = (MathF.Sin(phase) + 1f) * 0.5f;
+				int barHeight = (int)(normalized * (h - 6));
+				if (barHeight < 2) barHeight = 2;
+				int x = gap + i * (barWidth + gap);
+				int y = h - 3 - barHeight;
+				using var brush = new LinearGradientBrush(
+					new Rectangle(x, y, barWidth, barHeight),
+					Color.FromArgb(40, themeColor),
+					Color.FromArgb(220, themeColor),
+					LinearGradientMode.Vertical);
+				e.Graphics.FillRectangle(brush, x, y, barWidth, barHeight);
+			}
 		}
-		using Brush brush = new SolidBrush(GetContrastColor(playerFooterPanel.BackColor));
-		float barWidth = (float)pnlEqualizer.Width / (float)_eqBars.Length;
-		for (int i = 0; i < _eqBars.Length; i++)
+		else
 		{
-			float x = (float)i * barWidth;
-			float h = _eqBars[i];
-			float y = (float)pnlEqualizer.Height - h;
-			e.Graphics.FillRectangle(brush, x + 1f, y, barWidth - 2f, h);
+			using Pen pen = new Pen(Color.White, 2f);
+			int y = h / 2;
+			e.Graphics.DrawLine(pen, 4, y, w - 4, y);
 		}
 	}
 
@@ -1513,8 +1498,7 @@ private PictureBox picCincross;
 			_timeRemaining = TimeSpan.Zero;
 			UpdateTimerDisplay();
 			ResetTaskProgress(taskPanel);
-			_eqTimer?.Stop();
-			ResetEq();
+			_isPlaying = false;
 		}
 		else if (!_timerRunning)
 		{
@@ -1526,7 +1510,7 @@ private PictureBox picCincross;
 			if (!string.IsNullOrEmpty(data.M3uPath))
 			{
 				PlayM3u(data.M3uPath);
-				_eqTimer?.Start();
+				_isPlaying = true;
 			}
 		}
 	}
@@ -1550,7 +1534,7 @@ private PictureBox picCincross;
 			lblM3uTitle.Visible = true;
 			lblMetadata.Visible = true;
 			lblExtraMetadata.Visible = true;
-			_eqTimer?.Start();
+			_isPlaying = true;
 			SetVolumePreset(3);
 			return;
 		}
@@ -1575,7 +1559,7 @@ private PictureBox picCincross;
 			lblMetadata.Visible = true;
 			lblExtraMetadata.Visible = true;
 			_metaTimer?.Start();
-			_eqTimer?.Start();
+			_isPlaying = true;
 			SetVolumePreset(3);
 		}
 		catch
@@ -1717,7 +1701,6 @@ private PictureBox picCincross;
 		if (!string.IsNullOrEmpty(cass.Contenido))
 		{
 			PlayM3u(cass.Contenido);
-			_eqTimer?.Start();
 		}
 	}
 
@@ -1839,12 +1822,6 @@ private PictureBox picCincross;
 
 	private void btnLearn_Click(object? sender, EventArgs e)
 	{
-		// Save original display and show welcome avatar
-		_preLearnDisplayPath = picMainDisplay.ImageLocation;
-		string welcomePath = ResolveImgPath("AVMAGO_AV.gif");
-		if (File.Exists(welcomePath))
-			picMainDisplay.ImageLocation = welcomePath;
-
 		btnLearn.Enabled = false;
 		btnAddFav.Enabled = false;
 
@@ -1860,10 +1837,6 @@ private PictureBox picCincross;
 		{
 			btnLearn.Enabled = true;
 			btnAddFav.Enabled = true;
-
-			if (!string.IsNullOrEmpty(_preLearnDisplayPath))
-				picMainDisplay.ImageLocation = _preLearnDisplayPath;
-			_preLearnDisplayPath = null;
 			form.Dispose();
 		};
 
@@ -2166,8 +2139,7 @@ private PictureBox picCincross;
 		_lastTitle = "";
 		lblMetadata.Text = "";
 		lblExtraMetadata.Text = "";
-		_eqTimer?.Stop();
-		ResetEq();
+		_isPlaying = false;
 	}
 
 	private void ResetTaskProgress(Panel taskPanel)
@@ -2192,6 +2164,7 @@ private PictureBox picCincross;
 		lblCassettes.Text = "CASSETTES";
 		txtCassetteNum.Text = "0";
 		lblCassetteTotal.Text = "/0";
+		_eqTimer?.Start();
 		this.BeginInvoke(new Action(() => LoadAllData()));
 	}
 
@@ -2202,7 +2175,7 @@ private PictureBox picCincross;
 		lblCassettes.Text = "CASSETTES";
 		txtCassetteNum.Text = "0";
 		lblCassetteTotal.Text = $"/{_cassettes.Count}";
-		LoadCustomFont();
+		InitPlayer();
 		LayoutCassetteHeader();
 		try
 		{
@@ -2963,12 +2936,12 @@ private PictureBox picCincross;
 		this.playerFooterPanel.Dock = System.Windows.Forms.DockStyle.Top;
 		this.playerFooterPanel.Location = new System.Drawing.Point(0, 200);
 		this.playerFooterPanel.Name = "playerFooterPanel";
-		this.playerFooterPanel.Size = new System.Drawing.Size(260, 230);
+		this.playerFooterPanel.Size = new System.Drawing.Size(260, 250);
 		this.playerFooterPanel.TabIndex = 3;
 		this.pnlEqualizer.BackColor = System.Drawing.Color.Transparent;
-		this.pnlEqualizer.Location = new System.Drawing.Point(28, 95);
+		this.pnlEqualizer.Location = new System.Drawing.Point(28, 92);
 		this.pnlEqualizer.Name = "pnlEqualizer";
-		this.pnlEqualizer.Size = new System.Drawing.Size(204, 10);
+		this.pnlEqualizer.Size = new System.Drawing.Size(204, 30);
 		this.pnlEqualizer.TabIndex = 6;
 		this.pnlVolume.Controls.Add(this.btnStopPlayer);
 		this.pnlVolume.Controls.Add(this.btnPlayPlayer);
@@ -2976,7 +2949,7 @@ private PictureBox picCincross;
 		this.pnlVolume.Controls.Add(this.pnlVolumeLine);
 		this.pnlVolume.Controls.Add(this.pnlVolButtons);
 		this.pnlVolume.Controls.Add(this.pnlVolumeThumb);
-		this.pnlVolume.Location = new System.Drawing.Point(5, 155);
+		this.pnlVolume.Location = new System.Drawing.Point(5, 173);
 		this.pnlVolume.Name = "pnlVolume";
 		this.pnlVolume.Size = new System.Drawing.Size(250, 75);
 		this.pnlVolume.TabIndex = 5;
@@ -3092,21 +3065,21 @@ private PictureBox picCincross;
 		this.picPlayerNext.TabIndex = 1;
 		this.picPlayerNext.TabStop = false;
 		this.lblM3uTitle.Font = new System.Drawing.Font("Segoe UI", 8f, System.Drawing.FontStyle.Bold);
-		this.lblM3uTitle.Location = new System.Drawing.Point(10, 107);
+		this.lblM3uTitle.Location = new System.Drawing.Point(10, 124);
 		this.lblM3uTitle.Name = "lblM3uTitle";
 		this.lblM3uTitle.Size = new System.Drawing.Size(240, 16);
 		this.lblM3uTitle.TabIndex = 0;
 		this.lblM3uTitle.Text = "M3U TITLE";
 		this.lblM3uTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 		this.lblMetadata.Font = new System.Drawing.Font("Segoe UI", 7f, System.Drawing.FontStyle.Bold);
-		this.lblMetadata.Location = new System.Drawing.Point(10, 124);
+		this.lblMetadata.Location = new System.Drawing.Point(10, 141);
 		this.lblMetadata.Name = "lblMetadata";
 		this.lblMetadata.Size = new System.Drawing.Size(240, 15);
 		this.lblMetadata.TabIndex = 6;
 		this.lblMetadata.Text = "SONG TITLE";
 		this.lblMetadata.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 		this.lblExtraMetadata.Font = new System.Drawing.Font("Segoe UI", 6.5f);
-		this.lblExtraMetadata.Location = new System.Drawing.Point(10, 140);
+		this.lblExtraMetadata.Location = new System.Drawing.Point(10, 157);
 		this.lblExtraMetadata.Name = "lblExtraMetadata";
 		this.lblExtraMetadata.Size = new System.Drawing.Size(240, 15);
 		this.lblExtraMetadata.TabIndex = 7;

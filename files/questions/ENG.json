@@ -9,7 +9,11 @@
       { "type": "truefalse", "text": "'Happy' significa 'Feliz'", "correctAnswer": true, "points": 10 },
       { "type": "complete", "text": "El pasado de 'go' es:", "options": ["goed", "went", "gone", "going"], "correctIndex": 1, "points": 15 },
       { "type": "complete", "text": "'Beautiful' significa:", "options": ["Feo", "Bonito", "Grande", "Pequeño"], "correctIndex": 1, "points": 15 },
-      { "type": "complete", "text": "El plural de 'child' es:", "options": ["childs", "children", "childrens", "child"], "correctIndex": 1, "points": 15 }
+      { "type": "complete", "text": "El plural de 'child' es:", "options": ["childs", "children", "childrens", "child"], "correctIndex": 1, "points": 15 },
+      { "type": "truefalse", "text": "'Fast' es sinónimo de 'Quick'", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "'Small' significa 'Grande'", "correctAnswer": false, "points": 10 },
+      { "type": "complete", "text": "El antónimo de 'Hot' es:", "options": ["Warm", "Cold", "Cool", "Mild"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "'Many' se usa con sustantivos:", "options": ["contables", "incontables", "singulares", "plurales"], "correctIndex": 0, "points": 15 }
     ]
   },
   {
@@ -22,7 +26,11 @@
       { "type": "complete", "text": "'I ___ to the store yesterday'", "options": ["go", "went", "gone", "going"], "correctIndex": 1, "points": 15 },
       { "type": "complete", "text": "'She ___ a book right now'", "options": ["read", "reads", "is reading", "reading"], "correctIndex": 2, "points": 15 },
       { "type": "complete", "text": "'We ___ been waiting for an hour'", "options": ["have", "has", "had", "are"], "correctIndex": 0, "points": 15 },
-      { "type": "complete", "text": "Completa: 'He ___ to school every day'", "options": ["walk", "walks", "walked", "walking"], "correctIndex": 1, "points": 15 }
+      { "type": "complete", "text": "Completa: 'He ___ to school every day'", "options": ["walk", "walks", "walked", "walking"], "correctIndex": 1, "points": 15 },
+      { "type": "truefalse", "text": "'I was sleeping' es pasado continuo", "correctAnswer": true, "points": 10 },
+      { "type": "truefalse", "text": "'They have been working' es futuro simple", "correctAnswer": false, "points": 10 },
+      { "type": "complete", "text": "'By the time she arrived, we ___ finished'", "options": ["have", "had", "will have", "are"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "'She ___ English for 3 years'", "options": ["study", "studies", "has studied", "studying"], "correctIndex": 2, "points": 15 }
     ]
   },
   {
@@ -34,7 +42,10 @@
       { "type": "truefalse", "text": "'If I had known' es un tercer condicional", "correctAnswer": true, "points": 10 },
       { "type": "complete", "text": "'___ up! The bus is leaving'", "options": ["Stand", "Hurry", "Look", "Get"], "correctIndex": 1, "points": 15 },
       { "type": "complete", "text": "'If I ___ you, I would study harder'", "options": ["am", "was", "were", "be"], "correctIndex": 2, "points": 15 },
-      { "type": "complete", "text": "'She ___ up with a great idea'", "options": ["came", "gave", "put", "made"], "correctIndex": 0, "points": 15 }
+      { "type": "complete", "text": "'She ___ up with a great idea'", "options": ["came", "gave", "put", "made"], "correctIndex": 0, "points": 15 },
+      { "type": "truefalse", "text": "'Break down' significa 'descomponerse'", "correctAnswer": true, "points": 10 },
+      { "type": "complete", "text": "'If it ___, we will stay home'", "options": ["rain", "rains", "rained", "raining"], "correctIndex": 1, "points": 15 },
+      { "type": "complete", "text": "'He ___ out of the window when the phone rang'", "options": ["looks", "looked", "was looking", "is looking"], "correctIndex": 2, "points": 15 }
     ]
   }
 ]

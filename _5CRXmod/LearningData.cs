@@ -71,6 +71,7 @@ public class LearningData
 {
     public int DailyGoalMinutes { get; set; } = 20;
     public string LastActiveSubject { get; set; } = "MATH";
+    public int ColorSchemeIndex { get; set; }
     public List<SubjectData> Subjects { get; set; } = new();
 
     public static string GetFilePath()
