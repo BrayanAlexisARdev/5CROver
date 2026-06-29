@@ -232,6 +232,12 @@ public class Form1 : Form
 
 	private FlowLayoutPanel tasksListPanel;
 
+	private Label lblTaskInfo;
+
+	private Panel pnlProgressBg;
+
+	private Panel pnlProgressFill;
+
 	private PictureBox picOverlay;
 
 	private Button btnNextM3u;
@@ -248,12 +254,9 @@ public class Form1 : Form
 
 	private Panel pnlVolumeThumb;
 
-	private Panel pnlVolButtons;
 	private Button btnVolLow;
 	private Button btnVolMid;
 	private Button btnVolMax;
-
-	private Label lblVolumeLabel;
 
 	private Panel pnlGrip;
 
@@ -551,6 +554,8 @@ private PictureBox picCincross;
 		int w = pnlEqualizer.Width;
 		int h = pnlEqualizer.Height;
 		Color themeColor = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
+		float lum = 0.299f * themeColor.R + 0.587f * themeColor.G + 0.114f * themeColor.B;
+		bool isDark = lum < 100f;
 
 		if (_isPlaying)
 		{
@@ -566,10 +571,12 @@ private PictureBox picCincross;
 				if (barHeight < 2) barHeight = 2;
 				int x = gap + i * (barWidth + gap);
 				int y = h - 3 - barHeight;
+				Color topColor = isDark ? Color.FromArgb(40, Color.White) : Color.FromArgb(40, themeColor);
+				Color bottomColor = isDark ? Color.FromArgb(220, themeColor) : Color.FromArgb(220, themeColor);
 				using var brush = new LinearGradientBrush(
 					new Rectangle(x, y, barWidth, barHeight),
-					Color.FromArgb(40, themeColor),
-					Color.FromArgb(220, themeColor),
+					topColor,
+					bottomColor,
 					LinearGradientMode.Vertical);
 				e.Graphics.FillRectangle(brush, x, y, barWidth, barHeight);
 			}
@@ -929,6 +936,7 @@ private PictureBox picCincross;
 		pnlCassetteContainer.BackColor = Color.Transparent;
 		pnlEqualizer.BackColor = darkColor;
 		pnlVolume.BackColor = darkColor;
+		pnlProgressFill.Invalidate();
 
 		lblHours.ForeColor = Color.White;
 		lblMinutes.ForeColor = Color.White;
@@ -945,13 +953,9 @@ private PictureBox picCincross;
 				p.BackColor = listColor;
 				UpdateControlContrast(p, listColor);
 			}
-			else if (c.Name == "pnlAddSlot")
+			else if (c.Name == "pnlTaskInfo")
 			{
-				c.BackColor = Color.FromArgb(100, ControlPaint.Dark(baseColor));
-				foreach (Control child in c.Controls)
-				{
-					if (child is Button b) b.BackColor = Color.FromArgb(67, ControlPaint.Dark(baseColor));
-				}
+				c.BackColor = Color.FromArgb(30, 30, 30);
 			}
 		}
 
@@ -1097,7 +1101,6 @@ private PictureBox picCincross;
 		UpdateControlContrast(cassettesHeaderPanel, headerColor);
 		UpdateControlContrast(playerFooterPanel, panelColor);
 		UpdateControlContrast(pnlGrip, pnlGrip.BackColor);
-		SetSafeBackColor(pnlCassetteContainer, darkSolid);
 		SetSafeBackColor(pnlEqualizer, darkSolid);
 		SetSafeBackColor(pnlVolume, darkSolid);
 	}
@@ -1300,7 +1303,6 @@ private PictureBox picCincross;
 			lblM3uTitle.Font = new Font(FontHelper.CustomFontFamily, 8f, FontStyle.Bold);
 			lblMetadata.Font = new Font(FontHelper.CustomFontFamily, 6.5f, FontStyle.Regular);
 			lblExtraMetadata.Font = new Font(FontHelper.CustomFontFamily, 6f, FontStyle.Regular);
-			lblVolumeLabel.Font = new Font(FontHelper.CustomFontFamily, 6f, FontStyle.Bold);
 			Font miniFont = new Font(FontHelper.CustomFontFamily, 6f, FontStyle.Regular);
 			btnColor.Font = miniFont;
 			btnStyle.Font = miniFont;
@@ -1341,22 +1343,6 @@ private PictureBox picCincross;
 				IsFixed = isFixed
 			}
 		};
-		Panel pnlProgressBg = new Panel
-		{
-			Height = 4,
-			Dock = DockStyle.Bottom,
-			BackColor = Color.Black,
-			Name = "pnlProgressBg"
-		};
-		Panel pnlProgressFill = new Panel
-		{
-			Height = 4,
-			Width = 0,
-			Dock = DockStyle.Left,
-			BackColor = (isFixed ? Color.Cyan : Color.Magenta),
-			Name = "pnlProgressFill"
-		};
-		pnlProgressBg.Controls.Add(pnlProgressFill);
 		PictureBox picTask = new PictureBox
 		{
 			Size = new Size(32, 32),
@@ -1463,7 +1449,6 @@ private PictureBox picCincross;
 		taskPanel.Controls.Add(lblTaskName);
 		taskPanel.Controls.Add(lblTaskTime);
 		taskPanel.Controls.Add(picTask);
-		taskPanel.Controls.Add(pnlProgressBg);
 		int index = tasksListPanel.Controls.Count;
 		for (int i2 = 0; i2 < tasksListPanel.Controls.Count; i2++)
 		{
@@ -1493,12 +1478,10 @@ private PictureBox picCincross;
 		if (_activeTaskPanel == taskPanel)
 		{
 			StopTimer();
-			StopM3u();
 			_activeTaskPanel = null;
 			_timeRemaining = TimeSpan.Zero;
 			UpdateTimerDisplay();
 			ResetTaskProgress(taskPanel);
-			_isPlaying = false;
 		}
 		else if (!_timerRunning)
 		{
@@ -1507,11 +1490,33 @@ private PictureBox picCincross;
 			_timeRemaining = data.Time;
 			UpdateTimerDisplay();
 			StartTimer();
-			if (!string.IsNullOrEmpty(data.M3uPath))
+		}
+		UpdateTaskInfo();
+	}
+
+	private void UpdateTaskInfo()
+	{
+		if (_activeTaskPanel != null)
+		{
+			Label? nameLabel = null;
+			foreach (Control c in _activeTaskPanel.Controls)
 			{
-				PlayM3u(data.M3uPath);
-				_isPlaying = true;
+				if (c is Label lbl)
+				{
+					nameLabel = lbl;
+					break;
+				}
 			}
+			if (nameLabel != null && _activeTaskPanel.Tag is TaskData data)
+			{
+				lblTaskInfo.Text = $"{nameLabel.Text}  •  {FormatTaskTime(data.Time)}";
+				lblTaskInfo.ForeColor = Color.White;
+			}
+		}
+		else
+		{
+			lblTaskInfo.Text = "NO TASK";
+			lblTaskInfo.ForeColor = Color.Gray;
 		}
 	}
 
@@ -2144,15 +2149,7 @@ private PictureBox picCincross;
 
 	private void ResetTaskProgress(Panel taskPanel)
 	{
-		Control[] foundBg = taskPanel.Controls.Find("pnlProgressBg", searchAllChildren: true);
-		if (foundBg.Length != 0)
-		{
-			Control[] foundFill = foundBg[0].Controls.Find("pnlProgressFill", searchAllChildren: true);
-			if (foundFill.Length != 0)
-			{
-				foundFill[0].Width = 0;
-			}
-		}
+		pnlProgressFill.Width = 0;
 	}
 
 	private void Form1_Load(object? sender, EventArgs e)
@@ -2305,14 +2302,56 @@ private PictureBox picCincross;
 		catch
 		{
 		}
+		Panel pnlTaskInfo = new Panel
+		{
+			Width = base.Width,
+			Height = 60,
+			BackColor = Color.FromArgb(40, 40, 40),
+			Margin = new Padding(0),
+			Name = "pnlTaskInfo"
+		};
+		lblTaskInfo = new Label
+		{
+			Text = "NO TASK",
+			TextAlign = ContentAlignment.MiddleCenter,
+			Dock = DockStyle.Fill,
+			ForeColor = Color.Gray,
+			Font = new Font("Segoe UI", 8f, FontStyle.Bold)
+		};
+		pnlTaskInfo.Controls.Add(lblTaskInfo);
+		pnlProgressBg = new Panel
+		{
+			Height = 9,
+			Dock = DockStyle.Bottom,
+			BackColor = Color.Black,
+			Name = "pnlProgressBg"
+		};
+		pnlProgressFill = new Panel
+		{
+			Height = 9,
+			Width = 0,
+			Dock = DockStyle.Left,
+			BackColor = Color.Transparent,
+			Name = "pnlProgressFill"
+		};
+		pnlProgressFill.Paint += (s, pe) =>
+		{
+			var fill = (Panel)s!;
+			Color c = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
+			float lum = 0.299f * c.R + 0.587f * c.G + 0.114f * c.B;
+			Color leftColor = lum < 100f ? Color.FromArgb(60, Color.White) : Color.FromArgb(60, c);
+			Color rightColor = Color.FromArgb(220, c);
+			using var brush = new LinearGradientBrush(
+				fill.ClientRectangle, leftColor, rightColor, LinearGradientMode.Horizontal);
+			pe.Graphics.FillRectangle(brush, fill.ClientRectangle);
+		};
+		pnlProgressBg.Controls.Add(pnlProgressFill);
+		pnlTaskInfo.Controls.Add(pnlProgressBg);
+		tasksListPanel.Controls.Add(pnlTaskInfo);
 		AddTaskToPanel("CODE", TimeSpan.FromMinutes(30L), "", "code_TSK.png", isFixed: true);
 		AddTaskToPanel("EXER", TimeSpan.FromMinutes(30L), "", "exerc_TSK.png", isFixed: true);
 		AddTaskToPanel("WORK", TimeSpan.FromMinutes(30L), "", "progress_TSK.png", isFixed: true);
 		AddTaskToPanel("RLAX", TimeSpan.FromMinutes(30L), "", "music_TSK.png", isFixed: true);
-		for (int i2 = 0; i2 < 2; i2++)
-		{
-			AddEmptySlot();
-		}
 		var loaded = LearningData.Load();
 		if (loaded != null)
 			_learningData = loaded;
@@ -2454,7 +2493,6 @@ private PictureBox picCincross;
 		{
 			return;
 		}
-		StopM3u();
 		PlayDoneSound();
 		CompleteLearningSession();
 		if (_activeTaskPanel != null)
@@ -2467,15 +2505,16 @@ private PictureBox picCincross;
 			if (!isFixed)
 			{
 				tasksListPanel.Controls.Remove(panelToDelete);
-				AddEmptySlot();
 				panelToDelete.Dispose();
 			}
 			else
 			{
 				ResetTaskProgress(panelToDelete);
 			}
+			UpdateTaskInfo();
 		}
 	}
+	
 
 	private void PlayDoneSound()
 	{
@@ -2507,18 +2546,11 @@ private PictureBox picCincross;
 	{
 		if (_activeTaskPanel == null)
 		{
+			pnlProgressFill.Width = 0;
 			return;
 		}
-		Control[] foundBg = _activeTaskPanel.Controls.Find("pnlProgressBg", searchAllChildren: true);
-		if (foundBg.Length != 0)
-		{
-			Control[] foundFill = foundBg[0].Controls.Find("pnlProgressFill", searchAllChildren: true);
-			if (foundFill.Length != 0)
-			{
-				double percent = (_activeTaskTotalSeconds - _timeRemaining.TotalSeconds) / _activeTaskTotalSeconds;
-				foundFill[0].Width = (int)((double)foundBg[0].Width * percent);
-			}
-		}
+		double percent = (_activeTaskTotalSeconds - _timeRemaining.TotalSeconds) / _activeTaskTotalSeconds;
+		pnlProgressFill.Width = (int)((double)pnlProgressBg.Width * percent);
 	}
 
 	private void UpdateTimerDisplay()
@@ -2624,10 +2656,8 @@ private PictureBox picCincross;
 		this.pnlVolume = new System.Windows.Forms.Panel();
 		this.btnStopPlayer = new System.Windows.Forms.Button();
 		this.btnPlayPlayer = new System.Windows.Forms.Button();
-		this.lblVolumeLabel = new System.Windows.Forms.Label();
 		this.pnlVolumeLine = new System.Windows.Forms.Panel();
 		this.pnlVolumeThumb = new System.Windows.Forms.Panel();
-		this.pnlVolButtons = new System.Windows.Forms.Panel();
 		this.btnVolLow = new System.Windows.Forms.Button();
 		this.btnVolMid = new System.Windows.Forms.Button();
 		this.btnVolMax = new System.Windows.Forms.Button();
@@ -2853,7 +2883,7 @@ private PictureBox picCincross;
 		this.lblTasks.Text = "TASKS";
 		this.lblTasks.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 		this.cassettesHeaderPanel.BackColor = System.Drawing.Color.LightGray;
-		this.cassettesHeaderPanel.Dock = System.Windows.Forms.DockStyle.Top;
+		this.cassettesHeaderPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
 		this.cassettesHeaderPanel.Location = new System.Drawing.Point(0, 200);
 		this.cassettesHeaderPanel.Name = "cassettesHeaderPanel";
 		this.cassettesHeaderPanel.Size = new System.Drawing.Size(260, 28);
@@ -2918,7 +2948,7 @@ private PictureBox picCincross;
 
 		this.pnlFullListRow = new Panel();
 		this.pnlFullListRow.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
-		this.pnlFullListRow.Dock = System.Windows.Forms.DockStyle.Top;
+		this.pnlFullListRow.Dock = System.Windows.Forms.DockStyle.Bottom;
 		this.pnlFullListRow.Height = 28;
 		this.pnlFullListRow.Name = "pnlFullListRow";
 		this.pnlFullListRow.Controls.Add(this.btnFavList);
@@ -2933,32 +2963,58 @@ private PictureBox picCincross;
 		this.playerFooterPanel.Controls.Add(this.lblM3uTitle);
 		this.playerFooterPanel.Controls.Add(this.lblMetadata);
 		this.playerFooterPanel.Controls.Add(this.lblExtraMetadata);
-		this.playerFooterPanel.Dock = System.Windows.Forms.DockStyle.Top;
+		this.pnlEqualizer.SendToBack();
+		this.playerFooterPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
 		this.playerFooterPanel.Location = new System.Drawing.Point(0, 200);
 		this.playerFooterPanel.Name = "playerFooterPanel";
 		this.playerFooterPanel.Size = new System.Drawing.Size(260, 250);
 		this.playerFooterPanel.TabIndex = 3;
 		this.pnlEqualizer.BackColor = System.Drawing.Color.Transparent;
-		this.pnlEqualizer.Location = new System.Drawing.Point(28, 92);
+		this.pnlEqualizer.Location = new System.Drawing.Point(28, 55);
 		this.pnlEqualizer.Name = "pnlEqualizer";
 		this.pnlEqualizer.Size = new System.Drawing.Size(204, 30);
 		this.pnlEqualizer.TabIndex = 6;
-		this.pnlVolume.Controls.Add(this.btnStopPlayer);
+		this.pnlVolume.Controls.Add(this.btnVolLow);
+		this.pnlVolume.Controls.Add(this.btnVolMid);
+		this.pnlVolume.Controls.Add(this.btnVolMax);
 		this.pnlVolume.Controls.Add(this.btnPlayPlayer);
-		this.pnlVolume.Controls.Add(this.lblVolumeLabel);
+		this.pnlVolume.Controls.Add(this.btnStopPlayer);
 		this.pnlVolume.Controls.Add(this.pnlVolumeLine);
-		this.pnlVolume.Controls.Add(this.pnlVolButtons);
 		this.pnlVolume.Controls.Add(this.pnlVolumeThumb);
-		this.pnlVolume.Location = new System.Drawing.Point(5, 173);
+		this.pnlVolume.Location = new System.Drawing.Point(5, 180);
 		this.pnlVolume.Name = "pnlVolume";
-		this.pnlVolume.Size = new System.Drawing.Size(250, 75);
+		this.pnlVolume.Size = new System.Drawing.Size(250, 60);
 		this.pnlVolume.TabIndex = 5;
+		this.btnVolLow.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+		this.btnVolLow.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Underline | System.Drawing.FontStyle.Bold);
+		this.btnVolLow.ForeColor = System.Drawing.Color.White;
+		this.btnVolLow.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
+		this.btnVolLow.Location = new System.Drawing.Point(5, 3);
+		this.btnVolLow.Name = "btnVolLow";
+		this.btnVolLow.Size = new System.Drawing.Size(28, 22);
+		this.btnVolLow.Text = "LOW";
+		this.btnVolMid.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+		this.btnVolMid.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Bold);
+		this.btnVolMid.ForeColor = System.Drawing.Color.White;
+		this.btnVolMid.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
+		this.btnVolMid.Location = new System.Drawing.Point(35, 3);
+		this.btnVolMid.Name = "btnVolMid";
+		this.btnVolMid.Size = new System.Drawing.Size(28, 22);
+		this.btnVolMid.Text = "MID";
+		this.btnVolMax.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+		this.btnVolMax.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Bold);
+		this.btnVolMax.ForeColor = System.Drawing.Color.White;
+		this.btnVolMax.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
+		this.btnVolMax.Location = new System.Drawing.Point(65, 3);
+		this.btnVolMax.Name = "btnVolMax";
+		this.btnVolMax.Size = new System.Drawing.Size(28, 22);
+		this.btnVolMax.Text = "MAX";
 		this.btnPlayPlayer.FlatAppearance.BorderSize = 0;
 		this.btnPlayPlayer.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 		this.btnPlayPlayer.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Bold);
 		this.btnPlayPlayer.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
 		this.btnPlayPlayer.ForeColor = System.Drawing.Color.White;
-		this.btnPlayPlayer.Location = new System.Drawing.Point(5, 22);
+		this.btnPlayPlayer.Location = new System.Drawing.Point(5, 32);
 		this.btnPlayPlayer.Name = "btnPlayPlayer";
 		this.btnPlayPlayer.Size = new System.Drawing.Size(48, 20);
 		this.btnPlayPlayer.TabIndex = 2;
@@ -2970,25 +3026,16 @@ private PictureBox picCincross;
 		this.btnStopPlayer.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Bold);
 		this.btnStopPlayer.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
 		this.btnStopPlayer.ForeColor = System.Drawing.Color.White;
-		this.btnStopPlayer.Location = new System.Drawing.Point(53, 22);
+		this.btnStopPlayer.Location = new System.Drawing.Point(53, 32);
 		this.btnStopPlayer.Name = "btnStopPlayer";
 		this.btnStopPlayer.Size = new System.Drawing.Size(48, 20);
 		this.btnStopPlayer.TabIndex = 3;
 		this.btnStopPlayer.Text = "STOP";
 		this.btnStopPlayer.UseVisualStyleBackColor = false;
 		this.btnStopPlayer.Padding = new System.Windows.Forms.Padding(0);
-		this.lblVolumeLabel.AutoSize = true;
-		this.lblVolumeLabel.BackColor = System.Drawing.Color.Transparent;
-		this.lblVolumeLabel.Font = new System.Drawing.Font("Segoe UI", 7f, System.Drawing.FontStyle.Bold);
-		this.lblVolumeLabel.ForeColor = System.Drawing.Color.White;
-		this.lblVolumeLabel.Location = new System.Drawing.Point(108, 5);
-		this.lblVolumeLabel.Name = "lblVolumeLabel";
-		this.lblVolumeLabel.Size = new System.Drawing.Size(45, 15);
-		this.lblVolumeLabel.TabIndex = 1;
-		this.lblVolumeLabel.Text = "VOLUMEN";
 		this.pnlVolumeLine.BackColor = System.Drawing.Color.Gray;
 		this.pnlVolumeLine.Controls.Add(this.pnlVolumeThumb);
-		this.pnlVolumeLine.Location = new System.Drawing.Point(105, 30);
+		this.pnlVolumeLine.Location = new System.Drawing.Point(105, 38);
 		this.pnlVolumeLine.Name = "pnlVolumeLine";
 		this.pnlVolumeLine.Size = new System.Drawing.Size(140, 4);
 		this.pnlVolumeLine.TabIndex = 0;
@@ -2997,34 +3044,6 @@ private PictureBox picCincross;
 		this.pnlVolumeThumb.Name = "pnlVolumeThumb";
 		this.pnlVolumeThumb.Size = new System.Drawing.Size(12, 12);
 		this.pnlVolumeThumb.TabIndex = 0;
-		this.pnlVolButtons.Location = new System.Drawing.Point(105, 46);
-		this.pnlVolButtons.Name = "pnlVolButtons";
-		this.pnlVolButtons.Size = new System.Drawing.Size(140, 28);
-		this.pnlVolButtons.BackColor = System.Drawing.Color.Transparent;
-		this.btnVolLow.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-		this.btnVolLow.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Underline | System.Drawing.FontStyle.Bold);
-		this.btnVolLow.ForeColor = System.Drawing.Color.White;
-		this.btnVolLow.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
-		this.btnVolLow.Location = new System.Drawing.Point(0, 0);
-		this.btnVolLow.Size = new System.Drawing.Size(42, 28);
-		this.btnVolLow.Text = "LOW";
-		this.btnVolMid.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-		this.btnVolMid.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Bold);
-		this.btnVolMid.ForeColor = System.Drawing.Color.White;
-		this.btnVolMid.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
-		this.btnVolMid.Location = new System.Drawing.Point(44, 0);
-		this.btnVolMid.Size = new System.Drawing.Size(42, 28);
-		this.btnVolMid.Text = "MID";
-		this.btnVolMax.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-		this.btnVolMax.Font = new System.Drawing.Font("Segoe UI", 5.5f, System.Drawing.FontStyle.Bold);
-		this.btnVolMax.ForeColor = System.Drawing.Color.White;
-		this.btnVolMax.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
-		this.btnVolMax.Location = new System.Drawing.Point(88, 0);
-		this.btnVolMax.Size = new System.Drawing.Size(45, 28);
-		this.btnVolMax.Text = "MAX";
-		this.pnlVolButtons.Controls.Add(this.btnVolLow);
-		this.pnlVolButtons.Controls.Add(this.btnVolMid);
-		this.pnlVolButtons.Controls.Add(this.btnVolMax);
 		this.btnNextM3u.FlatAppearance.BorderSize = 0;
 		this.btnNextM3u.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 		this.btnNextM3u.Font = new System.Drawing.Font("Segoe UI", 12f, System.Drawing.FontStyle.Bold);
@@ -3096,15 +3115,15 @@ private PictureBox picCincross;
 		base.AutoScaleDimensions = new System.Drawing.SizeF(10f, 25f);
 		base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 		base.ClientSize = new System.Drawing.Size(260, 825);
-		base.Controls.Add(this.tasksListPanel);
-		base.Controls.Add(this.tasksHeaderPanel);
-		base.Controls.Add(this.playerFooterPanel);
-		base.Controls.Add(this.pnlFullListRow);
 		base.Controls.Add(this.cassettesHeaderPanel);
-		base.Controls.Add(this.pnlGrip);
-		base.Controls.Add(this.timerPanel);
+		base.Controls.Add(this.pnlFullListRow);
+		base.Controls.Add(this.playerFooterPanel);
 		base.Controls.Add(this.btnCloseApp);
 		base.Controls.Add(this.picCincross);
+		base.Controls.Add(this.tasksListPanel);
+		base.Controls.Add(this.tasksHeaderPanel);
+		base.Controls.Add(this.pnlGrip);
+		base.Controls.Add(this.timerPanel);
 		base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
 		base.MaximizeBox = false;
 		base.Name = "Form1";
