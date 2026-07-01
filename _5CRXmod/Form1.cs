@@ -632,9 +632,7 @@ public partial class Form1 : Form
 			int spacing = pw > 12 ? (pw - 12) / (dotCount - 1) : 10;
 			int cy = ph / 2;
 			int r = 3;
-			Color c = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
-			float lum = 0.299f * c.R + 0.587f * c.G + 0.114f * c.B;
-			Color neonColor = lum < 80 ? Color.White : c;
+			Color neonColor = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
 
 			for (int i = 0; i < dotCount; i++)
 			{

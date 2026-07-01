@@ -68,9 +68,7 @@ partial class Form1
 		int w = pnlEqualizer.Width;
 		int h = pnlEqualizer.Height;
 
-		Color themeColor = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
-		float luminance = 0.299f * themeColor.R + 0.587f * themeColor.G + 0.114f * themeColor.B;
-		Color neonColor = luminance < 80 ? Color.White : themeColor;
+		Color neonColor = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
 
 		int barCount = 13;
 		int gap = 2;
