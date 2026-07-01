@@ -261,6 +261,7 @@ public partial class Form1 : Form
 		{
 			_eqAnimationOffset += 0.15f;
 			pnlEqualizer.Invalidate();
+			pnlProgressFill?.Invalidate();
 		};
 		pnlEqualizer.Paint += pnlEqualizer_Paint;
 		btnColor.BackColor = Color.FromArgb(0, 0, 0, 0);
@@ -594,30 +595,75 @@ public partial class Form1 : Form
 		pnlTaskInfo.Controls.Add(lblTaskInfo);
 		pnlProgressBg = new Panel
 		{
-			Height = 9,
-			Dock = DockStyle.Bottom,
-			BackColor = Color.Black,
+			Height = 14,
+			BackColor = Color.FromArgb(25, 25, 25),
 			Name = "pnlProgressBg"
 		};
 		pnlProgressFill = new Panel
 		{
-			Height = 9,
+			Height = 14,
 			Width = 0,
 			Dock = DockStyle.Left,
 			BackColor = Color.Transparent,
 			Name = "pnlProgressFill"
 		};
+		int dotCount = 20;
+		pnlProgressBg.Paint += (s, pe) =>
+		{
+			pe.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+			int pw = pnlProgressBg.Width;
+			int ph = pnlProgressBg.Height;
+			int spacing = pw > 12 ? (pw - 12) / (dotCount - 1) : 10;
+			int cy = ph / 2;
+			int r = 3;
+			for (int i = 0; i < dotCount; i++)
+			{
+				int cx = 6 + i * spacing;
+				pe.Graphics.FillEllipse(Brushes.Black, cx - r, cy - r, r * 2, r * 2);
+				pe.Graphics.DrawEllipse(new Pen(Color.FromArgb(40, 40, 40), 1f), cx - r, cy - r, r * 2, r * 2);
+			}
+		};
 		pnlProgressFill.Paint += (s, pe) =>
 		{
-			var fill = (Panel)s!;
+			pe.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+			int pw = pnlProgressBg.Width;
+			int ph = pnlProgressFill.Height;
+			int fw = pnlProgressFill.Width;
+			int spacing = pw > 12 ? (pw - 12) / (dotCount - 1) : 10;
+			int cy = ph / 2;
+			int r = 3;
 			Color c = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
 			float lum = 0.299f * c.R + 0.587f * c.G + 0.114f * c.B;
-			Color leftColor = lum < 100f ? Color.FromArgb(60, Color.White) : Color.FromArgb(60, c);
-			Color rightColor = Color.FromArgb(220, c);
-			using var brush = new LinearGradientBrush(
-				fill.ClientRectangle, leftColor, rightColor, LinearGradientMode.Horizontal);
-			pe.Graphics.FillRectangle(brush, fill.ClientRectangle);
+			Color neonColor = lum < 80 ? Color.White : c;
+
+			for (int i = 0; i < dotCount; i++)
+			{
+				int cx = 6 + i * spacing;
+				int dotLeft = cx - r;
+				int dotRight = cx + r;
+				float flicker = 0.7f + 0.3f * MathF.Sin(_eqAnimationOffset + i * 1.7f);
+
+				if (dotRight <= fw)
+				{
+					int glowAlpha = (int)(140 * flicker);
+					using var glowBrush = new SolidBrush(Color.FromArgb(glowAlpha, neonColor));
+					pe.Graphics.FillEllipse(glowBrush, cx - r - 4, cy - r - 4, r * 2 + 8, r * 2 + 8);
+					using var dotBrush = new SolidBrush(neonColor);
+					pe.Graphics.FillEllipse(dotBrush, cx - r, cy - r, r * 2, r * 2);
+				}
+				else if (dotLeft < fw)
+				{
+					float overlap = (float)(fw - dotLeft) / (dotRight - dotLeft);
+					int alpha = (int)((80 + 175f * overlap) * flicker);
+					using var glowBrush = new SolidBrush(Color.FromArgb(alpha / 2, neonColor));
+					pe.Graphics.FillEllipse(glowBrush, cx - r - 4, cy - r - 4, r * 2 + 8, r * 2 + 8);
+					using var dotBrush = new SolidBrush(Color.FromArgb(alpha, neonColor));
+					pe.Graphics.FillEllipse(dotBrush, cx - r, cy - r, r * 2, r * 2);
+				}
+				else break;
+			}
 		};
+		pnlProgressBg.Dock = DockStyle.Bottom;
 		pnlProgressBg.Controls.Add(pnlProgressFill);
 		pnlTaskInfo.Controls.Add(pnlProgressBg);
 		tasksListPanel.Controls.Add(pnlTaskInfo);
@@ -1005,16 +1051,15 @@ public partial class Form1 : Form
 		this.playerFooterPanel.Controls.Add(this.lblM3uTitle);
 		this.playerFooterPanel.Controls.Add(this.lblMetadata);
 		this.playerFooterPanel.Controls.Add(this.lblExtraMetadata);
-		this.pnlEqualizer.SendToBack();
 		this.playerFooterPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
 		this.playerFooterPanel.Location = new System.Drawing.Point(0, 200);
 		this.playerFooterPanel.Name = "playerFooterPanel";
 		this.playerFooterPanel.Size = new System.Drawing.Size(260, 250);
 		this.playerFooterPanel.TabIndex = 3;
 		this.pnlEqualizer.BackColor = System.Drawing.Color.Transparent;
-		this.pnlEqualizer.Location = new System.Drawing.Point(28, 55);
+		this.pnlEqualizer.Location = new System.Drawing.Point(28, 93);
 		this.pnlEqualizer.Name = "pnlEqualizer";
-		this.pnlEqualizer.Size = new System.Drawing.Size(204, 30);
+		this.pnlEqualizer.Size = new System.Drawing.Size(204, 26);
 		this.pnlEqualizer.TabIndex = 6;
 		this.pnlVolume.Controls.Add(this.btnVolLow);
 		this.pnlVolume.Controls.Add(this.btnVolMid);

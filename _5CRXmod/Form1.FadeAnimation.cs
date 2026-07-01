@@ -67,39 +67,59 @@ partial class Form1
 		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 		int w = pnlEqualizer.Width;
 		int h = pnlEqualizer.Height;
-		Color themeColor = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
-		float lum = 0.299f * themeColor.R + 0.587f * themeColor.G + 0.114f * themeColor.B;
-		bool isDark = lum < 100f;
 
-		if (_isPlaying)
+		Color themeColor = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
+		float luminance = 0.299f * themeColor.R + 0.587f * themeColor.G + 0.114f * themeColor.B;
+		Color neonColor = luminance < 80 ? Color.White : themeColor;
+
+		int barCount = 13;
+		int gap = 2;
+		int barWidth = (w - gap * (barCount + 1)) / barCount;
+		if (barWidth < 2) barWidth = 2;
+		int radius = barWidth > 4 ? 3 : 2;
+		int glowWidth = barWidth + 4;
+
+		for (int i = 0; i < barCount; i++)
 		{
-			int barCount = 12;
-			int gap = 3;
-			int barWidth = (w - gap * (barCount + 1)) / barCount;
-			if (barWidth < 2) barWidth = 2;
-			for (int i = 0; i < barCount; i++)
+			float phase = (float)i / barCount * MathF.PI * 2f + _eqAnimationOffset;
+			float normalized = (MathF.Sin(phase) + 1f) * 0.5f;
+			int maxHeight = h - 6;
+			int minHeight = 3;
+			int barHeight;
+			if (_isPlaying)
+				barHeight = (int)(minHeight + normalized * (maxHeight - minHeight));
+			else
+				barHeight = minHeight;
+
+			int x = gap + i * (barWidth + gap);
+			int y = h - 3 - barHeight;
+			int glowAlpha = _isPlaying ? 80 : 20;
+
+			if (_isPlaying)
 			{
-				float phase = (float)i / barCount * MathF.PI * 2f + _eqAnimationOffset;
-				float normalized = (MathF.Sin(phase) + 1f) * 0.5f;
-				int barHeight = (int)(normalized * (h - 6));
-				if (barHeight < 2) barHeight = 2;
-				int x = gap + i * (barWidth + gap);
-				int y = h - 3 - barHeight;
-				Color topColor = isDark ? Color.FromArgb(40, Color.White) : Color.FromArgb(40, themeColor);
-				Color bottomColor = isDark ? Color.FromArgb(220, themeColor) : Color.FromArgb(220, themeColor);
-				using var brush = new LinearGradientBrush(
-					new Rectangle(x, y, barWidth, barHeight),
-					topColor,
-					bottomColor,
-					LinearGradientMode.Vertical);
-				e.Graphics.FillRectangle(brush, x, y, barWidth, barHeight);
+				int gx = x - 2;
+				int gw = glowWidth;
+				int gy = y - 1;
+				int gh = barHeight + 2;
+				using var glowPath = new System.Drawing.Drawing2D.GraphicsPath();
+				glowPath.AddArc(gx, gy, radius * 2, radius * 2, 180, 90);
+				glowPath.AddArc(gx + gw - radius * 2, gy, radius * 2, radius * 2, 270, 90);
+				glowPath.AddArc(gx + gw - radius * 2, gy + gh - radius * 2, radius * 2, radius * 2, 0, 90);
+				glowPath.AddArc(gx, gy + gh - radius * 2, radius * 2, radius * 2, 90, 90);
+				glowPath.CloseFigure();
+				using var glowBrush = new SolidBrush(Color.FromArgb(glowAlpha, neonColor));
+				e.Graphics.FillPath(glowBrush, glowPath);
 			}
-		}
-		else
-		{
-			using Pen pen = new Pen(Color.White, 2f);
-			int y = h / 2;
-			e.Graphics.DrawLine(pen, 4, y, w - 4, y);
+
+			int alpha = _isPlaying ? 255 : 60;
+			using var path = new System.Drawing.Drawing2D.GraphicsPath();
+			path.AddArc(x, y, radius * 2, radius * 2, 180, 90);
+			path.AddArc(x + barWidth - radius * 2, y, radius * 2, radius * 2, 270, 90);
+			path.AddArc(x + barWidth - radius * 2, y + barHeight - radius * 2, radius * 2, radius * 2, 0, 90);
+			path.AddArc(x, y + barHeight - radius * 2, radius * 2, radius * 2, 90, 90);
+			path.CloseFigure();
+			using var brush = new SolidBrush(Color.FromArgb(alpha, neonColor));
+			e.Graphics.FillPath(brush, path);
 		}
 	}
 
