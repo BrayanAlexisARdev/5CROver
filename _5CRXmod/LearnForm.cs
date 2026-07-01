@@ -188,16 +188,7 @@ public class LearnForm : Form
         return new Region(path);
     }
 
-    private static string ImgDir
-    {
-        get
-        {
-            string dir = Path.Combine(Application.StartupPath, "files", "img");
-            if (!Directory.Exists(dir))
-                dir = Path.Combine(Path.GetFullPath(Path.Combine(Application.StartupPath, "..", "..", "..")), "files", "img");
-            return dir;
-        }
-    }
+    private static string ImgDir => PathHelper.GetImgDir();
 
     public LearnForm(LearningData data, int initialAvatarChoice = 0)
     {
@@ -274,7 +265,7 @@ public class LearnForm : Form
                 TabStop = false
             };
             string ip = Path.Combine(imgDir, iconFile);
-            if (File.Exists(ip)) btn.BackgroundImage = Image.FromFile(ip);
+            if (File.Exists(ip)) btn.BackgroundImage = PathHelper.LoadImage(ip);
             return btn;
         }
 
@@ -673,8 +664,8 @@ public class LearnForm : Form
             string dir = ImgDir;
             string m1 = Path.Combine(dir, "b_sc001_Q.png");
             string m2 = Path.Combine(dir, "b_sc002_Q.png");
-            if (File.Exists(m1)) _talkMouthClosed = Image.FromFile(m1);
-            if (File.Exists(m2)) _talkMouthOpen = Image.FromFile(m2);
+            if (File.Exists(m1)) _talkMouthClosed = PathHelper.LoadImage(m1);
+            if (File.Exists(m2)) _talkMouthOpen = PathHelper.LoadImage(m2);
         }
         _talkTimer = new Timer { Interval = 600 };
         _talkTimer.Tick += (_, _) =>
@@ -704,7 +695,7 @@ public class LearnForm : Form
         };
         FormClosed += (_, _) =>
         {
-            _talkTimer?.Stop();
+            _talkTimer?.Dispose();
             _talkMouthClosed?.Dispose();
             _talkMouthOpen?.Dispose();
             if (_characterComposite != null)
@@ -766,7 +757,7 @@ public class LearnForm : Form
         string? bgFile = SelectedBg;
 
         // Composite character (base + all overlays)
-        using Image baseImg = Image.FromFile(basePath);
+        using Image baseImg = PathHelper.LoadImage(basePath);
         int w = baseImg.Width;
         int h = baseImg.Height;
         Bitmap composite = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
@@ -777,7 +768,7 @@ public class LearnForm : Form
             {
                 string ovPath = Path.Combine(ImgDir, file);
                 if (!File.Exists(ovPath)) continue;
-                using Image overlay = Image.FromFile(ovPath);
+                using Image overlay = PathHelper.LoadImage(ovPath);
                 g.DrawImage(overlay, 0, 0, w, h);
             }
         }
@@ -789,7 +780,7 @@ public class LearnForm : Form
             {
                 // Background is animated GIF — load directly to preserve animation
                 _characterComposite = composite;
-                _picPreview.Image = Image.FromFile(bgPath);
+                _picPreview.Image = PathHelper.LoadImage(bgPath);
                 _picPreview.Paint += PicPreview_Paint;
                 return;
             }

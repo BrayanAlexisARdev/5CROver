@@ -76,17 +76,7 @@ public class LearningData
 
     public static string GetFilePath()
     {
-        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-        for (int i = 0; i < 5; i++)
-        {
-            string testPath = Path.Combine(baseDir, "files", "learning_data.json");
-            if (Directory.Exists(Path.Combine(baseDir, "files")))
-                return testPath;
-            var parent = Directory.GetParent(baseDir);
-            if (parent == null) break;
-            baseDir = parent.FullName;
-        }
-        return Path.Combine(baseDir, "files", "learning_data.json");
+        return Path.Combine(PathHelper.GetFilesDir(), "learning_data.json");
     }
 
     public static LearningData? Load()
@@ -100,7 +90,7 @@ public class LearningData
                 return JsonSerializer.Deserialize<LearningData>(json);
             }
         }
-        catch { }
+        catch (Exception ex) { Logger.Error("LearningData.Load", ex); }
         return null;
     }
 
@@ -115,7 +105,7 @@ public class LearningData
             string json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(path, json);
         }
-        catch { }
+        catch (Exception ex) { Logger.Error("LearningData.Save", ex); }
     }
 
     public static LearningData CreateDefault()

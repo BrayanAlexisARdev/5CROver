@@ -239,17 +239,7 @@ public class EditTaskForm : Form
 	private void LoadIcons()
 	{
 		_availableIcons.Clear();
-		string baseDir = Application.StartupPath;
-		for (int i = 0; i < 5; i++)
-		{
-			string testPath = Path.Combine(baseDir, "files", "img");
-			if (Directory.Exists(testPath))
-			{
-				_imgDir = testPath;
-				break;
-			}
-			baseDir = Directory.GetParent(baseDir)?.FullName ?? baseDir;
-		}
+		_imgDir = PathHelper.GetImgDir();
 		if (!string.IsNullOrEmpty(_imgDir) && Directory.Exists(_imgDir))
 		{
 			foreach (string f in Directory.GetFiles(_imgDir, "*_TSK.png"))
@@ -279,7 +269,12 @@ public class EditTaskForm : Form
 		string iconFile = Path.Combine(_imgDir, _availableIcons[_currentIconIndex]);
 		if (File.Exists(iconFile))
 		{
-			try { picIconPreview.Image = Image.FromFile(iconFile); } catch { }
+			try
+			{
+				if (picIconPreview.Image != null) picIconPreview.Image.Dispose();
+				picIconPreview.Image = PathHelper.LoadImage(iconFile);
+			}
+			catch (Exception ex) { Logger.Error("EditTaskForm.UpdateIconPreview", ex); }
 		}
 	}
 
@@ -302,5 +297,18 @@ public class EditTaskForm : Form
 		SelectedIcon = _currentIconIndex >= 0 && _currentIconIndex < _availableIcons.Count ? _availableIcons[_currentIconIndex] : "tasks_TSK.png";
 		DialogResult = DialogResult.OK;
 		Close();
+	}
+
+	protected override void Dispose(bool disposing)
+	{
+		if (disposing)
+		{
+			if (picIconPreview.Image != null)
+			{
+				picIconPreview.Image.Dispose();
+				picIconPreview.Image = null;
+			}
+		}
+		base.Dispose(disposing);
 	}
 }

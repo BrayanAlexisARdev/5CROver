@@ -139,18 +139,7 @@ public class AddTaskForm : Form
 	{
 		try
 		{
-			string baseDir = Application.StartupPath;
-			_imgDir = "";
-			for (int i = 0; i < 5; i++)
-			{
-				string testPath = Path.Combine(baseDir, "files", "img");
-				if (Directory.Exists(testPath))
-				{
-					_imgDir = testPath;
-					break;
-				}
-				baseDir = Directory.GetParent(baseDir)?.FullName ?? baseDir;
-			}
+			_imgDir = PathHelper.GetImgDir();
 			if (string.IsNullOrEmpty(_imgDir))
 			{
 				return;
@@ -170,8 +159,9 @@ public class AddTaskForm : Form
 				UpdateIconPreview();
 			}
 		}
-		catch
+		catch (Exception ex)
 		{
+			Logger.Error("AddTaskForm.LoadIcons", ex);
 		}
 	}
 
@@ -198,7 +188,7 @@ public class AddTaskForm : Form
 			{
 				picIconPreview.Image.Dispose();
 			}
-			picIconPreview.Image = Image.FromFile(fullPath);
+			picIconPreview.Image = PathHelper.LoadImage(fullPath);
 			SelectedIcon = iconName;
 		}
 	}

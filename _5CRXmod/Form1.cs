@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -33,7 +32,7 @@ public class FavoriteData
 	public string TemaFondo { get; set; } = "";
 }
 
-public class Form1 : Form
+public partial class Form1 : Form
 {
 	protected override CreateParams CreateParams
 	{
@@ -46,139 +45,17 @@ public class Form1 : Form
 		}
 	}
 
-	private TimeSpan _timeRemaining;
-
-	private bool _timerRunning;
-
-	private PrivateFontCollection _pfc = new PrivateFontCollection();
-
-	private Panel? _activeTaskPanel;
-
-	private double _activeTaskTotalSeconds;
-
-	private dynamic? _wmp;
-
-	private Timer? _metaTimer;
-
-	private string _currentM3uName = "";
-	private string _currentCassetteTitle = "";
-
-	private string _lastTitle = "";
-
-	private List<string> _aniFiles = new List<string>();
-
-	private int _currentAniIndex;
-
-	private string? _noiseFile;
-
-	private string? _avatarPath;
-	private string? _savedDisplayPath;
-	private Bitmap? _tvCharacterComposite;
-	private string? _avatarHead;
-	private string? _avatarHair;
-	private string? _avatarBody;
-	private string? _avatarFace;
-	private string? _avatarAccessories;
-	private string? _avatarBg;
-	private string? _avatarFullOutfit;
-	private string? _avatarPet;
-
-	private List<Image> _themeImages = new List<Image>();
-
-	private List<string> _themeFilePaths = new List<string>();
-
-	private int _currentThemeImageIndex;
-
-	private Image? _currentThemeImage;
-
-	private bool _isDraggingForm;
-
-	private Point _dragStartOffset;
-
-	private List<Bitmap> _spriteFrames = new List<Bitmap>();
-
-	private int _currentSpriteFrame;
-
-	private Timer? _spriteTimer;
-
-	private int _currentThemeIndex;
-
-	private List<string> _m3uFiles = new List<string>();
-
-	private int _currentM3uIndex;
-
-	private List<Image> _cassetteImages = new List<Image>();
-
-	private List<CassetteData> _cassettes = new List<CassetteData>();
-	private List<FavoriteData> _favorites = new List<FavoriteData>();
-
-	private int _currentCassetteIndex;
-	private string _currentColorHex = "";
-	private string _currentTvPath = "";
-	private string _currentFondoPath = "";
-
-	private LearningData _learningData = LearningData.CreateDefault();
-
-	private bool _isLearningSession;
-
-	private string _currentSubject = "";
-
-	private Color _cassetteColor = Color.FromArgb(40, 40, 40);
-
-	private Color _appColor = Color.Transparent;
-
-	private bool _isDraggingVolume;
-
-	private Timer? _slideTimer;
-	private Timer? _m3u8WatchTimer;
-
-	private HlsPlayer? _hlsPlayer;
-
-	private bool _isHlsStream;
-
-	private string? _lastHlsUrl;
-
-	private List<Bitmap>? _fadeOutFrames;
-	private List<Bitmap>? _fadeInFrames;
-	private int _fadePhase;
-	private int _fadeFrameIndex;
-	private Image? _nextCassetteImage;
-	private int _pendingCassetteIndex = -1;
-	private FavoriteData? _pendingFavOverride;
-
-	private const int PictureBoxWidth = 140;
-
-	private const int PictureBoxHeight = 88;
-
-	private Timer? _eqTimer;
-
-	private float _eqAnimationOffset;
-
-	private bool _isPlaying;
-
-	private readonly (Color timer, Color header, Color list, Color footer)[] _themes = new(Color, Color, Color, Color)[8]
-	{
-		(Color.FromArgb(60, 60, 60), Color.FromArgb(80, 80, 80), Color.FromArgb(40, 40, 40), Color.FromArgb(50, 50, 50)),
-		(Color.RoyalBlue, Color.LightGray, Color.FromArgb(64, 64, 64), Color.White),
-		(Color.Black, Color.FromArgb(45, 45, 45), Color.Black, Color.Black),
-		(Color.White, Color.FromArgb(240, 240, 240), Color.White, Color.White),
-		(Color.Crimson, Color.LightPink, Color.Maroon, Color.White),
-		(Color.ForestGreen, Color.LightGreen, Color.DarkGreen, Color.White),
-		(Color.Gold, Color.LightYellow, Color.DarkGoldenrod, Color.White),
-		(Color.Purple, Color.Plum, Color.Indigo, Color.White)
-	};
-
 	private IContainer components;
 
-	private Panel timerPanel;
+	private BufferedPanel timerPanel;
 
-	private Label lblHours;
+	private BufferedLabel lblHours;
 
-	private Label lblMinutes;
+	private BufferedLabel lblMinutes;
 
-	private Label lblSeconds;
+	private BufferedLabel lblSeconds;
 
-	private Panel pnlTopButtons;
+	private BufferedPanel pnlTopButtons;
 
 	private Button btnP;
 
@@ -190,13 +67,11 @@ public class Form1 : Form
 
 	private Button btnImage;
 
-	private Button btnStyle;
-
 	private Button btnColor;
 
-	private Timer countdownTimer;
+	private Button btnStyle;
 
-	private Panel cassettesHeaderPanel;
+	private BufferedPanel cassettesHeaderPanel;
 
 	private Label lblCassettes;
 	private TextBox txtCassetteNum;
@@ -208,11 +83,11 @@ public class Form1 : Form
 	private Button btnInfo;
 	private Panel pnlFullListRow;
 
-	private Panel tasksHeaderPanel;
+	private BufferedPanel tasksHeaderPanel;
 
 	private Label lblTasks;
 
-	private Panel playerFooterPanel;
+	private BufferedPanel playerFooterPanel;
 
 	private Label lblM3uTitle;
 
@@ -224,9 +99,9 @@ public class Form1 : Form
 
 	private PictureBox picPlayerNext;
 
-	private Panel pnlCassetteContainer;
+	private BufferedPanel pnlCassetteContainer;
 
-	private Panel pnlEqualizer;
+	private BufferedPanel pnlEqualizer;
 
 	private PictureBox picMainDisplay;
 
@@ -258,10 +133,10 @@ public class Form1 : Form
 	private Button btnVolMid;
 	private Button btnVolMax;
 
-	private Panel pnlGrip;
+	private BufferedPanel pnlGrip;
 
 	private Button btnCloseApp;
-private PictureBox picCincross;
+	private PictureBox picCincross;
 
 	[DllImport("Gdi32.dll")]
 	private static extern nint CreateRoundRectRgn(int nLeftRect, int nTopRect, int RightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
@@ -272,9 +147,6 @@ private PictureBox picCincross;
 		DoubleBuffered = true;
 		base.FormBorderStyle = FormBorderStyle.None;
 		base.Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, base.Width, base.Height, 12, 12));
-		EnableDoubleBuffered(pnlCassetteContainer);
-		EnableDoubleBuffered(pnlEqualizer);
-		EnableDoubleBuffered(playerFooterPanel);
 		playerFooterPanel.Paint += delegate(object? s, PaintEventArgs e)
 		{
 			if (_appColor != Color.Transparent)
@@ -284,42 +156,6 @@ private PictureBox picCincross;
 				e.Graphics.FillRectangle(brush, 0, 0, playerFooterPanel.Width, playerFooterPanel.Height);
 			}
 		};
-		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(pnlCassetteContainer, new object[2]
-		{
-			ControlStyles.SupportsTransparentBackColor,
-			true
-		});
-		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(playerFooterPanel, new object[2]
-		{
-			ControlStyles.SupportsTransparentBackColor,
-			true
-		});
-		EnableDoubleBuffered(timerPanel);
-		EnableDoubleBuffered(pnlTopButtons);
-		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(lblHours, new object[2]
-		{
-			ControlStyles.SupportsTransparentBackColor,
-			true
-		});
-		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(lblMinutes, new object[2]
-		{
-			ControlStyles.SupportsTransparentBackColor,
-			true
-		});
-		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(lblSeconds, new object[2]
-		{
-			ControlStyles.SupportsTransparentBackColor,
-			true
-		});
-		Control[] array = new Control[6] { timerPanel, pnlGrip, cassettesHeaderPanel, playerFooterPanel, tasksHeaderPanel, pnlTopButtons };
-		foreach (Control p in array)
-		{
-			typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(p, new object[2]
-			{
-				ControlStyles.SupportsTransparentBackColor,
-				true
-			});
-		}
 		LoadCustomFont();
 		base.Load += Form1_Load;
 		btnS.Click += btnS_Click;
@@ -347,12 +183,12 @@ private PictureBox picCincross;
 		};
 		txtCassetteNum.KeyDown += txtCassetteNum_KeyDown;
 		txtCassetteNum.Leave += txtCassetteNum_Leave;
-		btnPlayPlayer.Click += delegate
+		btnPlayPlayer.Click += async delegate
 		{
 			if (_isHlsStream && _hlsPlayer != null)
 			{
 				if (!_hlsPlayer.IsPlaying && _lastHlsUrl != null)
-					_hlsPlayer.Play(_lastHlsUrl);
+					await _hlsPlayer.PlayAsync(_lastHlsUrl);
 			}
 			else
 			{
@@ -548,321 +384,6 @@ private PictureBox picCincross;
 		Application.Exit();
 	}
 
-	private void pnlEqualizer_Paint(object? sender, PaintEventArgs e)
-	{
-		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-		int w = pnlEqualizer.Width;
-		int h = pnlEqualizer.Height;
-		Color themeColor = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
-		float lum = 0.299f * themeColor.R + 0.587f * themeColor.G + 0.114f * themeColor.B;
-		bool isDark = lum < 100f;
-
-		if (_isPlaying)
-		{
-			int barCount = 12;
-			int gap = 3;
-			int barWidth = (w - gap * (barCount + 1)) / barCount;
-			if (barWidth < 2) barWidth = 2;
-			for (int i = 0; i < barCount; i++)
-			{
-				float phase = (float)i / barCount * MathF.PI * 2f + _eqAnimationOffset;
-				float normalized = (MathF.Sin(phase) + 1f) * 0.5f;
-				int barHeight = (int)(normalized * (h - 6));
-				if (barHeight < 2) barHeight = 2;
-				int x = gap + i * (barWidth + gap);
-				int y = h - 3 - barHeight;
-				Color topColor = isDark ? Color.FromArgb(40, Color.White) : Color.FromArgb(40, themeColor);
-				Color bottomColor = isDark ? Color.FromArgb(220, themeColor) : Color.FromArgb(220, themeColor);
-				using var brush = new LinearGradientBrush(
-					new Rectangle(x, y, barWidth, barHeight),
-					topColor,
-					bottomColor,
-					LinearGradientMode.Vertical);
-				e.Graphics.FillRectangle(brush, x, y, barWidth, barHeight);
-			}
-		}
-		else
-		{
-			using Pen pen = new Pen(Color.White, 2f);
-			int y = h / 2;
-			e.Graphics.DrawLine(pen, 4, y, w - 4, y);
-		}
-	}
-
-	private void EnableDoubleBuffered(Control control)
-	{
-		typeof(Control).GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(control, true, null);
-	}
-
-	private void _fadeTimer_Tick(object? sender, EventArgs e)
-	{
-		var frames = _fadePhase == 0 ? _fadeOutFrames : _fadeInFrames;
-		if (frames == null || _fadeFrameIndex >= frames.Count)
-		{
-			if (_fadePhase == 0)
-			{
-				if (_pendingCassetteIndex >= 0)
-				{
-					int idx = _pendingCassetteIndex;
-					_pendingCassetteIndex = -1;
-					ApplyCassette(idx);
-					if (_pendingFavOverride != null)
-					{
-						var ov = _pendingFavOverride;
-						_pendingFavOverride = null;
-						ApplyFavOverride(ov);
-					}
-				}
-				_fadePhase = 1;
-				_fadeFrameIndex = 0;
-				frames = _fadeInFrames;
-			}
-			else
-			{
-				if (_nextCassetteImage != null)
-				{
-					picPlayer.Image = _nextCassetteImage;
-					_nextCassetteImage = null;
-				}
-				ClearFrameList(_fadeOutFrames);
-				ClearFrameList(_fadeInFrames);
-				_slideTimer?.Stop();
-				return;
-			}
-		}
-
-		picPlayer.Image = frames[_fadeFrameIndex++];
-	}
-
-	private static void ClearFrameList(List<Bitmap>? list)
-	{
-		if (list == null) return;
-		for (int i = 0; i < list.Count; i++)
-			list[i].Dispose();
-		list.Clear();
-	}
-
-	private void StartFade(Image newImage)
-	{
-		if (picPlayer.Image == null)
-		{
-			picPlayer.Image = newImage;
-			return;
-		}
-
-		ClearFrameList(_fadeOutFrames);
-		ClearFrameList(_fadeInFrames);
-
-		_nextCassetteImage = newImage;
-		var oldImg = picPlayer.Image;
-
-		int steps = 10;
-		_fadePhase = 0;
-		_fadeFrameIndex = 0;
-		_fadeOutFrames = new List<Bitmap>(steps + 1);
-		_fadeInFrames = new List<Bitmap>(steps);
-
-		float div = 1f / steps;
-		for (int i = steps; i >= 0; i--)
-			_fadeOutFrames.Add(CreateAlphaCopy(oldImg, i * div));
-		for (int i = 1; i <= steps; i++)
-			_fadeInFrames.Add(CreateAlphaCopy(newImage, i * div));
-
-		if (!string.IsNullOrEmpty(_noiseFile))
-			picMainDisplay.ImageLocation = _noiseFile;
-
-		_slideTimer.Interval = 40;
-		_slideTimer?.Start();
-	}
-
-	private static readonly System.Drawing.Imaging.ImageAttributes _alphaAttrs = new System.Drawing.Imaging.ImageAttributes();
-
-	private static Bitmap CreateAlphaCopy(Image img, float alpha)
-	{
-		var bmp = new Bitmap(PictureBoxWidth, PictureBoxHeight);
-		using (var g = Graphics.FromImage(bmp))
-		{
-			_alphaAttrs.SetColorMatrix(new System.Drawing.Imaging.ColorMatrix { Matrix33 = alpha });
-			g.DrawImage(img, new Rectangle(0, 0, PictureBoxWidth, PictureBoxHeight),
-				0, 0, img.Width, img.Height, GraphicsUnit.Pixel, _alphaAttrs);
-		}
-		return bmp;
-	}
-
-	private void SetVolumePreset(int percent)
-	{
-		if (_isHlsStream)
-		{
-			if (_hlsPlayer != null) _hlsPlayer.Volume = percent * 100 / 15;
-		}
-		else
-		{
-			if (_wmp != null) _wmp.settings.volume = percent;
-		}
-		UpdateVolumeVisual(percent);
-		btnVolLow.Font = new Font("Segoe UI", 5.5f, percent == 3 ? FontStyle.Bold | FontStyle.Underline : FontStyle.Bold);
-		btnVolMid.Font = new Font("Segoe UI", 5.5f, percent == 9 ? FontStyle.Bold | FontStyle.Underline : FontStyle.Bold);
-		btnVolMax.Font = new Font("Segoe UI", 5.5f, percent == 15 ? FontStyle.Bold | FontStyle.Underline : FontStyle.Bold);
-	}
-
-	private void UpdateVolumeFromMouse(int mouseX)
-	{
-		int x = Math.Max(0, Math.Min(mouseX - pnlVolumeLine.Left, pnlVolumeLine.Width));
-		int thumbCenter = pnlVolumeThumb.Width / 2;
-		pnlVolumeThumb.Left = x - thumbCenter;
-		double raw = (double)x / (double)pnlVolumeLine.Width;
-		int volume = (int)(Math.Max(0.03, Math.Min(0.15, raw)) * 100.0);
-		if (_isHlsStream)
-		{
-			if (_hlsPlayer != null) _hlsPlayer.Volume = volume * 100 / 15;
-		}
-		else
-		{
-			if (_wmp != null) _wmp.settings.volume = volume;
-		}
-	}
-
-	private Image? GetCassetteImageFromM3u(string m3uPath, int indexFallback)
-	{
-		try
-		{
-			if (File.Exists(m3uPath))
-			{
-				string[] array = File.ReadAllLines(m3uPath);
-				foreach (string line in array)
-				{
-					if (line.StartsWith("#CASSETTE:", StringComparison.OrdinalIgnoreCase))
-					{
-						string imgName = line.Substring("#CASSETTE:".Length).Trim();
-						string fullPath = Path.Combine(Path.GetDirectoryName(m3uPath) ?? "", imgName);
-						if (File.Exists(fullPath))
-						{
-							return Image.FromFile(fullPath);
-						}
-					}
-				}
-			}
-		}
-		catch
-		{
-		}
-		if (_cassetteImages.Count > 0)
-		{
-			return _cassetteImages[indexFallback % _cassetteImages.Count];
-		}
-		return null;
-	}
-
-	private void ChangeM3u(int direction)
-	{
-		if (_m3uFiles.Count == 0)
-		{
-			return;
-		}
-		Timer? slideTimer = _slideTimer;
-		if (slideTimer == null || !slideTimer.Enabled)
-		{
-			_currentM3uIndex = (_currentM3uIndex + direction + _m3uFiles.Count) % _m3uFiles.Count;
-			ResetCassetteTitle();
-			string path = _m3uFiles[_currentM3uIndex];
-			PlayM3u(path);
-			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
-			lblM3uTitle.Text = _currentM3uName;
-			lblMetadata.Text = "";
-			Image nextImg = GetCassetteImageFromM3u(path, _currentM3uIndex);
-			if (nextImg != null)
-			{
-				StartFade(nextImg);
-			}
-		}
-	}
-
-	private void LoadCurrentM3u()
-	{
-		if (_m3uFiles.Count != 0)
-		{
-			string path = _m3uFiles[_currentM3uIndex];
-			PlayM3u(path);
-			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
-			lblM3uTitle.Text = _currentM3uName;
-			lblMetadata.Text = "";
-			Image currentImg = GetCassetteImageFromM3u(path, _currentM3uIndex);
-			if (currentImg != null)
-			{
-				picPlayer.Image = currentImg;
-				picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
-				picPlayer.Size = new Size(140, 88);
-				picPlayer.Left = (pnlCassetteContainer.Width - 140) / 2;
-				picPlayer.Top = 1;
-				picPlayer.Width = 140;
-			}
-		}
-	}
-
-	private void SetupButtonGlow(Button btn)
-	{
-		btn.MouseEnter += delegate
-		{
-			btn.FlatAppearance.BorderSize = 0;
-			btn.BackColor = Color.FromArgb(50, Color.White);
-		};
-		btn.MouseLeave += delegate
-		{
-			btn.BackColor = Color.FromArgb(20, 20, 20);
-		};
-	}
-
-	private void DrawGlow(object? sender, PaintEventArgs e)
-	{
-		if (!(sender is Label lbl))
-		{
-			return;
-		}
-		e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
-		string text = lbl.Text;
-		Font font = lbl.Font;
-		Color glowColor = (_appColor != Color.Transparent) ? _appColor : Color.Cyan;
-		for (int i = 1; i <= 3; i++)
-		{
-			using Brush glowBrush = new SolidBrush(Color.FromArgb(50 / i, glowColor));
-			int[] array = new int[2]
-			{
-				-i,
-				i
-			};
-			foreach (int dx in array)
-			{
-				int[] array2 = new int[2]
-				{
-					-i,
-					i
-				};
-				foreach (int dy in array2)
-				{
-					e.Graphics.DrawString(text, font, glowBrush, new PointF(dx, dy));
-				}
-			}
-		}
-		using Brush textBrush = new SolidBrush(lbl.ForeColor);
-		e.Graphics.DrawString(text, font, textBrush, new PointF(0f, 0f));
-	}
-
-	private async void CycleAni()
-	{
-		if (_aniFiles.Count != 0)
-		{
-			if (!string.IsNullOrEmpty(_noiseFile))
-			{
-				picMainDisplay.ImageLocation = _noiseFile;
-				picMainDisplay.Refresh();
-				await Task.Delay(800);
-			}
-			_currentAniIndex = (_currentAniIndex + 1) % _aniFiles.Count;
-			picMainDisplay.ImageLocation = _aniFiles[_currentAniIndex];
-			picMainDisplay.Refresh();
-		}
-	}
-
 	private void ShowColorMenu()
 	{
 		ContextMenuStrip menu = new ContextMenuStrip();
@@ -915,1243 +436,6 @@ private PictureBox picCincross;
 		menu.Show(btnColor, new Point(0, btnColor.Height));
 	}
 
-	private void ApplyAppColor(Color baseColor)
-	{
-		_appColor = baseColor;
-		_currentColorHex = ColorTranslator.ToHtml(baseColor);
-		Color transparent = Color.FromArgb(102, baseColor);
-		Color headerColor = Color.FromArgb(133, baseColor);
-		Color listColor = Color.FromArgb(100, ControlPaint.Dark(baseColor));
-		Color darkColor = Color.FromArgb(120, ControlPaint.Dark(baseColor));
-
-		try { BackColor = transparent; } catch { }
-		timerPanel.BackColor = Color.Transparent;
-		pnlTopButtons.BackColor = Color.Transparent;
-		pnlTimerControls.BackColor = Color.Transparent;
-		tasksHeaderPanel.BackColor = headerColor;
-		cassettesHeaderPanel.BackColor = headerColor;
-		playerFooterPanel.BackColor = Color.Transparent;
-		playerFooterPanel.Invalidate();
-		tasksListPanel.BackColor = listColor;
-		pnlCassetteContainer.BackColor = Color.Transparent;
-		pnlEqualizer.BackColor = darkColor;
-		pnlVolume.BackColor = darkColor;
-		pnlProgressFill.Invalidate();
-
-		lblHours.ForeColor = Color.White;
-		lblMinutes.ForeColor = Color.White;
-		lblSeconds.ForeColor = Color.White;
-
-		UpdateControlContrast(tasksHeaderPanel, headerColor);
-		UpdateControlContrast(cassettesHeaderPanel, headerColor);
-		UpdateControlContrast(playerFooterPanel, transparent);
-
-		foreach (Control c in tasksListPanel.Controls)
-		{
-			if (c is Panel p && p.Tag is TaskData)
-			{
-				p.BackColor = listColor;
-				UpdateControlContrast(p, listColor);
-			}
-			else if (c.Name == "pnlTaskInfo")
-			{
-				c.BackColor = Color.FromArgb(30, 30, 30);
-			}
-		}
-
-		timerPanel.Invalidate();
-		lblHours.Invalidate();
-		lblMinutes.Invalidate();
-		lblSeconds.Invalidate();
-	}
-
-	private void CycleTheme()
-	{
-		_currentThemeIndex = (_currentThemeIndex + 1) % _themes.Length;
-		ApplyCurrentTheme();
-	}
-
-	private List<(string TvPath, string ThPath)> _themesList = new();
-	private int _currentCustomThemeIndex;
-
-	private void LoadThemesFile()
-	{
-		string imgDir = Path.Combine(Application.StartupPath, "files", "img");
-		if (!Directory.Exists(imgDir)) imgDir = Path.Combine(Path.GetFullPath(Path.Combine(Application.StartupPath, "..", "..", "..")), "files", "img");
-		string themeFile = Path.Combine(imgDir, "THEME.txt");
-		if (!File.Exists(themeFile)) return;
-
-		_themesList.Clear();
-		foreach (string line in File.ReadAllLines(themeFile))
-		{
-			string t = line.Trim();
-			if (t.StartsWith(";") || string.IsNullOrEmpty(t)) continue;
-			if (t.StartsWith("[TEMA"))
-			{
-				int close = t.IndexOf(']');
-				string parts = t.Substring(close + 1).Trim();
-				string[] arr = parts.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-				if (arr.Length >= 2)
-				{
-					string tvPath = Path.Combine(imgDir, arr[0]);
-					string thPath = Path.Combine(imgDir, arr[1]);
-					if (File.Exists(tvPath) && File.Exists(thPath))
-						_themesList.Add((tvPath, thPath));
-				}
-			}
-		}
-	}
-
-	private void CycleThemeImage()
-	{
-		if (_themesList.Count == 0) return;
-		_currentCustomThemeIndex = (_currentCustomThemeIndex + 1) % _themesList.Count;
-		var theme = _themesList[_currentCustomThemeIndex];
-
-		Image tvImg = Image.FromFile(theme.TvPath);
-		timerPanel.BackgroundImage = tvImg;
-		timerPanel.Height = tvImg.Height - 4;
-		timerPanel.BackColor = Color.Transparent;
-		_currentTvPath = theme.TvPath;
-
-		string thDir = Path.GetDirectoryName(theme.ThPath) ?? "";
-		if (File.Exists(theme.ThPath))
-		{
-			_currentThemeImage = Image.FromFile(theme.ThPath);
-			_currentFondoPath = theme.ThPath;
-			BackgroundImage = null;
-		}
-
-		timerPanel.Invalidate();
-		Invalidate();
-	}
-
-	private void ResetCassetteTitle()
-	{
-		_currentCassetteTitle = "";
-	}
-
-	private void UpdateTVFrame(string themePath)
-	{
-		try
-		{
-			string? path = Path.GetDirectoryName(themePath) ?? "";
-			string tvName = "old_TV.gif";
-			if (themePath.EndsWith("06_TH.gif", StringComparison.OrdinalIgnoreCase))
-			{
-				tvName = "steel_TV.gif";
-			}
-			else if (themePath.EndsWith("03_TH.gif", StringComparison.OrdinalIgnoreCase))
-			{
-				tvName = "gcard_TV.gif";
-			}
-			else if (themePath.EndsWith("01_TH.gif", StringComparison.OrdinalIgnoreCase))
-			{
-				tvName = "bluesk_TV.gif";
-			}
-			else if (themePath.EndsWith("04_TH.gif", StringComparison.OrdinalIgnoreCase))
-			{
-				tvName = "flowbk_TV.gif";
-			}
-			string tvPath = Path.Combine(path, tvName);
-			if (File.Exists(tvPath))
-			{
-				Image img = Image.FromFile(tvPath);
-				timerPanel.BackgroundImage = img;
-				timerPanel.Height = img.Height - 4;
-			}
-		}
-		catch
-		{
-		}
-	}
-
-	private void ApplyCurrentTheme()
-	{
-		_appColor = Color.Transparent;
-		(Color, Color, Color, Color) theme = _themes[_currentThemeIndex];
-		Color darkSolid = Color.FromArgb(20, 20, 20);
-		Color bgColor = Color.FromArgb(240, 20, 20, 20);
-		Color panelColor = Color.FromArgb(180, 40, 40, 40);
-		Color listColor = Color.FromArgb(150, 30, 30, 30);
-		try
-		{
-			BackColor = bgColor;
-		}
-		catch
-		{
-		}
-		pnlGrip.BackColor = Color.FromArgb(40, 40, 40);
-		pnlGrip.Height = 20;
-		pnlGrip.BorderStyle = BorderStyle.None;
-		Color headerColor = Color.FromArgb(200, 60, 60, 60);
-		tasksHeaderPanel.BackColor = headerColor;
-		cassettesHeaderPanel.BackColor = headerColor;
-		tasksListPanel.BackColor = listColor;
-		playerFooterPanel.BackColor = Color.Transparent;
-		if (_currentThemeImage != null)
-		{
-			timerPanel.BackColor = Color.Transparent;
-		}
-		else
-		{
-			timerPanel.BackColor = theme.Item1;
-		}
-		UpdateControlContrast(tasksHeaderPanel, headerColor);
-		UpdateControlContrast(cassettesHeaderPanel, headerColor);
-		UpdateControlContrast(playerFooterPanel, panelColor);
-		UpdateControlContrast(pnlGrip, pnlGrip.BackColor);
-		SetSafeBackColor(pnlEqualizer, darkSolid);
-		SetSafeBackColor(pnlVolume, darkSolid);
-	}
-
-	private void SetSafeBackColor(Control c, Color bg)
-	{
-		try
-		{
-			c.BackColor = bg;
-		}
-		catch
-		{
-		}
-	}
-
-	private void UpdateControlContrast(Control parent, Color bg)
-	{
-		Color fg = (parent.ForeColor = Color.White);
-		foreach (Control c in parent.Controls)
-		{
-			if (c is Label || c is Button || c is TextBox)
-			{
-				c.ForeColor = fg;
-				if (c is Label && c.BackColor == Color.Transparent)
-				{
-				}
-				else
-				{
-					SetSafeBackColor(c, bg);
-				}
-				if (c is Button b)
-				{
-					b.FlatAppearance.BorderColor = fg;
-					b.ForeColor = fg;
-				}
-			}
-			if (c.HasChildren)
-			{
-				UpdateControlContrast(c, bg);
-			}
-		}
-	}
-
-	private Color GetContrastColor(Color bg)
-	{
-		return Color.White;
-	}
-
-	private void InitPlayer()
-	{
-		try
-		{
-			Type type = Type.GetTypeFromProgID("WMPlayer.OCX.7");
-			if (type != null)
-			{
-				_wmp = Activator.CreateInstance(type);
-				_wmp.settings.autoStart = true;
-				_m3u8WatchTimer = new Timer
-				{
-					Interval = 3000
-				};
-				_m3u8WatchTimer.Tick += delegate
-				{
-					if (_wmp == null) return;
-					try
-					{
-						int state = (int)_wmp.playState;
-						string url = _wmp.URL ?? "";
-						if (state == 1 || state == 8)
-						{
-							if (url.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase))
-							{
-								string saved = url;
-								_wmp.URL = saved;
-								_wmp.controls.play();
-							}
-						}
-					}
-					catch { }
-				};
-				_metaTimer = new Timer
-				{
-					Interval = 2000
-				};
-				_metaTimer.Tick += delegate
-				{
-					UpdateMetadata();
-				};
-			}
-		}
-		catch
-		{
-		}
-		try
-		{
-			_hlsPlayer = new HlsPlayer();
-			_hlsPlayer.MediaChanged += () =>
-			{
-				if (!_isHlsStream || _hlsPlayer == null) return;
-				string? title = _hlsPlayer.CurrentTitle;
-				if (!string.IsNullOrEmpty(title) && title != _lastTitle)
-				{
-					_lastTitle = title;
-					if (string.IsNullOrEmpty(_currentCassetteTitle))
-						lblM3uTitle.Text = Path.GetFileNameWithoutExtension(_lastHlsUrl ?? "").ToUpper();
-					else
-						lblM3uTitle.Text = _currentCassetteTitle;
-					lblMetadata.Text = title.ToUpper();
-					string? artist = _hlsPlayer.CurrentArtist;
-					lblExtraMetadata.Text = string.IsNullOrEmpty(artist) ? "" : artist.ToUpper();
-				}
-			};
-			_hlsPlayer.Error += msg =>
-			{
-				try { lblExtraMetadata.Text = msg.ToUpper(); } catch { }
-			};
-		}
-		catch (Exception ex)
-		{
-			try { lblExtraMetadata.Text = $"VLC: {ex.Message}".ToUpper(); } catch { }
-		}
-	}
-
-	private void UpdateMetadata()
-	{
-		if (_wmp == null)
-		{
-			return;
-		}
-		try
-		{
-			dynamic media = _wmp.currentMedia;
-			if (!((media != null) ? true : false))
-			{
-				return;
-			}
-			string title = media.getItemInfo("Title");
-			string artist = media.getItemInfo("Author");
-			string album = media.getItemInfo("Album");
-			string genre = media.getItemInfo("Genre");
-			string src = media.sourceURL;
-			if (string.IsNullOrEmpty(title))
-			{
-				if (!string.IsNullOrEmpty(src))
-				{
-					try
-					{
-						title = Path.GetFileNameWithoutExtension(src);
-					}
-					catch
-					{
-						title = src;
-					}
-				}
-				if (string.IsNullOrEmpty(title))
-				{
-					title = media.name;
-				}
-			}
-			if (!string.IsNullOrEmpty(title) && title != _lastTitle)
-			{
-				_lastTitle = title;
-				lblM3uTitle.Text = _currentCassetteTitle;
-				lblMetadata.Text = title.ToUpper();
-				string line2 = ((!string.IsNullOrEmpty(artist)) ? artist : genre);
-				if (!string.IsNullOrEmpty(album))
-				{
-					line2 = ((!string.IsNullOrEmpty(line2)) ? (line2 + " - " + album) : album);
-				}
-				lblExtraMetadata.Text = line2.ToUpper();
-			}
-		}
-		catch
-		{
-		}
-	}
-
-	private void LoadCustomFont()
-	{
-		string dcPath = Path.Combine(Application.StartupPath, "files", "typo", "dc.ttf");
-		if (File.Exists(dcPath))
-		{
-			_pfc.AddFontFile(dcPath);
-			lblHours.Font = new Font(_pfc.Families[0], 11f, FontStyle.Bold);
-			lblMinutes.Font = new Font(_pfc.Families[0], 15f, FontStyle.Bold);
-			lblSeconds.Font = new Font(_pfc.Families[0], 11f, FontStyle.Bold);
-		}
-		string[] excludes = new string[18]
-		{
-			"lblHours", "lblMinutes", "lblSeconds", "btnP", "btnS", "btnColor", "btnStyle", "btnImage", "btnTheme", "btnPrevM3u",
-			"btnNextM3u", "btnPlayPlayer", "btnStopPlayer", "btnCassetteList", "btnFavList", "btnAddFav", "btnLearn", "btnInfo"
-		};
-		FontHelper.ApplyFont(this, 10f, FontStyle.Regular, excludes);
-		if (FontHelper.CustomFontFamily != null)
-		{
-			lblTasks.Font = new Font(FontHelper.CustomFontFamily, 9f, FontStyle.Bold);
-			lblCassettes.Font = new Font(FontHelper.CustomFontFamily, 9f, FontStyle.Bold);
-			txtCassetteNum.Font = new Font(FontHelper.CustomFontFamily, 9f, FontStyle.Bold);
-			lblCassetteTotal.Font = new Font(FontHelper.CustomFontFamily, 9f, FontStyle.Bold);
-			lblM3uTitle.Font = new Font(FontHelper.CustomFontFamily, 8f, FontStyle.Bold);
-			lblMetadata.Font = new Font(FontHelper.CustomFontFamily, 6.5f, FontStyle.Regular);
-			lblExtraMetadata.Font = new Font(FontHelper.CustomFontFamily, 6f, FontStyle.Regular);
-			Font miniFont = new Font(FontHelper.CustomFontFamily, 6f, FontStyle.Regular);
-			btnColor.Font = miniFont;
-			btnStyle.Font = miniFont;
-			btnImage.Font = miniFont;
-			btnTheme.Font = miniFont;
-			btnLearn.Font = miniFont;
-			btnAddFav.Font = miniFont;
-			btnInfo.Font = miniFont;
-			btnPlayPlayer.Font = miniFont;
-			btnStopPlayer.Font = miniFont;
-		}
-	}
-
-	private void btnAddTask_Click(object? sender, EventArgs e)
-	{
-		using EditTaskForm newTaskForm = new EditTaskForm("NEW TASK", "", TimeSpan.Zero, "tasks_TSK.png");
-		newTaskForm.Location = new Point(Left - newTaskForm.Width, Top);
-		if (newTaskForm.ShowDialog(this) == DialogResult.OK)
-		{
-			AddTaskToPanel(newTaskForm.TaskName, newTaskForm.TaskTime, "", newTaskForm.SelectedIcon);
-		}
-	}
-
-	private void AddTaskToPanel(string taskName, TimeSpan taskTime, string m3uPath, string iconName = "tasks_TSK.png", bool isFixed = false)
-	{
-		(Color, Color, Color, Color) theme = _themes[_currentThemeIndex];
-		Panel taskPanel = new Panel
-		{
-			Height = 60,
-			Width = base.Width / 2,
-			BackColor = (isFixed ? Color.FromArgb(216, theme.Item2) : theme.Item2),
-			Margin = new Padding(0),
-			BorderStyle = BorderStyle.None,
-			Tag = new TaskData
-			{
-				Time = taskTime,
-				M3uPath = m3uPath,
-				IsFixed = isFixed
-			}
-		};
-		PictureBox picTask = new PictureBox
-		{
-			Size = new Size(32, 32),
-			SizeMode = PictureBoxSizeMode.Zoom,
-			BackColor = Color.Transparent,
-			Location = new Point(5, 12)
-		};
-		try
-		{
-			string baseDir = Application.StartupPath;
-			for (int i = 0; i < 5; i++)
-			{
-				string testPath = Path.Combine(baseDir, "files", "img", iconName);
-				if (File.Exists(testPath))
-				{
-					picTask.Image = Image.FromFile(testPath);
-					break;
-				}
-				baseDir = Directory.GetParent(baseDir)?.FullName ?? baseDir;
-			}
-		}
-		catch
-		{
-		}
-		Label lblTaskName = new Label
-		{
-			Text = taskName.ToUpper(),
-			Location = new Point(42, 8),
-			AutoSize = false,
-			Size = new Size(taskPanel.Width - 45, 20),
-			BackColor = Color.Transparent,
-			Font = ((FontHelper.CustomFontFamily != null) ? new Font(FontHelper.CustomFontFamily, 6.5f, FontStyle.Bold) : new Font("Segoe UI", 6.5f, FontStyle.Bold))
-		};
-		Label lblTaskTime = new Label
-		{
-			Text = FormatTaskTime(taskTime),
-			Location = new Point(42, 28),
-			AutoSize = true,
-			BackColor = Color.Transparent,
-			Font = ((FontHelper.CustomFontFamily != null) ? new Font(FontHelper.CustomFontFamily, 7f, FontStyle.Regular) : new Font("Segoe UI", 7f, FontStyle.Regular))
-		};
-		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(lblTaskName, new object[2]
-		{
-			ControlStyles.SupportsTransparentBackColor,
-			true
-		});
-		typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(lblTaskTime, new object[2]
-		{
-			ControlStyles.SupportsTransparentBackColor,
-			true
-		});
-		taskPanel.Click += delegate
-		{
-			ToggleTask(taskPanel, (TaskData)taskPanel.Tag);
-		};
-		lblTaskName.Click += delegate
-		{
-			ToggleTask(taskPanel, (TaskData)taskPanel.Tag);
-		};
-		lblTaskTime.Click += delegate
-		{
-			ToggleTask(taskPanel, (TaskData)taskPanel.Tag);
-		};
-		picTask.Click += delegate
-		{
-			ToggleTask(taskPanel, (TaskData)taskPanel.Tag);
-		};
-		ContextMenuStrip menu = new ContextMenuStrip();
-		ToolStripMenuItem itemEdit = new ToolStripMenuItem("EDITAR");
-		itemEdit.Click += delegate
-		{
-			TaskData data = (TaskData)taskPanel.Tag;
-			using EditTaskForm editForm = new EditTaskForm("EDIT TASK", lblTaskName.Text, data.Time, "tasks_TSK.png");
-			editForm.Location = new Point(Left - editForm.Width, Top);
-			if (editForm.ShowDialog(this) == DialogResult.OK)
-			{
-				lblTaskName.Text = editForm.TaskName.Substring(0, Math.Min(8, editForm.TaskName.Length)).ToUpper();
-				data.Time = editForm.TaskTime;
-				lblTaskTime.Text = FormatTaskTime(editForm.TaskTime);
-				try
-				{
-					string baseDir = Application.StartupPath;
-					string iconPath = "";
-					for (int j = 0; j < 5; j++)
-					{
-						string testPath = Path.Combine(baseDir, "files", "img", editForm.SelectedIcon);
-						if (File.Exists(testPath))
-						{
-							iconPath = testPath;
-							break;
-						}
-						baseDir = Directory.GetParent(baseDir)?.FullName ?? baseDir;
-					}
-					if (File.Exists(iconPath)) picTask.Image = Image.FromFile(iconPath);
-				}
-				catch { }
-			}
-		};
-		menu.Items.Add(itemEdit);
-		taskPanel.ContextMenuStrip = menu;
-		lblTaskName.ContextMenuStrip = menu;
-		lblTaskTime.ContextMenuStrip = menu;
-		picTask.ContextMenuStrip = menu;
-		taskPanel.Controls.Add(lblTaskName);
-		taskPanel.Controls.Add(lblTaskTime);
-		taskPanel.Controls.Add(picTask);
-		int index = tasksListPanel.Controls.Count;
-		for (int i2 = 0; i2 < tasksListPanel.Controls.Count; i2++)
-		{
-			if (tasksListPanel.Controls[i2].Name == "pnlAddSlot")
-			{
-				index = i2;
-				break;
-			}
-		}
-		if (index < tasksListPanel.Controls.Count)
-		{
-			Control slot = tasksListPanel.Controls[index];
-			tasksListPanel.Controls.Remove(slot);
-			tasksListPanel.Controls.Add(taskPanel);
-			tasksListPanel.Controls.SetChildIndex(taskPanel, index);
-			slot.Dispose();
-		}
-		else
-		{
-			tasksListPanel.Controls.Add(taskPanel);
-		}
-		UpdateControlContrast(taskPanel, theme.Item2);
-	}
-
-	private void ToggleTask(Panel taskPanel, TaskData data)
-	{
-		if (_activeTaskPanel == taskPanel)
-		{
-			StopTimer();
-			_activeTaskPanel = null;
-			_timeRemaining = TimeSpan.Zero;
-			UpdateTimerDisplay();
-			ResetTaskProgress(taskPanel);
-		}
-		else if (!_timerRunning)
-		{
-			_activeTaskPanel = taskPanel;
-			_activeTaskTotalSeconds = data.Time.TotalSeconds;
-			_timeRemaining = data.Time;
-			UpdateTimerDisplay();
-			StartTimer();
-		}
-		UpdateTaskInfo();
-	}
-
-	private void UpdateTaskInfo()
-	{
-		if (_activeTaskPanel != null)
-		{
-			Label? nameLabel = null;
-			foreach (Control c in _activeTaskPanel.Controls)
-			{
-				if (c is Label lbl)
-				{
-					nameLabel = lbl;
-					break;
-				}
-			}
-			if (nameLabel != null && _activeTaskPanel.Tag is TaskData data)
-			{
-				lblTaskInfo.Text = $"{nameLabel.Text}  •  {FormatTaskTime(data.Time)}";
-				lblTaskInfo.ForeColor = Color.White;
-			}
-		}
-		else
-		{
-			lblTaskInfo.Text = "NO TASK";
-			lblTaskInfo.ForeColor = Color.Gray;
-		}
-	}
-
-	private void PlayM3u(string path)
-	{
-		_isHlsStream = path.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase);
-		if (_isHlsStream)
-		{
-			_metaTimer?.Stop();
-			_m3u8WatchTimer?.Stop();
-			try { _wmp?.controls.stop(); } catch { }
-			_hlsPlayer?.Play(path);
-			_lastHlsUrl = path;
-			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
-			_lastTitle = "";
-			if (string.IsNullOrEmpty(_currentCassetteTitle))
-				lblM3uTitle.Text = _currentM3uName;
-			lblMetadata.Text = "";
-			lblExtraMetadata.Text = "";
-			lblM3uTitle.Visible = true;
-			lblMetadata.Visible = true;
-			lblExtraMetadata.Visible = true;
-			_isPlaying = true;
-			SetVolumePreset(3);
-			return;
-		}
-		_hlsPlayer?.Stop();
-		if (_wmp == null)
-		{
-			return;
-		}
-		try
-		{
-			_metaTimer?.Stop();
-			_m3u8WatchTimer?.Stop();
-			_wmp.URL = path;
-			_wmp.controls.play();
-			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
-			_lastTitle = "";
-			if (string.IsNullOrEmpty(_currentCassetteTitle))
-				lblM3uTitle.Text = _currentM3uName;
-			lblMetadata.Text = "";
-			lblExtraMetadata.Text = "";
-			lblM3uTitle.Visible = true;
-			lblMetadata.Visible = true;
-			lblExtraMetadata.Visible = true;
-			_metaTimer?.Start();
-			_isPlaying = true;
-			SetVolumePreset(3);
-		}
-		catch
-		{
-			lblMetadata.Text = "";
-			lblExtraMetadata.Text = "";
-		}
-	}
-
-	private void LoadCassetteMaster()
-	{
-		string m3uDir = Path.Combine(Application.StartupPath, "files", "m3u");
-		if (!Directory.Exists(m3uDir))
-		{
-			m3uDir = Path.Combine(Path.GetFullPath(Path.Combine(Application.StartupPath, "..", "..", "..")), "files", "m3u");
-		}
-		string masterPath = Path.Combine(m3uDir, "CASS_master.txt");
-		if (!File.Exists(masterPath)) return;
-
-		_cassettes.Clear();
-		CassetteData? current = null;
-
-		foreach (string line in File.ReadAllLines(masterPath))
-		{
-			string trimmed = line.Trim();
-			if (trimmed.StartsWith(";") || string.IsNullOrEmpty(trimmed)) continue;
-
-			if (trimmed.StartsWith("[CASSETTE"))
-			{
-				if (current != null) _cassettes.Add(current);
-				current = new CassetteData();
-				continue;
-			}
-
-			if (current != null && trimmed.Contains(":"))
-			{
-				int colonIdx = trimmed.IndexOf(':');
-				string key = trimmed.Substring(0, colonIdx).Trim().ToUpper();
-				string value = trimmed.Substring(colonIdx + 1).Trim();
-
-				switch (key)
-				{
-					case "TITULO": current.Titulo = value; break;
-					case "IMAGEN": current.Imagen = value; break;
-					case "CONTENIDO": current.Contenido = value; break;
-					case "COLOR": current.Color = value; break;
-					case "PANTALLA_GIF": current.PantallaGif = value; break;
-					case "TEMA_FONDO": current.TemaFondo = value; break;
-					case "TEMA_TV": current.TemaTV = value; break;
-				}
-			}
-		}
-		if (current != null) _cassettes.Add(current);
-	}
-
-	private string ResolveImgPath(string fileName)
-	{
-		string imgDir = Path.Combine(Application.StartupPath, "files", "img");
-		if (!Directory.Exists(imgDir))
-		{
-			imgDir = Path.Combine(Path.GetFullPath(Path.Combine(Application.StartupPath, "..", "..", "..")), "files", "img");
-		}
-		return Path.Combine(imgDir, fileName);
-	}
-
-	private void ApplyCassette(int index)
-	{
-		if (index < 0 || index >= _cassettes.Count) return;
-		CassetteData cass = _cassettes[index];
-		_currentCassetteIndex = index;
-
-		lblCassettes.Text = "CASSETTES";
-		txtCassetteNum.Text = (index + 1).ToString();
-		lblCassetteTotal.Text = $"/{_cassettes.Count}";
-
-		lblM3uTitle.Text = cass.Titulo.ToUpper();
-		_currentCassetteTitle = cass.Titulo.ToUpper();
-		lblMetadata.Text = "";
-		lblExtraMetadata.Text = "";
-
-		if (!string.IsNullOrEmpty(cass.Color))
-		{
-			try
-			{
-				Color baseColor = ColorTranslator.FromHtml(cass.Color);
-				ApplyAppColor(baseColor);
-			}
-			catch { }
-		}
-
-		if (!string.IsNullOrEmpty(cass.Imagen))
-		{
-			string imgPath = ResolveImgPath(cass.Imagen);
-			if (File.Exists(imgPath))
-			{
-				picPlayer.Image = Image.FromFile(imgPath);
-				picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
-				picPlayer.Size = new Size(140, 88);
-				picPlayer.Left = (pnlCassetteContainer.Width - 140) / 2;
-				picPlayer.Top = 1;
-			}
-		}
-
-		if (!string.IsNullOrEmpty(cass.PantallaGif))
-		{
-			string gifPath = ResolveImgPath(cass.PantallaGif);
-			if (File.Exists(gifPath))
-			{
-				picMainDisplay.ImageLocation = gifPath;
-				picMainDisplay.SizeMode = PictureBoxSizeMode.Zoom;
-			}
-		}
-
-		if (!string.IsNullOrEmpty(cass.TemaTV))
-		{
-			string tvPath = ResolveImgPath(cass.TemaTV);
-			if (File.Exists(tvPath))
-			{
-				Image tvImg = Image.FromFile(tvPath);
-				timerPanel.BackgroundImage = tvImg;
-				timerPanel.BackgroundImageLayout = ImageLayout.None;
-				timerPanel.Height = tvImg.Height - 4;
-				_currentTvPath = tvPath;
-			}
-		}
-
-		if (!string.IsNullOrEmpty(cass.TemaFondo))
-		{
-			string fondoPath = ResolveImgPath(cass.TemaFondo);
-			if (File.Exists(fondoPath))
-			{
-				_currentThemeImage = Image.FromFile(fondoPath);
-				_currentFondoPath = fondoPath;
-				BackgroundImage = null;
-				Invalidate();
-			}
-		}
-
-		if (!string.IsNullOrEmpty(cass.Contenido))
-		{
-			PlayM3u(cass.Contenido);
-		}
-	}
-
-	private void ChangeCassette(int direction)
-	{
-		if (_cassettes.Count == 0) return;
-		Timer? slideTimer = _slideTimer;
-		if (slideTimer == null || !slideTimer.Enabled)
-		{
-			int newIndex = (_currentCassetteIndex + direction + _cassettes.Count) % _cassettes.Count;
-			CassetteData nextCass = _cassettes[newIndex];
-
-			Image? nextImg = null;
-			if (!string.IsNullOrEmpty(nextCass.Imagen))
-			{
-				string imgPath = ResolveImgPath(nextCass.Imagen);
-				if (File.Exists(imgPath)) nextImg = Image.FromFile(imgPath);
-			}
-
-			if (nextImg != null)
-			{
-				_pendingCassetteIndex = newIndex;
-				StartFade(nextImg);
-			}
-			else
-			{
-				ApplyCassette(newIndex);
-			}
-		}
-	}
-
-	private void GoToCassette(int index)
-	{
-		if (index < 0 || index >= _cassettes.Count) return;
-		if (index == _currentCassetteIndex) return;
-		Timer? slideTimer = _slideTimer;
-		if (slideTimer != null && slideTimer.Enabled) return;
-
-		CassetteData cass = _cassettes[index];
-		Image? nextImg = null;
-		if (!string.IsNullOrEmpty(cass.Imagen))
-		{
-			string imgPath = ResolveImgPath(cass.Imagen);
-			if (File.Exists(imgPath)) nextImg = Image.FromFile(imgPath);
-		}
-
-		if (nextImg != null)
-		{
-			_pendingCassetteIndex = index;
-			StartFade(nextImg);
-		}
-		else
-		{
-			ApplyCassette(index);
-		}
-	}
-
-	private void txtCassetteNum_KeyDown(object? sender, KeyEventArgs e)
-	{
-		if (e.KeyCode == Keys.Enter)
-		{
-			e.SuppressKeyPress = true;
-			NavigateToTextBoxCassette();
-		}
-	}
-
-	private void txtCassetteNum_Leave(object? sender, EventArgs e)
-	{
-		NavigateToTextBoxCassette();
-	}
-
-	private void NavigateToTextBoxCassette()
-	{
-		if (int.TryParse(txtCassetteNum.Text, out int num) && num >= 1 && num <= _cassettes.Count)
-			GoToCassette(num - 1);
-		else
-			txtCassetteNum.Text = (_currentCassetteIndex + 1).ToString();
-	}
-
-	private void btnCassetteList_Click(object? sender, EventArgs e)
-	{
-		using var form = new CassetteListForm(_cassettes.ToArray(), _currentCassetteIndex);
-		form.Location = new Point(Left - form.Width, Top);
-		if (form.ShowDialog(this) == DialogResult.OK && form.SelectedIndex >= 0)
-			GoToCassette(form.SelectedIndex);
-	}
-
-	private static string FormatTaskTime(TimeSpan t)
-	{
-		if (t.TotalHours >= 1.0)
-			return $"{(int)t.TotalHours}H {t.Minutes}M";
-		return $"{(int)t.TotalMinutes} MIN";
-	}
-
-	private void btnAddFav_Click(object? sender, EventArgs e)
-	{
-		if (_currentCassetteIndex < 0 || _currentCassetteIndex >= _cassettes.Count) return;
-		CassetteData cass = _cassettes[_currentCassetteIndex];
-		string title = cass.Titulo;
-		if (string.IsNullOrWhiteSpace(title)) title = $"Cassette {_currentCassetteIndex + 1}";
-
-		_favorites.RemoveAll(f => f.CassetteIndex == _currentCassetteIndex);
-		_favorites.Add(new FavoriteData
-		{
-			CassetteIndex = _currentCassetteIndex,
-			CassetteTitle = title,
-			ColorHex = _currentColorHex,
-			TemaTV = _currentTvPath,
-			TemaFondo = _currentFondoPath
-		});
-	}
-
-	private void btnInfo_Click(object? sender, EventArgs e)
-	{
-		using var form = new InfoForm();
-		form.Location = new Point(Left - form.Width, Top);
-		form.ShowDialog(this);
-	}
-
-	private void btnLearn_Click(object? sender, EventArgs e)
-	{
-		btnLearn.Enabled = false;
-		btnAddFav.Enabled = false;
-
-		var form = new LearnForm(_learningData, 0);
-		form.Location = new Point(Left - form.Width, Top);
-
-		form.StartRequested += (subjectName, minutes) =>
-		{
-			// Quiz runs inside LearnForm — no action needed from Form1
-		};
-
-		form.FormClosed += (_, _) =>
-		{
-			btnLearn.Enabled = true;
-			btnAddFav.Enabled = true;
-			form.Dispose();
-		};
-
-		form.Show(this);
-	}
-
-	private void PicMainDisplay_Paint(object? sender, PaintEventArgs e)
-	{
-		if (_tvCharacterComposite != null)
-			e.Graphics.DrawImage(_tvCharacterComposite, 0, 0,
-				_tvCharacterComposite.Width, _tvCharacterComposite.Height);
-	}
-
-	private void StartLearningSession(string subjectName, int minutes)
-	{
-		_isLearningSession = true;
-		_currentSubject = subjectName;
-
-		_timeRemaining = TimeSpan.FromMinutes(minutes);
-		_activeTaskPanel = null;
-		UpdateTimerDisplay();
-		StartTimer();
-
-		// Save current display
-		_savedDisplayPath = picMainDisplay.ImageLocation;
-
-		// Hide sprite overlay during learning session
-		if (_spriteTimer != null)
-			_spriteTimer.Stop();
-		picOverlay.Visible = false;
-
-		// Composite base avatar with overlays (z-order: first = bottom)
-		List<string> overlays = new List<string>(4);
-		if (!string.IsNullOrEmpty(_avatarBody))
-			overlays.Add(_avatarBody);         // CUERPO
-		if (!string.IsNullOrEmpty(_avatarHead))
-			overlays.Add(_avatarHead);         // CABEZA
-		if (!string.IsNullOrEmpty(_avatarHair))
-			overlays.Add(_avatarHair);         // CABELLO
-		if (!string.IsNullOrEmpty(_avatarFace))
-			overlays.Add(_avatarFace);         // EXPRESION (sobre cabello)
-		if (!string.IsNullOrEmpty(_avatarFullOutfit))
-			overlays.Add(_avatarFullOutfit);   // TRAJE
-		if (!string.IsNullOrEmpty(_avatarAccessories))
-			overlays.Add(_avatarAccessories);  // ACCESORIO
-		if (!string.IsNullOrEmpty(_avatarPet))
-			overlays.Add(_avatarPet);          // MASCOTA (top)
-
-		string basePath = ResolveImgPath(_avatarPath);
-		if (File.Exists(basePath))
-		{
-			Image? old = picMainDisplay.Image;
-			picMainDisplay.Image = null;
-			picMainDisplay.ImageLocation = null;
-			if (_tvCharacterComposite != null)
-			{
-				picMainDisplay.Paint -= PicMainDisplay_Paint;
-				_tvCharacterComposite.Dispose();
-				_tvCharacterComposite = null;
-			}
-			old?.Dispose();
-
-			// Composite character layers (no background)
-			using Image baseImg = Image.FromFile(basePath);
-			int w = baseImg.Width;
-			int h = baseImg.Height;
-			Bitmap character = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-			using (Graphics g = Graphics.FromImage(character))
-			{
-				g.DrawImage(baseImg, 0, 0, w, h);
-				foreach (string ov in overlays)
-				{
-					string ovPath = ResolveImgPath(ov);
-					if (!File.Exists(ovPath)) continue;
-					using Image ovImg = Image.FromFile(ovPath);
-					g.DrawImage(ovImg, 0, 0, w, h);
-				}
-			}
-
-			if (!string.IsNullOrEmpty(_avatarBg))
-			{
-				string bgPath = ResolveImgPath(_avatarBg);
-				if (File.Exists(bgPath))
-				{
-					// Background animated GIF — set as Image, draw character on top via Paint
-					_tvCharacterComposite = character;
-					picMainDisplay.Image = Image.FromFile(bgPath);
-					picMainDisplay.Paint += PicMainDisplay_Paint;
-				}
-				else
-				{
-					picMainDisplay.Image = character;
-				}
-			}
-			else
-			{
-				picMainDisplay.Image = character;
-			}
-		}
-
-		using var quiz = new QuizForm(subjectName, minutes);
-		quiz.Location = new Point(Left - quiz.Width, Top);
-
-		if (quiz.ShowDialog(this) == DialogResult.OK)
-		{
-			int quizXp = quiz.TotalScore;
-			int actualMinutes = Math.Max(1, quiz.MinutesStudied);
-			AwardLearningSession(quizXp, actualMinutes);
-		}
-
-		StopTimer();
-		_timeRemaining = TimeSpan.Zero;
-		UpdateTimerDisplay();
-		_isLearningSession = false;
-
-		// Clean up paint hook
-		if (_tvCharacterComposite != null)
-		{
-			picMainDisplay.Paint -= PicMainDisplay_Paint;
-			_tvCharacterComposite.Dispose();
-			_tvCharacterComposite = null;
-		}
-
-		// Restore display
-		if (!string.IsNullOrEmpty(_savedDisplayPath))
-		{
-			Image? old = picMainDisplay.Image;
-			picMainDisplay.Image = null;
-			picMainDisplay.ImageLocation = _savedDisplayPath;
-			old?.Dispose();
-		}
-		_savedDisplayPath = null;
-
-		// Restore sprite overlay
-		picOverlay.Visible = true;
-		if (_spriteTimer != null)
-			_spriteTimer.Start();
-	}
-
-	private void AwardLearningSession(int quizXp, int actualMinutes)
-	{
-		SubjectData? subj = _learningData.Subjects.Find(s => s.Name == _currentSubject);
-		if (subj == null) return;
-
-		int prevLevel = subj.Level;
-		int prevStreak = subj.CurrentStreak;
-
-		subj.CompleteSession(actualMinutes, quizXp);
-
-		_learningData.Save();
-
-		if (subj.CurrentStreak > prevStreak)
-		{
-			FlashMessage($"🔥 ¡Racha de {subj.CurrentStreak} días!", Color.FromArgb(255, 150, 0));
-		}
-
-		if (subj.Level > prevLevel)
-		{
-			FlashMessage($"🎉 ¡SUBISTE AL NIVEL {subj.Level} en {subj.DisplayName}!", Color.FromArgb(88, 204, 2));
-		}
-
-		if (subj.TodayMinutesStudied >= _learningData.DailyGoalMinutes)
-		{
-			FlashMessage($"🎯 ¡META DIARIA COMPLETADA!", Color.FromArgb(88, 204, 2));
-		}
-	}
-
-	private void CompleteLearningSession()
-	{
-		if (!_isLearningSession) return;
-		_isLearningSession = false;
-
-		SubjectData? subj = _learningData.Subjects.Find(s => s.Name == _currentSubject);
-		if (subj == null) return;
-
-		int prevLevel = subj.Level;
-		int prevStreak = subj.CurrentStreak;
-		int minutes = (int)(_timeRemaining.TotalMinutes > 0 ? _timeRemaining.TotalMinutes : 0);
-
-		int sessionMinutes = Math.Max(1, minutes);
-		subj.CompleteSession(sessionMinutes);
-
-		_learningData.Save();
-
-		if (subj.CurrentStreak > prevStreak)
-		{
-			FlashMessage($"🔥 ¡Racha de {subj.CurrentStreak} días!", Color.FromArgb(255, 150, 0));
-		}
-
-		if (subj.Level > prevLevel)
-		{
-			FlashMessage($"🎉 ¡SUBISTE AL NIVEL {subj.Level} en {subj.DisplayName}!", Color.FromArgb(88, 204, 2));
-		}
-
-		if (subj.TodayMinutesStudied >= _learningData.DailyGoalMinutes)
-		{
-			FlashMessage($"🎯 ¡META DIARIA COMPLETADA!", Color.FromArgb(88, 204, 2));
-		}
-	}
-
-	private async void FlashMessage(string message, Color color)
-	{
-		string origText = lblMetadata.Text;
-		Color origColor = lblMetadata.ForeColor;
-		lblMetadata.Text = message;
-		lblMetadata.ForeColor = color;
-		await Task.Delay(3000);
-		lblMetadata.Text = origText;
-		lblMetadata.ForeColor = origColor;
-	}
-
-	private void btnFavList_Click(object? sender, EventArgs e)
-	{
-		using var form = new FavoritesListForm(_favorites.ToArray());
-		form.Location = new Point(Left - form.Width, Top);
-		if (form.ShowDialog(this) == DialogResult.OK && form.SelectedIndex >= 0)
-		{
-			var fav = _favorites[form.SelectedIndex];
-			ApplyFavorite(fav);
-		}
-	}
-
-	private void ApplyFavorite(FavoriteData fav)
-	{
-		_pendingFavOverride = fav;
-		if (fav.CassetteIndex == _currentCassetteIndex)
-			_currentCassetteIndex = -1;
-		GoToCassette(fav.CassetteIndex);
-		if (_slideTimer == null || !_slideTimer.Enabled)
-		{
-			ApplyFavOverride(fav);
-			_pendingFavOverride = null;
-		}
-	}
-
-	private void ApplyFavOverride(FavoriteData fav)
-	{
-		if (!string.IsNullOrEmpty(fav.ColorHex))
-		{
-			try { ApplyAppColor(ColorTranslator.FromHtml(fav.ColorHex)); } catch { }
-		}
-		if (!string.IsNullOrEmpty(fav.TemaTV))
-		{
-			if (File.Exists(fav.TemaTV))
-			{
-				timerPanel.BackgroundImage = Image.FromFile(fav.TemaTV);
-				timerPanel.Height = timerPanel.BackgroundImage.Height - 4;
-			}
-		}
-		if (!string.IsNullOrEmpty(fav.TemaFondo))
-		{
-			if (File.Exists(fav.TemaFondo))
-			{
-				_currentThemeImage = Image.FromFile(fav.TemaFondo);
-				_currentFondoPath = fav.TemaFondo;
-				Invalidate();
-			}
-		}
-	}
-
-	private void LayoutCassetteHeader()
-	{
-		int x = 5;
-		lblCassettes.Location = new Point(x, 4);
-		x += lblCassettes.Width + 3;
-		txtCassetteNum.Location = new Point(x, 2);
-		txtCassetteNum.Width = TextRenderer.MeasureText("888", txtCassetteNum.Font).Width + 2;
-		x += txtCassetteNum.Width + 3;
-		lblCassetteTotal.Location = new Point(x, 4);
-		lblCassetteTotal.Text = $"/{_cassettes.Count}";
-	}
-
-	private void UpdateVolumeVisual(int volumePercent)
-	{
-		try
-		{
-			double normalized = (double)(volumePercent - 3) / 12.0;
-			normalized = Math.Max(0, Math.Min(1, normalized));
-			int x = (int)(normalized * (double)pnlVolumeLine.Width);
-			int thumbCenter = pnlVolumeThumb.Width / 2;
-			pnlVolumeThumb.Left = x - thumbCenter;
-		}
-		catch
-		{
-		}
-	}
-
-	private void StopM3u()
-	{
-		_hlsPlayer?.Stop();
-		_metaTimer?.Stop();
-		_m3u8WatchTimer?.Stop();
-		try
-		{
-			_wmp?.controls.stop();
-		}
-		catch
-		{
-		}
-		_lastTitle = "";
-		lblMetadata.Text = "";
-		lblExtraMetadata.Text = "";
-		_isPlaying = false;
-	}
-
-	private void ResetTaskProgress(Panel taskPanel)
-	{
-		pnlProgressFill.Width = 0;
-	}
-
 	private void Form1_Load(object? sender, EventArgs e)
 	{
 		base.StartPosition = FormStartPosition.Manual;
@@ -2176,34 +460,21 @@ private PictureBox picCincross;
 		LayoutCassetteHeader();
 		try
 		{
-			string baseDir = Application.StartupPath;
-			string imgDir = "";
-			for (int i = 0; i < 5; i++)
+			string imgDir = PathHelper.GetImgDir();
+			if (Directory.Exists(imgDir))
 			{
-				string testPath = Path.Combine(baseDir, "files", "img");
-				if (Directory.Exists(testPath))
+				for (int j = 1; j <= 5; j++)
 				{
-					imgDir = testPath;
-					break;
-				}
-				baseDir = Directory.GetParent(baseDir)?.FullName ?? baseDir;
-			}
-			if (!string.IsNullOrEmpty(imgDir))
-			{
-				if (Directory.Exists(imgDir))
-				{
-					for (int j = 1; j <= 5; j++)
+					string pPath = Path.Combine(imgDir, $"cass00{j}.png");
+					if (File.Exists(pPath))
 					{
-						string pPath = Path.Combine(imgDir, $"cass00{j}.png");
-						if (File.Exists(pPath))
+						try
 						{
-							try
-							{
-								_cassetteImages.Add(Image.FromFile(pPath));
-							}
-							catch
-							{
-							}
+							_cassetteImages.Add(PathHelper.LoadImage(pPath));
+						}
+						catch (Exception ex)
+						{
+							Logger.Error("Form1.LoadAllData.CassetteImage", ex);
 						}
 					}
 				}
@@ -2235,8 +506,8 @@ private PictureBox picCincross;
 				{
 					try
 					{
-						Image img = Image.FromFile(file2);
-						_themeImages.Add(img);
+					Image img = PathHelper.LoadImage(file2);
+					_themeImages.Add(img);
 						_themeFilePaths.Add(file2);
 						if (file2.EndsWith("05_TH.gif", StringComparison.OrdinalIgnoreCase))
 						{
@@ -2245,8 +516,9 @@ private PictureBox picCincross;
 							BackgroundImage = null;
 						}
 					}
-					catch
+					catch (Exception ex)
 					{
+						Logger.Error("Form1.LoadAllData.ThemeImage", ex);
 					}
 				}
 				if (_currentThemeImage != null)
@@ -2279,7 +551,7 @@ private PictureBox picCincross;
 				string tvPath = Path.Combine(imgDir, "old_TV.gif");
 				if (File.Exists(tvPath))
 				{
-				Image tvImg = Image.FromFile(tvPath);
+				Image tvImg = PathHelper.LoadImage(tvPath);
 				base.Width = tvImg.Width;
 				timerPanel.Height = tvImg.Height - 4;
 				timerPanel.BackgroundImage = tvImg;
@@ -2299,8 +571,9 @@ private PictureBox picCincross;
 				}
 			}
 		}
-		catch
+		catch (Exception ex)
 		{
+			Logger.Error("Form1.LoadAllData", ex);
 		}
 		Panel pnlTaskInfo = new Panel
 		{
@@ -2368,262 +641,31 @@ private PictureBox picCincross;
 		SetVolumePreset(3);
 	}
 
-	private void LoadSpriteSheet(string path, int frameWidth, int frameHeight, int frameCount)
-	{
-		try
-		{
-			using Bitmap fullSheet = new Bitmap(path);
-			_spriteFrames.Clear();
-			for (int i = 0; i < frameCount; i++)
-			{
-				Rectangle section = new Rectangle(i * frameWidth, 0, frameWidth, frameHeight);
-				if (section.Right > fullSheet.Width)
-				{
-					section = new Rectangle(0, i * frameHeight, frameWidth, frameHeight);
-				}
-				Bitmap frame = fullSheet.Clone(section, fullSheet.PixelFormat);
-				_spriteFrames.Add(frame);
-			}
-		}
-		catch
-		{
-		}
-	}
-
-	private void btnAddTime_Click(object? sender, EventArgs e)
-	{
-		using SetTimeForm setTimeForm = new SetTimeForm();
-		setTimeForm.StartPosition = FormStartPosition.Manual;
-		setTimeForm.Location = new Point(base.Location.X - setTimeForm.Width, base.Location.Y);
-		if (setTimeForm.ShowDialog() == DialogResult.OK)
-		{
-			_timeRemaining = new TimeSpan(setTimeForm.SelectedHours, setTimeForm.SelectedMinutes, 0);
-			UpdateTimerDisplay();
-			if (setTimeForm.StartImmediately && _timeRemaining.TotalSeconds > 0.0)
-			{
-				StartTimer();
-			}
-			else if (_timeRemaining.TotalSeconds > 0.0)
-			{
-				_timerRunning = false;
-				countdownTimer.Stop();
-				btnP.Text = "▶";
-				btnS.Text = "⏹";
-			}
-			else
-			{
-				StopTimer();
-			}
-		}
-	}
-
-	private void btnP_Click(object? sender, EventArgs e)
-	{
-		if (_timerRunning)
-		{
-			PauseTimer();
-		}
-		else if (_timeRemaining.TotalSeconds > 0.0)
-		{
-			StartTimer();
-		}
-	}
-
-	private void btnS_Click(object? sender, EventArgs e)
-	{
-		if (_activeTaskPanel != null)
-		{
-			StopTimer();
-			StopM3u();
-			_activeTaskPanel = null;
-			_timeRemaining = TimeSpan.Zero;
-			UpdateTimerDisplay();
-		}
-		else
-		{
-			StopTimer();
-			_timeRemaining = TimeSpan.Zero;
-			UpdateTimerDisplay();
-		}
-	}
-
-	private void StartTimer()
-	{
-		countdownTimer.Start();
-		_timerRunning = true;
-		btnP.Text = "⏸";
-		btnS.Text = "⏹";
-	}
-
-	private void StopTimer()
-	{
-		countdownTimer.Stop();
-		_timerRunning = false;
-		btnP.Text = "▶";
-		btnS.Text = "⏹";
-	}
-
-	private void PauseTimer()
-	{
-		countdownTimer.Stop();
-		_timerRunning = false;
-		btnP.Text = "▶";
-		btnS.Text = "⏹";
-	}
-
-	private async void countdownTimer_Tick(object? sender, EventArgs e)
-	{
-		if (_timeRemaining.TotalSeconds > 0.0)
-		{
-			_timeRemaining = _timeRemaining.Subtract(TimeSpan.FromSeconds(1L));
-			UpdateTimerDisplay();
-			if (_activeTaskPanel != null)
-			{
-				UpdateTaskProgress();
-			}
-			return;
-		}
-		countdownTimer.Stop();
-		_timerRunning = false;
-		btnP.Text = "▶";
-		btnS.Text = "⏹";
-		_timeRemaining = TimeSpan.Zero;
-		UpdateTimerDisplay();
-		if (_isLearningSession)
-		{
-			return;
-		}
-		PlayDoneSound();
-		CompleteLearningSession();
-		if (_activeTaskPanel != null)
-		{
-			UpdateTaskProgress();
-			Panel panelToDelete = _activeTaskPanel;
-			bool isFixed = (panelToDelete.Tag as TaskData)?.IsFixed ?? false;
-			_activeTaskPanel = null;
-			await Task.Delay(3000);
-			if (!isFixed)
-			{
-				tasksListPanel.Controls.Remove(panelToDelete);
-				panelToDelete.Dispose();
-			}
-			else
-			{
-				ResetTaskProgress(panelToDelete);
-			}
-			UpdateTaskInfo();
-		}
-	}
-	
-
-	private void PlayDoneSound()
-	{
-		if (_wmp == null)
-		{
-			return;
-		}
-		string baseDir = Application.StartupPath;
-		string donePath = "";
-		for (int i = 0; i < 5; i++)
-		{
-			string testPath = Path.Combine(baseDir, "files", "mp3", "DONE.mp3");
-			if (File.Exists(testPath))
-			{
-				donePath = testPath;
-				break;
-			}
-			baseDir = Directory.GetParent(baseDir)?.FullName ?? baseDir;
-		}
-		if (File.Exists(donePath))
-		{
-			_wmp.URL = donePath;
-			_wmp.controls.play();
-			lblMetadata.Text = "";
-		}
-	}
-
-	private void UpdateTaskProgress()
-	{
-		if (_activeTaskPanel == null)
-		{
-			pnlProgressFill.Width = 0;
-			return;
-		}
-		double percent = (_activeTaskTotalSeconds - _timeRemaining.TotalSeconds) / _activeTaskTotalSeconds;
-		pnlProgressFill.Width = (int)((double)pnlProgressBg.Width * percent);
-	}
-
-	private void UpdateTimerDisplay()
-	{
-		lblHours.Text = _timeRemaining.Hours.ToString("00");
-		lblMinutes.Text = _timeRemaining.Minutes.ToString("00");
-		lblSeconds.Text = _timeRemaining.Seconds.ToString("00");
-	}
-
-	private void AddAutoButtons()
-	{
-		Panel pnlAuto = new Panel
-		{
-			Dock = DockStyle.Right,
-			Width = 80,
-			BackColor = Color.FromArgb(20, 20, 20)
-		};
-		tasksHeaderPanel.Controls.Add(pnlAuto);
-		for (int i = 0; i < 2; i++)
-		{
-			Button btnAuto = new Button
-			{
-				Text = "AUTO",
-				Width = 35,
-				Height = 20,
-				Top = 2,
-				Left = 5 + i * 40,
-				FlatStyle = FlatStyle.Flat,
-				Font = new Font("Segoe UI", 5f, FontStyle.Bold),
-				BackColor = Color.FromArgb(50, Color.Gray),
-				ForeColor = Color.White
-			};
-			btnAuto.FlatAppearance.BorderSize = 0;
-			pnlAuto.Controls.Add(btnAuto);
-		}
-		lblTasks.SendToBack();
-	}
-
-	private void AddEmptySlot()
-	{
-		Panel pnlAdd = new Panel
-		{
-			Height = 60,
-			Width = base.Width / 2,
-			BackColor = Color.FromArgb(40, Color.Black),
-			BorderStyle = BorderStyle.None,
-			Margin = new Padding(0),
-			Name = "pnlAddSlot"
-		};
-		Button btnPlus = new Button
-		{
-			Text = "+",
-			Dock = DockStyle.Fill,
-			FlatStyle = FlatStyle.Flat,
-			Font = new Font("Segoe UI", 20f, FontStyle.Bold),
-			ForeColor = Color.White,
-			BackColor = Color.FromArgb(20, 20, 20)
-		};
-		btnPlus.FlatAppearance.BorderSize = 0;
-		btnPlus.Click += delegate(object? s, EventArgs e)
-		{
-			btnAddTask_Click(s, e);
-		};
-		pnlAdd.Controls.Add(btnPlus);
-		tasksListPanel.Controls.Add(pnlAdd);
-	}
-
 	protected override void Dispose(bool disposing)
 	{
 		if (disposing)
 		{
 			_learningData?.Save();
 			_hlsPlayer?.Dispose();
+			_slideTimer?.Dispose();
+			_eqTimer?.Dispose();
+			_spriteTimer?.Dispose();
+			_metaTimer?.Dispose();
+			_m3u8WatchTimer?.Dispose();
+			_pfc?.Dispose();
+			_currentThemeImage?.Dispose();
+			foreach (var img in _themeImages) img.Dispose();
+			_themeImages.Clear();
+			foreach (var img in _cassetteImages) img.Dispose();
+			_cassetteImages.Clear();
+			foreach (var bmp in _spriteFrames) bmp.Dispose();
+			_spriteFrames.Clear();
+			if (_wmp != null)
+			{
+				try { System.Runtime.InteropServices.Marshal.ReleaseComObject(_wmp); }
+				catch (Exception ex) { Logger.Error("Form1.Dispose.Wmp", ex); }
+				_wmp = null;
+			}
 			components?.Dispose();
 		}
 		base.Dispose(disposing);
@@ -2632,7 +674,7 @@ private PictureBox picCincross;
 	private void InitializeComponent()
 	{
 		this.components = new System.ComponentModel.Container();
-		this.timerPanel = new System.Windows.Forms.Panel();
+		this.timerPanel = new BufferedPanel();
 		this.picOverlay = new System.Windows.Forms.PictureBox();
 		this.picMainDisplay = new System.Windows.Forms.PictureBox();
 		this.pnlTimerControls = new System.Windows.Forms.Panel();
@@ -2640,19 +682,19 @@ private PictureBox picCincross;
 		this.btnImage = new System.Windows.Forms.Button();
 		this.btnStyle = new System.Windows.Forms.Button();
 		this.btnColor = new System.Windows.Forms.Button();
-		this.pnlTopButtons = new System.Windows.Forms.Panel();
-		this.lblHours = new System.Windows.Forms.Label();
-		this.lblMinutes = new System.Windows.Forms.Label();
-		this.lblSeconds = new System.Windows.Forms.Label();
+		this.pnlTopButtons = new BufferedPanel();
+		this.lblHours = new BufferedLabel();
+		this.lblMinutes = new BufferedLabel();
+		this.lblSeconds = new BufferedLabel();
 		this.btnP = new System.Windows.Forms.Button();
 		this.btnS = new System.Windows.Forms.Button();
 		this.countdownTimer = new System.Windows.Forms.Timer(this.components);
-		this.tasksHeaderPanel = new System.Windows.Forms.Panel();
+		this.tasksHeaderPanel = new BufferedPanel();
 		this.lblTasks = new System.Windows.Forms.Label();
-		this.cassettesHeaderPanel = new System.Windows.Forms.Panel();
+		this.cassettesHeaderPanel = new BufferedPanel();
 		this.lblCassettes = new System.Windows.Forms.Label();
-		this.playerFooterPanel = new System.Windows.Forms.Panel();
-		this.pnlEqualizer = new System.Windows.Forms.Panel();
+		this.playerFooterPanel = new BufferedPanel();
+		this.pnlEqualizer = new BufferedPanel();
 		this.pnlVolume = new System.Windows.Forms.Panel();
 		this.btnStopPlayer = new System.Windows.Forms.Button();
 		this.btnPlayPlayer = new System.Windows.Forms.Button();
@@ -2663,14 +705,14 @@ private PictureBox picCincross;
 		this.btnVolMax = new System.Windows.Forms.Button();
 		this.btnNextM3u = new System.Windows.Forms.Button();
 		this.btnPrevM3u = new System.Windows.Forms.Button();
-		this.pnlCassetteContainer = new System.Windows.Forms.Panel();
+		this.pnlCassetteContainer = new BufferedPanel();
 		this.picPlayer = new System.Windows.Forms.PictureBox();
 		this.picPlayerNext = new System.Windows.Forms.PictureBox();
 		this.lblM3uTitle = new System.Windows.Forms.Label();
 		this.lblMetadata = new System.Windows.Forms.Label();
 		this.lblExtraMetadata = new System.Windows.Forms.Label();
 		this.tasksListPanel = new System.Windows.Forms.FlowLayoutPanel();
-		this.pnlGrip = new System.Windows.Forms.Panel();
+		this.pnlGrip = new BufferedPanel();
 		this.btnCloseApp = new System.Windows.Forms.Button();
 		this.picCincross = new System.Windows.Forms.PictureBox();
 		this.timerPanel.SuspendLayout();
@@ -2698,7 +740,7 @@ private PictureBox picCincross;
 		string cincrossPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "files", "img", "cincross.png");
 		if (System.IO.File.Exists(cincrossPath))
 		{
-			this.picCincross.Image = System.Drawing.Image.FromFile(cincrossPath);
+			this.picCincross.Image = PathHelper.LoadImage(cincrossPath);
 		}
 		this.picCincross.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
 		this.picCincross.Height = 60;

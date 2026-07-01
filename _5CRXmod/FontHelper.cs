@@ -22,18 +22,9 @@ public static class FontHelper
 	{
 		try
 		{
-			string nasaPath = "";
-			string startupPath = Path.Combine(Application.StartupPath, "files", "typo", "nasa.otf");
-			string baseDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "files", "typo", "nasa.otf");
-
-			if (File.Exists(startupPath))
-			{
-				nasaPath = startupPath;
-			}
-			else if (File.Exists(baseDirectoryPath))
-			{
-				nasaPath = baseDirectoryPath;
-			}
+			string nasaPath = Path.Combine(PathHelper.GetFilesDir(), "typo", "nasa.otf");
+			if (!File.Exists(nasaPath))
+				nasaPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "files", "typo", "nasa.otf");
 
 			if (string.IsNullOrEmpty(nasaPath))
 			{
@@ -50,8 +41,9 @@ public static class FontHelper
 				CustomFontFamily = _pfc.Families[0];
 			}
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
+			Logger.Error("FontHelper.LoadFont", ex);
 		}
 	}
 	public static void ApplyFont(Control parent, float size = 9f, FontStyle style = FontStyle.Regular, string[]? excludeNames = null)

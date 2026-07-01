@@ -2,6 +2,7 @@ using LibVLCSharp.Shared;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace _5CRXmod
 {
@@ -103,7 +104,7 @@ namespace _5CRXmod
             }
         }
 
-        public void Play(string url)
+        public async Task PlayAsync(string url)
         {
             Log($"Play({url})");
             if (_disposed) { Log("  -> disposed, abort"); return; }
@@ -120,7 +121,7 @@ namespace _5CRXmod
                 {
                     _isHls = true;
                     _hlsDownloader = new HlsDownloader(url);
-                    if (!_hlsDownloader.LoadPlaylist())
+                    if (!await _hlsDownloader.LoadPlaylistAsync().ConfigureAwait(false))
                     {
                         Log("Failed to load HLS playlist");
                         Error?.Invoke("FALLO AL CARGAR PLAYLIST HLS");
@@ -128,7 +129,7 @@ namespace _5CRXmod
                         _hlsDownloader = null;
                         return;
                     }
-                    PlayNextBatch();
+                    await PlayNextBatchAsync().ConfigureAwait(false);
                 }
                 else
                 {
@@ -151,7 +152,7 @@ namespace _5CRXmod
             }
         }
 
-        private bool PlayNextBatch()
+        private async Task<bool> PlayNextBatchAsync()
         {
             if (_hlsDownloader == null) return false;
 
@@ -160,7 +161,7 @@ namespace _5CRXmod
             if (_hlsDownloader.RemainingSegments == 0)
             {
                 Log("Refreshing playlist for more segments...");
-                if (!_hlsDownloader.LoadPlaylist())
+                if (!await _hlsDownloader.LoadPlaylistAsync().ConfigureAwait(false))
                 {
                     Log("No new segments");
                     return false;
@@ -177,13 +178,13 @@ namespace _5CRXmod
             Directory.CreateDirectory(tempDir);
             string tempFile = Path.Combine(tempDir, $"stream_{DateTime.Now.Ticks}.aac");
 
-            string result = _hlsDownloader.DownloadBatch(tempFile);
+            string? result = await _hlsDownloader.DownloadBatchAsync(tempFile).ConfigureAwait(false);
             if (string.IsNullOrEmpty(result))
             {
                 Log("DownloadBatch returned empty, retrying with fresh playlist...");
-                if (!_hlsDownloader.LoadPlaylist())
+                if (!await _hlsDownloader.LoadPlaylistAsync().ConfigureAwait(false))
                     return false;
-                result = _hlsDownloader.DownloadBatch(tempFile);
+                result = await _hlsDownloader.DownloadBatchAsync(tempFile).ConfigureAwait(false);
                 if (string.IsNullOrEmpty(result))
                 {
                     Log("Still empty after retry");
@@ -206,7 +207,7 @@ namespace _5CRXmod
             return true;
         }
 
-        private void OnStopped(object? sender, EventArgs e)
+        private async void OnStopped(object? sender, EventArgs e)
         {
             if (_stoppedGuard) return;
             _stoppedGuard = true;
@@ -216,7 +217,7 @@ namespace _5CRXmod
                 if (_isHls && _hlsDownloader != null)
                 {
                     Log("HLS mode, checking for next batch...");
-                    if (!PlayNextBatch())
+                    if (!await PlayNextBatchAsync().ConfigureAwait(false))
                     {
                         Log("No more batches, firing final Stop");
                         Stopped?.Invoke();
@@ -288,7 +289,7 @@ namespace _5CRXmod
             {
                 File.AppendAllText(_logPath, $"{DateTime.Now:HH:mm:ss.fff} [HlsPlayer] {msg}{Environment.NewLine}");
             }
-            catch { }
+            catch (Exception ex) { Logger.Error("HlsPlayer.Log", ex); }
         }
 
         public void Dispose()

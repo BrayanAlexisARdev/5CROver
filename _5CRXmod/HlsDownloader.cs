@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace _5CRXmod
 {
@@ -28,14 +29,14 @@ namespace _5CRXmod
 
         public string? CurrentVariantUrl => _variantUrl;
 
-        public bool LoadPlaylist()
+        public async Task<bool> LoadPlaylistAsync()
         {
             try
             {
                 if (_variantUrl == null)
                 {
                     Log($"Fetching master: {_masterUrl}");
-                    string master = _http.GetStringAsync(_masterUrl).ConfigureAwait(false).GetAwaiter().GetResult();
+                    string master = await _http.GetStringAsync(_masterUrl).ConfigureAwait(false);
                     foreach (var line in master.Split('\n'))
                     {
                         var t = line.Trim();
@@ -50,7 +51,7 @@ namespace _5CRXmod
                 }
 
                 Log($"Fetching variant: {_variantUrl}");
-                string variant = _http.GetStringAsync(_variantUrl).ConfigureAwait(false).GetAwaiter().GetResult();
+                string variant = await _http.GetStringAsync(_variantUrl).ConfigureAwait(false);
                 _segments.Clear();
                 _segIndex = 0;
                 foreach (var line in variant.Split('\n'))
@@ -69,14 +70,14 @@ namespace _5CRXmod
             }
         }
 
-        public string DownloadBatch(string outputFile, int maxSegments = SEGMENTS_PER_BATCH)
+        public async Task<string?> DownloadBatchAsync(string outputFile, int maxSegments = SEGMENTS_PER_BATCH)
         {
             if (_segments.Count == 0)
-                if (!LoadPlaylist()) return "";
+                if (!await LoadPlaylistAsync().ConfigureAwait(false)) return null;
 
             int firstSegIx = _segIndex;
             int count = Math.Min(maxSegments, _segments.Count - _segIndex);
-            if (count <= 0) return "";
+            if (count <= 0) return null;
 
             var baseVar = new Uri(_variantUrl ?? _masterUrl);
             var tempFiles = new List<string>();
@@ -88,7 +89,7 @@ namespace _5CRXmod
                 try
                 {
                     Log($"Downloading segment {_segIndex}/{_segments.Count}: {segUri}");
-                    byte[] data = _http.GetByteArrayAsync(segUri).ConfigureAwait(false).GetAwaiter().GetResult();
+                    byte[] data = await _http.GetByteArrayAsync(segUri).ConfigureAwait(false);
                     Log($"  Got {data.Length} bytes");
                     byte[] audio = (_segIndex - firstSegIx == 1) ? data : StripId3(data);
                     string partFile = outputFile + ".part" + i;
@@ -102,7 +103,7 @@ namespace _5CRXmod
                 }
             }
 
-            if (tempFiles.Count == 0) return "";
+            if (tempFiles.Count == 0) return null;
 
             Log($"Merging {tempFiles.Count} parts into {outputFile}");
             using (var outStream = File.Create(outputFile))
@@ -147,7 +148,7 @@ namespace _5CRXmod
                     Path.Combine(Path.GetTempPath(), "hlsplayer_log.txt"),
                     $"{DateTime.Now:HH:mm:ss.fff} [HlsDownloader] {msg}{Environment.NewLine}");
             }
-            catch { }
+            catch (Exception ex) { Logger.Error("HlsDownloader.Log", ex); }
         }
 
         public void Dispose()
