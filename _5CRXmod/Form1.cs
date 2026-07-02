@@ -138,6 +138,11 @@ public partial class Form1 : Form
 	private Button btnCloseApp;
 	private PictureBox picCincross;
 
+	private double[] _nodeIntensities;
+	private int[] _nodeBaseSizes;
+	private float[] _nodeCenterX;
+	private int _nodeCount;
+
 	[DllImport("Gdi32.dll")]
 	private static extern nint CreateRoundRectRgn(int nLeftRect, int nTopRect, int RightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
 
@@ -595,73 +600,92 @@ public partial class Form1 : Form
 		pnlTaskInfo.Controls.Add(lblTaskInfo);
 		pnlProgressBg = new Panel
 		{
-			Height = 14,
+			Height = 20,
 			BackColor = Color.FromArgb(25, 25, 25),
-			Name = "pnlProgressBg"
+			Name = "pnlProgressBg",
+			Dock = DockStyle.Bottom
 		};
-		pnlProgressFill = new Panel
+
+		pnlProgressFill = new BufferedPanel
 		{
-			Height = 14,
-			Width = 0,
-			Dock = DockStyle.Left,
+			Height = 20,
 			BackColor = Color.Transparent,
-			Name = "pnlProgressFill"
+			Name = "pnlProgressFill",
+			Dock = DockStyle.Fill
 		};
-		int dotCount = 20;
-		pnlProgressBg.Paint += (s, pe) =>
+
+		_nodeCount = 16;
+		int standardSize = 5;
+		double maxScale = 2.5;
+		int maxBaseSize = (int)(standardSize * maxScale);
+		int panelExtra = 8;
+		int panelSize = maxBaseSize + panelExtra;
+		int gap = 5;
+
+		_nodeBaseSizes = new int[_nodeCount];
+		int[] xPos = new int[_nodeCount];
+		int xAcc = 0;
+		for (int i = 0; i < _nodeCount; i++)
 		{
-			pe.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-			int pw = pnlProgressBg.Width;
-			int ph = pnlProgressBg.Height;
-			int spacing = pw > 12 ? (pw - 12) / (dotCount - 1) : 10;
-			int cy = ph / 2;
-			int r = 3;
-			for (int i = 0; i < dotCount; i++)
-			{
-				int cx = 6 + i * spacing;
-				pe.Graphics.FillEllipse(Brushes.Black, cx - r, cy - r, r * 2, r * 2);
-				pe.Graphics.DrawEllipse(new Pen(Color.FromArgb(40, 40, 40), 1f), cx - r, cy - r, r * 2, r * 2);
-			}
-		};
+			double pos = (double)i / (_nodeCount - 1);
+			double baseScale = 1.0 + (maxScale - 1.0) * Math.Min(pos * 2, 1.0);
+			_nodeBaseSizes[i] = (int)(standardSize * baseScale);
+			xPos[i] = xAcc;
+			xAcc += _nodeBaseSizes[i] + gap;
+		}
+		int shift = panelExtra / 2;
+		int totalW = xPos[_nodeCount - 1] + panelSize;
+		int startX = Math.Max(2, (pnlTaskInfo.Width - totalW) / 2);
+		float cy = pnlProgressFill.Height / 2f;
+
+		_nodeIntensities = new double[_nodeCount];
+		_nodeCenterX = new float[_nodeCount];
+		for (int i = 0; i < _nodeCount; i++)
+			_nodeCenterX[i] = startX + xPos[i] - shift + panelSize / 2f;
+
 		pnlProgressFill.Paint += (s, pe) =>
 		{
-			pe.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-			int pw = pnlProgressBg.Width;
-			int ph = pnlProgressFill.Height;
-			int fw = pnlProgressFill.Width;
-			int spacing = pw > 12 ? (pw - 12) / (dotCount - 1) : 10;
-			int cy = ph / 2;
-			int r = 3;
-			Color neonColor = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
+			pe.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+			float pnlH = pnlProgressFill.Height / 2f;
 
-			for (int i = 0; i < dotCount; i++)
+			for (int i = 0; i < _nodeCount; i++)
 			{
-				int cx = 6 + i * spacing;
-				int dotLeft = cx - r;
-				int dotRight = cx + r;
-				float flicker = 0.7f + 0.3f * MathF.Sin(_eqAnimationOffset + i * 1.7f);
+				double intensity = _nodeIntensities[i];
+				int sz = _nodeBaseSizes[i];
+				float cx = _nodeCenterX[i];
+				float cy2 = pnlH;
 
-				if (dotRight <= fw)
+				if (intensity > 0.01)
 				{
-					int glowAlpha = (int)(140 * flicker);
-					using var glowBrush = new SolidBrush(Color.FromArgb(glowAlpha, neonColor));
-					pe.Graphics.FillEllipse(glowBrush, cx - r - 4, cy - r - 4, r * 2 + 8, r * 2 + 8);
-					using var dotBrush = new SolidBrush(neonColor);
-					pe.Graphics.FillEllipse(dotBrush, cx - r, cy - r, r * 2, r * 2);
+					Color neonColor = _appColor == Color.Transparent || _appColor == Color.Empty
+						? Color.White : _appColor;
+
+					double posProgress = (double)(sz - standardSize) / (maxBaseSize - standardSize);
+
+					float gp = 2f + sz / 3f;
+					using (var path = new GraphicsPath())
+					{
+						path.AddEllipse(cx - sz / 2f - gp, cy2 - sz / 2f - gp, sz + gp * 2f, sz + gp * 2f);
+						using (var brush = new PathGradientBrush(path))
+						{
+							int glowAlpha = (int)(intensity * (60 + 120 * posProgress));
+							brush.CenterColor = Color.FromArgb(glowAlpha, neonColor);
+							brush.SurroundColors = new[] { Color.FromArgb(0, neonColor) };
+							pe.Graphics.FillPath(brush, path);
+						}
+					}
+
+					int fillAlpha = (int)(80 + intensity * 155);
+					using (var fill = new SolidBrush(Color.FromArgb(fillAlpha, neonColor)))
+						pe.Graphics.FillEllipse(fill, cx - sz / 2f, cy2 - sz / 2f, sz, sz);
+
+					int whiteSz = Math.Max(1, sz * 3 / 5);
+					using (var w = new SolidBrush(Color.FromArgb((int)(intensity * 100), Color.White)))
+						pe.Graphics.FillEllipse(w, cx - whiteSz / 2f, cy2 - whiteSz / 2f, whiteSz, whiteSz);
 				}
-				else if (dotLeft < fw)
-				{
-					float overlap = (float)(fw - dotLeft) / (dotRight - dotLeft);
-					int alpha = (int)((80 + 175f * overlap) * flicker);
-					using var glowBrush = new SolidBrush(Color.FromArgb(alpha / 2, neonColor));
-					pe.Graphics.FillEllipse(glowBrush, cx - r - 4, cy - r - 4, r * 2 + 8, r * 2 + 8);
-					using var dotBrush = new SolidBrush(Color.FromArgb(alpha, neonColor));
-					pe.Graphics.FillEllipse(dotBrush, cx - r, cy - r, r * 2, r * 2);
-				}
-				else break;
 			}
 		};
-		pnlProgressBg.Dock = DockStyle.Bottom;
+
 		pnlProgressBg.Controls.Add(pnlProgressFill);
 		pnlTaskInfo.Controls.Add(pnlProgressBg);
 		tasksListPanel.Controls.Add(pnlTaskInfo);
@@ -669,6 +693,36 @@ public partial class Form1 : Form
 		AddTaskToPanel("EXER", TimeSpan.FromMinutes(30L), "", "exerc_TSK.png", isFixed: true);
 		AddTaskToPanel("WORK", TimeSpan.FromMinutes(30L), "", "progress_TSK.png", isFixed: true);
 		AddTaskToPanel("RLAX", TimeSpan.FromMinutes(30L), "", "music_TSK.png", isFixed: true);
+		pnlTopButtons.Controls.Remove(btnS);
+		pnlTopButtons.Controls.Remove(btnP);
+		base.Controls.Remove(picCincross);
+		picCincross.Dock = DockStyle.Right;
+		picCincross.SizeMode = PictureBoxSizeMode.Zoom;
+		picCincross.Width = 85;
+		pnlTopButtons.Controls.Add(picCincross);
+		pnlTaskInfo.Controls.Clear();
+
+		Panel pnlTaskInfoTop = new Panel
+		{
+			Height = 40,
+			Dock = DockStyle.Top,
+			BackColor = Color.Transparent
+		};
+
+		lblTaskInfo.Dock = DockStyle.Fill;
+		pnlTaskInfoTop.Controls.Add(lblTaskInfo);
+
+		btnP.Dock = DockStyle.Right;
+		btnS.Dock = DockStyle.Right;
+		btnP.Width = 40;
+		btnS.Width = 40;
+		pnlTaskInfoTop.Controls.Add(btnP);
+		pnlTaskInfoTop.Controls.Add(btnS);
+
+		pnlTaskInfo.Controls.Add(pnlTaskInfoTop);
+		pnlProgressBg.Dock = DockStyle.Bottom;
+		pnlTaskInfo.Controls.Add(pnlProgressBg);
+
 		var loaded = LearningData.Load();
 		if (loaded != null)
 			_learningData = loaded;
@@ -775,20 +829,18 @@ public partial class Form1 : Form
 		this.btnCloseApp.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 		this.btnCloseApp.Font = new System.Drawing.Font("Segoe UI", 9f, System.Drawing.FontStyle.Bold);
 		this.btnCloseApp.ForeColor = System.Drawing.Color.White;
-		this.btnCloseApp.Height = 30;
+		this.btnCloseApp.Height = 60;
 		this.btnCloseApp.Name = "btnCloseApp";
 		this.btnCloseApp.TabIndex = 7;
 		this.btnCloseApp.Text = "X CLOSE";
 		this.btnCloseApp.UseVisualStyleBackColor = false;
 		this.btnCloseApp.Click += new System.EventHandler(btnCloseApp_Click);
-		string cincrossPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "files", "img", "cincross.png");
+		string cincrossPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "files", "img", "cin_LOGO.png");
 		if (System.IO.File.Exists(cincrossPath))
 		{
 			this.picCincross.Image = PathHelper.LoadImage(cincrossPath);
 		}
 		this.picCincross.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-		this.picCincross.Height = 60;
-		this.picCincross.Dock = System.Windows.Forms.DockStyle.Bottom;
 		this.picCincross.Name = "picCincross";
 		this.picCincross.TabIndex = 8;
 		this.picCincross.TabStop = false;
@@ -1204,7 +1256,6 @@ public partial class Form1 : Form
 		base.Controls.Add(this.pnlFullListRow);
 		base.Controls.Add(this.playerFooterPanel);
 		base.Controls.Add(this.btnCloseApp);
-		base.Controls.Add(this.picCincross);
 		base.Controls.Add(this.tasksListPanel);
 		base.Controls.Add(this.tasksHeaderPanel);
 		base.Controls.Add(this.pnlGrip);

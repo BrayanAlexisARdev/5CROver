@@ -191,18 +191,31 @@ partial class Form1
 
 	private void UpdateTaskProgress()
 	{
-		if (_activeTaskPanel == null)
+		double progress = _activeTaskPanel == null ? 0
+			: (_activeTaskTotalSeconds - _timeRemaining.TotalSeconds) / _activeTaskTotalSeconds;
+
+		for (int i = 0; i < _nodeCount; i++)
 		{
-			pnlProgressFill.Width = 0;
-			return;
+			double nodeStart = (double)i / _nodeCount;
+			double nodeEnd = (double)(i + 1) / _nodeCount;
+			double raw = 0;
+
+			if (progress >= nodeEnd)
+				raw = 1;
+			else if (progress > nodeStart)
+				raw = (progress - nodeStart) / (nodeEnd - nodeStart);
+
+			double eased = raw < 0.5 ? 4 * raw * raw * raw : 1 - Math.Pow(-2 * raw + 2, 3) / 2;
+			_nodeIntensities[i] = Math.Min(eased * 1.2, 1);
 		}
-		double percent = (_activeTaskTotalSeconds - _timeRemaining.TotalSeconds) / _activeTaskTotalSeconds;
-		pnlProgressFill.Width = (int)((double)pnlProgressBg.Width * percent);
+		pnlProgressFill.Invalidate();
 	}
 
 	private void ResetTaskProgress(Panel taskPanel)
 	{
-		pnlProgressFill.Width = 0;
+		for (int i = 0; i < _nodeCount; i++)
+			_nodeIntensities[i] = 0;
+		pnlProgressFill.Invalidate();
 	}
 
 	private static string FormatTaskTime(TimeSpan t)
