@@ -689,10 +689,6 @@ public partial class Form1 : Form
 		pnlProgressBg.Controls.Add(pnlProgressFill);
 		pnlTaskInfo.Controls.Add(pnlProgressBg);
 		tasksListPanel.Controls.Add(pnlTaskInfo);
-		AddTaskToPanel("CODE", TimeSpan.FromMinutes(30L), "", "code_TSK.png", isFixed: true);
-		AddTaskToPanel("EXER", TimeSpan.FromMinutes(30L), "", "exerc_TSK.png", isFixed: true);
-		AddTaskToPanel("WORK", TimeSpan.FromMinutes(30L), "", "progress_TSK.png", isFixed: true);
-		AddTaskToPanel("RLAX", TimeSpan.FromMinutes(30L), "", "music_TSK.png", isFixed: true);
 		pnlTopButtons.Controls.Remove(btnS);
 		pnlTopButtons.Controls.Remove(btnP);
 		base.Controls.Remove(picCincross);
@@ -712,16 +708,159 @@ public partial class Form1 : Form
 		lblTaskInfo.Dock = DockStyle.Fill;
 		pnlTaskInfoTop.Controls.Add(lblTaskInfo);
 
-		btnP.Dock = DockStyle.Right;
-		btnS.Dock = DockStyle.Right;
-		btnP.Width = 40;
-		btnS.Width = 40;
-		pnlTaskInfoTop.Controls.Add(btnP);
-		pnlTaskInfoTop.Controls.Add(btnS);
-
 		pnlTaskInfo.Controls.Add(pnlTaskInfoTop);
 		pnlProgressBg.Dock = DockStyle.Bottom;
 		pnlTaskInfo.Controls.Add(pnlProgressBg);
+
+		// ── Row 1: TIME SELECTOR label ──
+		Panel row1 = new Panel { Height = 26, Width = base.Width, BackColor = Color.FromArgb(30, 30, 30) };
+
+		Label lblTimeSelector = new Label
+		{
+			Text = "TIME SELECTOR",
+			Dock = DockStyle.Fill,
+			ForeColor = Color.FromArgb(160, 160, 160),
+			Font = new Font("Segoe UI", 8f, FontStyle.Bold),
+			TextAlign = ContentAlignment.MiddleCenter,
+			BackColor = Color.Transparent
+		};
+		row1.Controls.Add(lblTimeSelector);
+		tasksListPanel.Controls.Add(row1);
+		tasksListPanel.Controls.SetChildIndex(row1, 1);
+
+		// ── Row 2 & 3: presets with same background ──
+		Color presetBg = Color.FromArgb(30, 30, 30);
+
+		string[] hourPresets = ["1H", "2H", "3H", "4H"];
+		Panel row2 = new Panel { Height = 26, Width = base.Width, BackColor = presetBg, Margin = new Padding(0) };
+		Button? lastHourBtn = null;
+		for (int i = 0; i < hourPresets.Length; i++)
+		{
+			string txt = hourPresets[i];
+			int h = int.Parse(txt[..^1]);
+			int idx = i;
+			Button btn = MakeRoundedBtn(txt);
+			btn.Click += (_, _) =>
+			{
+				if (lastHourBtn == btn)
+				{
+					_manualHours = 0;
+					btn.BackColor = Color.FromArgb(50, 50, 50);
+					btn.ForeColor = Color.White;
+					lastHourBtn = null;
+				}
+				else
+				{
+					_manualHours = h;
+					Color hl = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.FromArgb(100, 100, 100) : _appColor;
+					if (lastHourBtn != null) { lastHourBtn.BackColor = Color.FromArgb(50, 50, 50); lastHourBtn.ForeColor = Color.White; }
+					btn.BackColor = hl;
+					btn.ForeColor = Color.White;
+					lastHourBtn = btn;
+				}
+			};
+			int total = 58 * hourPresets.Length + 5 * (hourPresets.Length - 1);
+			btn.Left = (base.Width - total) / 2 + i * (58 + 5);
+			btn.Top = 2;
+			row2.Controls.Add(btn);
+		}
+		tasksListPanel.Controls.Add(row2);
+		tasksListPanel.Controls.SetChildIndex(row2, 2);
+
+		string[] minPresets = ["5M", "10M", "15M", "30M"];
+		Panel row3 = new Panel { Height = 26, Width = base.Width, BackColor = presetBg, Margin = new Padding(0) };
+		Button? lastMinBtn = null;
+		for (int i = 0; i < minPresets.Length; i++)
+		{
+			string txt = minPresets[i];
+			int m = int.Parse(txt[..^1]);
+			int idx = i;
+			Button btn = MakeRoundedBtn(txt);
+			btn.Click += (_, _) =>
+			{
+				if (lastMinBtn == btn)
+				{
+					_manualMinutes = 0;
+					btn.BackColor = Color.FromArgb(50, 50, 50);
+					btn.ForeColor = Color.White;
+					lastMinBtn = null;
+				}
+				else
+				{
+					_manualMinutes = m;
+					Color hl = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.FromArgb(100, 100, 100) : _appColor;
+					if (lastMinBtn != null) { lastMinBtn.BackColor = Color.FromArgb(50, 50, 50); lastMinBtn.ForeColor = Color.White; }
+					btn.BackColor = hl;
+					btn.ForeColor = Color.White;
+					lastMinBtn = btn;
+				}
+			};
+			int total = 58 * minPresets.Length + 5 * (minPresets.Length - 1);
+			btn.Left = (base.Width - total) / 2 + i * (58 + 5);
+			btn.Top = 2;
+			row3.Controls.Add(btn);
+		}
+		tasksListPanel.Controls.Add(row3);
+		tasksListPanel.Controls.SetChildIndex(row3, 3);
+
+		// ── Row 4: START / STOP (outlined, transparent) ──
+		Panel row4 = new Panel { Height = 30, Width = base.Width, BackColor = Color.Transparent };
+
+		Button btnStart = new Button
+		{
+			Text = "START", Width = 90, Height = 28,
+			FlatStyle = FlatStyle.Flat,
+			FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Transparent, MouseDownBackColor = Color.Transparent },
+			BackColor = Color.Transparent,
+			ForeColor = Color.FromArgb(120, 220, 120),
+			Font = new Font("Segoe UI", 8f, FontStyle.Bold),
+			UseVisualStyleBackColor = false,
+			TextAlign = ContentAlignment.MiddleCenter,
+			Cursor = Cursors.Hand
+		};
+		btnStart.Paint += OutlinedButtonPaint;
+		btnStart.Click += (_, _) =>
+		{
+			_manualTotalSeconds = _manualHours * 3600 + _manualMinutes * 60;
+			_timeRemaining = TimeSpan.FromSeconds(_manualTotalSeconds);
+			UpdateTimerDisplay();
+			if (_timeRemaining.TotalSeconds > 0)
+				StartTimer();
+		};
+
+		Button btnStop = new Button
+		{
+			Text = "STOP", Width = 90, Height = 28,
+			FlatStyle = FlatStyle.Flat,
+			FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Transparent, MouseDownBackColor = Color.Transparent },
+			BackColor = Color.Transparent,
+			ForeColor = Color.FromArgb(220, 120, 120),
+			Font = new Font("Segoe UI", 8f, FontStyle.Bold),
+			UseVisualStyleBackColor = false,
+			TextAlign = ContentAlignment.MiddleCenter,
+			Cursor = Cursors.Hand
+		};
+		btnStop.Paint += OutlinedButtonPaint;
+		btnStop.Click += (_, _) =>
+		{
+			StopTimer();
+			_timeRemaining = TimeSpan.Zero;
+			UpdateTimerDisplay();
+		};
+
+		int btnGap2 = 12;
+		int startBtns = (base.Width - btnStart.Width - btnStop.Width - btnGap2) / 2;
+		btnStart.Left = startBtns; btnStart.Top = 1;
+		btnStop.Left = startBtns + btnStart.Width + btnGap2; btnStop.Top = 1;
+		row4.Controls.Add(btnStart);
+		row4.Controls.Add(btnStop);
+		tasksListPanel.Controls.Add(row4);
+		tasksListPanel.Controls.SetChildIndex(row4, 4);
+
+		FontHelper.ApplyFont(row1, 8f, FontStyle.Bold);
+		FontHelper.ApplyFont(row2, 8f, FontStyle.Bold);
+		FontHelper.ApplyFont(row3, 8f, FontStyle.Bold);
+		FontHelper.ApplyFont(row4, 8f, FontStyle.Bold);
 
 		var loaded = LearningData.Load();
 		if (loaded != null)
@@ -835,6 +974,79 @@ public partial class Form1 : Form
 		btnVolLow.Invalidate();
 		btnVolMid.Invalidate();
 		btnVolMax.Invalidate();
+	}
+
+	private Button MakeMiniBtn(string text)
+	{
+		Button btn = new Button
+		{
+			Text = text,
+			Width = 22,
+			Height = 22,
+			FlatStyle = FlatStyle.Flat,
+			FlatAppearance = { BorderSize = 0 },
+			BackColor = Color.FromArgb(60, 60, 60),
+			ForeColor = Color.White,
+			Font = new Font("Segoe UI", 8f, FontStyle.Bold),
+			UseVisualStyleBackColor = false,
+			TextAlign = ContentAlignment.MiddleCenter,
+			Cursor = Cursors.Hand
+		};
+		return btn;
+	}
+
+	private Button MakeRoundedBtn(string text)
+	{
+		Button btn = new Button
+		{
+			Text = text,
+			Width = 58,
+			Height = 25,
+			FlatStyle = FlatStyle.Flat,
+			FlatAppearance = { BorderSize = 0 },
+			BackColor = Color.FromArgb(50, 50, 50),
+			ForeColor = Color.FromArgb(200, 200, 200),
+			Font = new Font("Segoe UI", 8f, FontStyle.Bold),
+			UseVisualStyleBackColor = false,
+			TextAlign = ContentAlignment.MiddleCenter,
+			Cursor = Cursors.Hand
+		};
+		btn.Paint += (s, e) =>
+		{
+			if (s is Button b)
+			{
+				RoundButtonPaint(s, e);
+				Color accent = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.FromArgb(100, 100, 100) : _appColor;
+				using var pen = new Pen(Color.FromArgb(60, accent), 2f);
+				e.Graphics.DrawLine(pen, 4, b.Height - 3, b.Width - 4, b.Height - 3);
+			}
+		};
+		return btn;
+	}
+
+	private void RoundButtonPaint(object? s, PaintEventArgs e)
+	{
+		if (s is Button b)
+		{
+			using var path = new System.Drawing.Drawing2D.GraphicsPath();
+			int r = 6;
+			path.AddArc(0, 0, r * 2, r * 2, 180, 90);
+			path.AddArc(b.Width - r * 2, 0, r * 2, r * 2, 270, 90);
+			path.AddArc(b.Width - r * 2, b.Height - r * 2, r * 2, r * 2, 0, 90);
+			path.AddArc(0, b.Height - r * 2, r * 2, r * 2, 90, 90);
+			path.CloseFigure();
+			b.Region = new Region(path);
+		}
+	}
+
+	private void OutlinedButtonPaint(object? s, PaintEventArgs e)
+	{
+		if (s is Button b)
+		{
+			RoundButtonPaint(s, e);
+			using var pen = new Pen(Color.FromArgb(80, b.ForeColor), 1.5f);
+			e.Graphics.DrawRectangle(pen, 2, 2, b.Width - 4, b.Height - 4);
+		}
 	}
 
 	protected override void Dispose(bool disposing)

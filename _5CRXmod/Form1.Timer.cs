@@ -13,6 +13,12 @@ partial class Form1
 
 	private Timer countdownTimer;
 
+	private int _manualHours;
+
+	private int _manualMinutes;
+
+	private double _manualTotalSeconds;
+
 	private void btnAddTime_Click(object? sender, EventArgs e)
 	{
 		using SetTimeForm setTimeForm = new SetTimeForm();
@@ -103,6 +109,10 @@ partial class Form1
 			{
 				UpdateTaskProgress();
 			}
+			else
+			{
+				UpdateNodeProgressFromTimer();
+			}
 			return;
 		}
 		countdownTimer.Stop();
@@ -111,6 +121,7 @@ partial class Form1
 		btnS.Text = "⏹";
 		_timeRemaining = TimeSpan.Zero;
 		UpdateTimerDisplay();
+		ResetNodeProgress();
 		if (_isLearningSession)
 		{
 			return;
@@ -141,5 +152,32 @@ partial class Form1
 		lblHours.Text = _timeRemaining.Hours.ToString("00");
 		lblMinutes.Text = _timeRemaining.Minutes.ToString("00");
 		lblSeconds.Text = _timeRemaining.Seconds.ToString("00");
+	}
+
+	private void UpdateNodeProgressFromTimer()
+	{
+		if (_nodeIntensities == null) return;
+		double progress = _manualTotalSeconds > 0 ? 1 - (_timeRemaining.TotalSeconds / _manualTotalSeconds) : 0;
+		for (int i = 0; i < _nodeCount; i++)
+		{
+			double nodeStart = (double)i / _nodeCount;
+			double nodeEnd = (double)(i + 1) / _nodeCount;
+			double raw = 0;
+			if (progress >= nodeEnd)
+				raw = 1;
+			else if (progress > nodeStart)
+				raw = (progress - nodeStart) / (nodeEnd - nodeStart);
+			double eased = raw < 0.5 ? 4 * raw * raw * raw : 1 - Math.Pow(-2 * raw + 2, 3) / 2;
+			_nodeIntensities[i] = Math.Min(eased * 1.2, 1);
+		}
+		pnlProgressFill?.Invalidate();
+	}
+
+	private void ResetNodeProgress()
+	{
+		if (_nodeIntensities == null) return;
+		for (int i = 0; i < _nodeCount; i++)
+			_nodeIntensities[i] = 0;
+		pnlProgressFill?.Invalidate();
 	}
 }

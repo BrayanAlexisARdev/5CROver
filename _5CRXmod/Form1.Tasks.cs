@@ -118,6 +118,7 @@ partial class Form1
 		taskPanel.Controls.Add(lblTaskName);
 		taskPanel.Controls.Add(lblTaskTime);
 		taskPanel.Controls.Add(picTask);
+
 		int index = tasksListPanel.Controls.Count;
 		for (int i2 = 0; i2 < tasksListPanel.Controls.Count; i2++)
 		{
