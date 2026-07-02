@@ -226,10 +226,16 @@ partial class Form1
 		{
 			if (_wmp != null) _wmp.settings.volume = percent;
 		}
+		btnVolLow.Tag = percent == 3;
+		btnVolMid.Tag = percent == 9;
+		btnVolMax.Tag = percent == 15;
+		btnVolLow.Font = new Font("Segoe UI", 4.5f, FontStyle.Bold);
+		btnVolMid.Font = new Font("Segoe UI", 4.5f, FontStyle.Bold);
+		btnVolMax.Font = new Font("Segoe UI", 4.5f, FontStyle.Bold);
+		btnVolLow.Invalidate();
+		btnVolMid.Invalidate();
+		btnVolMax.Invalidate();
 		UpdateVolumeVisual(percent);
-		btnVolLow.Font = new Font("Segoe UI", 5.5f, percent == 3 ? FontStyle.Bold | FontStyle.Underline : FontStyle.Bold);
-		btnVolMid.Font = new Font("Segoe UI", 5.5f, percent == 9 ? FontStyle.Bold | FontStyle.Underline : FontStyle.Bold);
-		btnVolMax.Font = new Font("Segoe UI", 5.5f, percent == 15 ? FontStyle.Bold | FontStyle.Underline : FontStyle.Bold);
 	}
 
 	private void UpdateVolumeFromMouse(int mouseX)

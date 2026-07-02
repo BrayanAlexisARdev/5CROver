@@ -284,6 +284,7 @@ partial class Form1
 		Color fg = (parent.ForeColor = Color.White);
 		foreach (Control c in parent.Controls)
 		{
+			if (c.Name == "btnLive") continue;
 			if (c is Label || c is Button || c is TextBox)
 			{
 				c.ForeColor = fg;

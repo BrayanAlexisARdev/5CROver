@@ -51,4 +51,9 @@
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <Content Update="files\img\progreso.cs">
+      <SubType>Form</SubType>
+    </Content>
+  </ItemGroup>
 </Project>

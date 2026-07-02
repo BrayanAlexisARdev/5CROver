@@ -57,7 +57,6 @@ partial class Form1
 		if (_activeTaskPanel != null)
 		{
 			StopTimer();
-			StopM3u();
 			_activeTaskPanel = null;
 			_timeRemaining = TimeSpan.Zero;
 			UpdateTimerDisplay();
@@ -116,7 +115,6 @@ partial class Form1
 		{
 			return;
 		}
-		PlayDoneSound();
 		CompleteLearningSession();
 		if (_activeTaskPanel != null)
 		{

@@ -737,6 +737,104 @@ public partial class Form1 : Form
 			LoadCurrentM3u();
 		}
 		SetVolumePreset(3);
+
+		// === Reorganize pnlVolume (after theme applied) ===
+		pnlVolume.Controls.Remove(btnPlayPlayer);
+		pnlVolume.Controls.Remove(btnStopPlayer);
+
+		pnlVolume.Controls.Remove(pnlVolumeLine);
+		pnlVolumeLine.Controls.Remove(pnlVolumeThumb);
+
+		Label lblVolLabel = new Label
+		{
+			Text = "♬ VOLUMEN",
+			Location = new Point(2, 32),
+			AutoSize = true,
+			ForeColor = Color.White,
+			BackColor = Color.Transparent,
+			Font = new Font("Segoe UI", 5f, FontStyle.Bold)
+		};
+		pnlVolume.Controls.Add(lblVolLabel);
+
+		btnVolLow.Location = new Point(70, 30);
+		btnVolLow.Size = new Size(55, 22);
+		btnVolLow.Font = new Font("Segoe UI", 4.5f, FontStyle.Bold);
+		btnVolMid.Location = new Point(129, 30);
+		btnVolMid.Size = new Size(55, 22);
+		btnVolMid.Font = new Font("Segoe UI", 4.5f, FontStyle.Bold);
+		btnVolMax.Location = new Point(188, 30);
+		btnVolMax.Size = new Size(55, 22);
+		btnVolMax.Font = new Font("Segoe UI", 4.5f, FontStyle.Bold);
+
+		base.Controls.Remove(pnlFullListRow);
+		pnlFullListRow.Controls.Remove(btnFavList);
+		pnlFullListRow.Controls.Remove(btnCassetteList);
+		btnFavList.Location = new Point(70, 3);
+		btnFavList.Size = new Size(84, 22);
+		btnCassetteList.Location = new Point(159, 3);
+		btnCassetteList.Size = new Size(84, 22);
+		pnlVolume.Controls.Add(btnFavList);
+		pnlVolume.Controls.Add(btnCassetteList);
+
+		Button btnLive = new Button
+		{
+			Name = "btnLive",
+			Text = "●LIVE",
+			Location = new Point(5, 2),
+			Size = new Size(58, 24),
+			FlatStyle = FlatStyle.Flat,
+			Font = new Font("Segoe UI", 5.5f, FontStyle.Bold),
+			ForeColor = Color.Red,
+			BackColor = Color.Black,
+			FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Black, MouseDownBackColor = Color.Black },
+			UseVisualStyleBackColor = false,
+			TextAlign = ContentAlignment.MiddleCenter
+		};
+		btnLive.Click += async delegate
+		{
+			if (_isPlaying)
+			{
+				StopM3u();
+			}
+			else
+			{
+				if (_isHlsStream && _hlsPlayer != null)
+				{
+					if (!_hlsPlayer.IsPlaying && _lastHlsUrl != null)
+						await _hlsPlayer.PlayAsync(_lastHlsUrl);
+				}
+				else
+				{
+					_wmp?.controls.play();
+				}
+				_isPlaying = true;
+			}
+			btnLive.ForeColor = _isPlaying ? Color.Red : Color.LightGray;
+		};
+		pnlVolume.Controls.Add(btnLive);
+		btnLive.BringToFront();
+
+		btnVolLow.Paint += (s, e) =>
+		{
+			if (btnVolLow.Tag is bool sel && sel)
+				using (var pen = new Pen(Color.White, 5f))
+					e.Graphics.DrawLine(pen, 1, btnVolLow.Height - 2, btnVolLow.Width - 1, btnVolLow.Height - 2);
+		};
+		btnVolMid.Paint += (s, e) =>
+		{
+			if (btnVolMid.Tag is bool sel && sel)
+				using (var pen = new Pen(Color.White, 5f))
+					e.Graphics.DrawLine(pen, 1, btnVolMid.Height - 2, btnVolMid.Width - 1, btnVolMid.Height - 2);
+		};
+		btnVolMax.Paint += (s, e) =>
+		{
+			if (btnVolMax.Tag is bool sel && sel)
+				using (var pen = new Pen(Color.White, 5f))
+					e.Graphics.DrawLine(pen, 1, btnVolMax.Height - 2, btnVolMax.Width - 1, btnVolMax.Height - 2);
+		};
+		btnVolLow.Invalidate();
+		btnVolMid.Invalidate();
+		btnVolMax.Invalidate();
 	}
 
 	protected override void Dispose(bool disposing)
