@@ -864,6 +864,66 @@ public partial class Form1 : Form
 		tasksListPanel.Controls.Add(row4);
 		tasksListPanel.Controls.SetChildIndex(row4, 4);
 
+		// ── Row 5: ABRIR PDF (full width) ──
+		Panel row5 = new Panel { Height = 26, Width = base.Width, BackColor = Color.FromArgb(35, 35, 35), Margin = new Padding(0) };
+		Button btnOpenPdf = new Button
+		{
+			Text = "ABRIR PDF",
+			Width = base.Width - 12,
+			Height = 22,
+			FlatStyle = FlatStyle.Flat,
+			FlatAppearance = { BorderSize = 0 },
+			BackColor = Color.FromArgb(50, 50, 50),
+			ForeColor = Color.FromArgb(200, 200, 200),
+			Font = new Font("Segoe UI", 7f, FontStyle.Bold),
+			UseVisualStyleBackColor = false,
+			TextAlign = ContentAlignment.MiddleCenter,
+			Cursor = Cursors.Hand
+		};
+		ApplyRoundedRegion(btnOpenPdf);
+		string pdfPath = Path.Combine(Directory.GetCurrentDirectory(), "files", "pdf", "file.pdf");
+		btnOpenPdf.Click += (_, _) =>
+		{
+			if (File.Exists(pdfPath))
+			{
+				using var form = new FormPdfViewer(pdfPath, this);
+				form.ShowDialog();
+			}
+		};
+		btnOpenPdf.Left = 6; btnOpenPdf.Top = 2;
+		row5.Controls.Add(btnOpenPdf);
+		tasksListPanel.Controls.Add(row5);
+		tasksListPanel.Controls.SetChildIndex(row5, 5);
+		FontHelper.ApplyFont(btnOpenPdf, 7f, FontStyle.Bold);
+
+		// ── Row 6: YOUTUBE (full width) ──
+		Panel row6 = new Panel { Height = 26, Width = base.Width, BackColor = Color.FromArgb(35, 35, 35), Margin = new Padding(0) };
+		Button btnYoutube = new Button
+		{
+			Text = "YOUTUBE",
+			Width = base.Width - 12,
+			Height = 22,
+			FlatStyle = FlatStyle.Flat,
+			FlatAppearance = { BorderSize = 0 },
+			BackColor = Color.FromArgb(50, 50, 50),
+			ForeColor = Color.FromArgb(200, 200, 200),
+			Font = new Font("Segoe UI", 7f, FontStyle.Bold),
+			UseVisualStyleBackColor = false,
+			TextAlign = ContentAlignment.MiddleCenter,
+			Cursor = Cursors.Hand
+		};
+		ApplyRoundedRegion(btnYoutube);
+		btnYoutube.Click += (_, _) =>
+		{
+			using var form = new FormYoutube(this);
+			form.ShowDialog();
+		};
+		btnYoutube.Left = 6; btnYoutube.Top = 2;
+		row6.Controls.Add(btnYoutube);
+		tasksListPanel.Controls.Add(row6);
+		tasksListPanel.Controls.SetChildIndex(row6, 6);
+		FontHelper.ApplyFont(btnYoutube, 7f, FontStyle.Bold);
+
 		FontHelper.ApplyFont(row1, 8f, FontStyle.Bold);
 		FontHelper.ApplyFont(row2, 8f, FontStyle.Bold);
 		FontHelper.ApplyFont(row3, 8f, FontStyle.Bold);
