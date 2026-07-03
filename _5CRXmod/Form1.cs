@@ -260,13 +260,12 @@ public partial class Form1 : Form
 		_slideTimer.Tick += _fadeTimer_Tick;
 		_eqTimer = new Timer
 		{
-			Interval = 50
+			Interval = 100
 		};
 		_eqTimer.Tick += delegate
 		{
 			_eqAnimationOffset += 0.15f;
 			pnlEqualizer.Invalidate();
-			pnlProgressFill?.Invalidate();
 		};
 		pnlEqualizer.Paint += pnlEqualizer_Paint;
 		btnColor.BackColor = Color.FromArgb(0, 0, 0, 0);
@@ -346,12 +345,18 @@ public partial class Form1 : Form
 		{
 			if (_currentThemeImage != null)
 			{
-				e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
-				e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
-				e.Graphics.SmoothingMode = SmoothingMode.None;
-				int x = 0;
-				int y = base.Height - _currentThemeImage.Height - 60;
-				e.Graphics.DrawImage(_currentThemeImage, x, y, _currentThemeImage.Width, _currentThemeImage.Height);
+				try
+				{
+					int h = _currentThemeImage.Height;
+					int w = _currentThemeImage.Width;
+					e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+					e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
+					e.Graphics.SmoothingMode = SmoothingMode.None;
+					int x = 0;
+					int y = base.Height - h - 60;
+					e.Graphics.DrawImage(_currentThemeImage, x, y, w, h);
+				}
+				catch { }
 			}
 		};
 		pnlGrip.Height = 20;
@@ -542,7 +547,7 @@ public partial class Form1 : Form
 					picOverlay.BackColor = Color.Transparent;
 					_spriteTimer = new Timer
 					{
-						Interval = 100
+						Interval = 150
 					};
 					_spriteTimer.Tick += delegate
 					{
@@ -819,6 +824,7 @@ public partial class Form1 : Form
 			Cursor = Cursors.Hand
 		};
 		btnStart.Paint += OutlinedButtonPaint;
+		ApplyRoundedRegion(btnStart);
 		btnStart.Click += (_, _) =>
 		{
 			_manualTotalSeconds = _manualHours * 3600 + _manualMinutes * 60;
@@ -841,6 +847,7 @@ public partial class Form1 : Form
 			Cursor = Cursors.Hand
 		};
 		btnStop.Paint += OutlinedButtonPaint;
+		ApplyRoundedRegion(btnStop);
 		btnStop.Click += (_, _) =>
 		{
 			StopTimer();
@@ -992,6 +999,7 @@ public partial class Form1 : Form
 			TextAlign = ContentAlignment.MiddleCenter,
 			Cursor = Cursors.Hand
 		};
+		ApplyRoundedRegion(btn);
 		return btn;
 	}
 
@@ -1011,11 +1019,11 @@ public partial class Form1 : Form
 			TextAlign = ContentAlignment.MiddleCenter,
 			Cursor = Cursors.Hand
 		};
+		ApplyRoundedRegion(btn);
 		btn.Paint += (s, e) =>
 		{
 			if (s is Button b)
 			{
-				RoundButtonPaint(s, e);
 				Color accent = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.FromArgb(100, 100, 100) : _appColor;
 				using var pen = new Pen(Color.FromArgb(60, accent), 2f);
 				e.Graphics.DrawLine(pen, 4, b.Height - 3, b.Width - 4, b.Height - 3);
@@ -1026,27 +1034,27 @@ public partial class Form1 : Form
 
 	private void RoundButtonPaint(object? s, PaintEventArgs e)
 	{
-		if (s is Button b)
-		{
-			using var path = new System.Drawing.Drawing2D.GraphicsPath();
-			int r = 6;
-			path.AddArc(0, 0, r * 2, r * 2, 180, 90);
-			path.AddArc(b.Width - r * 2, 0, r * 2, r * 2, 270, 90);
-			path.AddArc(b.Width - r * 2, b.Height - r * 2, r * 2, r * 2, 0, 90);
-			path.AddArc(0, b.Height - r * 2, r * 2, r * 2, 90, 90);
-			path.CloseFigure();
-			b.Region = new Region(path);
-		}
 	}
 
 	private void OutlinedButtonPaint(object? s, PaintEventArgs e)
 	{
 		if (s is Button b)
 		{
-			RoundButtonPaint(s, e);
 			using var pen = new Pen(Color.FromArgb(80, b.ForeColor), 1.5f);
 			e.Graphics.DrawRectangle(pen, 2, 2, b.Width - 4, b.Height - 4);
 		}
+	}
+
+	private void ApplyRoundedRegion(Control c)
+	{
+		using var path = new System.Drawing.Drawing2D.GraphicsPath();
+		int r = 6;
+		path.AddArc(0, 0, r * 2, r * 2, 180, 90);
+		path.AddArc(c.Width - r * 2, 0, r * 2, r * 2, 270, 90);
+		path.AddArc(c.Width - r * 2, c.Height - r * 2, r * 2, r * 2, 0, 90);
+		path.AddArc(0, c.Height - r * 2, r * 2, r * 2, 90, 90);
+		path.CloseFigure();
+		c.Region = new Region(path);
 	}
 
 	protected override void Dispose(bool disposing)

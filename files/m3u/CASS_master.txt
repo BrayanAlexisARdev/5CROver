@@ -15,7 +15,7 @@
 TITULO: LO-FI CHILL
 IMAGEN: cass010.png
 CONTENIDO: https://boxradio-edge-00.streamafrica.net/lofi_radio/aac_hifi.aac
-COLOR: #AF235F
+COLOR: #ff0099
 PANTALLA_GIF: girl7_ANI.gif
 TEMA_FONDO: 07_TH.gif
 TEMA_TV: rain_TV.gif
@@ -33,7 +33,7 @@ TEMA_TV: gcard_TV.gif
 TITULO: BLUES CLUB
 IMAGEN: cass005.png
 CONTENIDO: https://bluesclub.stream.laut.fm/bluesclub?
-COLOR: #2D3449
+COLOR: #0085eb
 PANTALLA_GIF: bluesr_ANI.gif
 TEMA_FONDO: 06_TH.gif
 TEMA_TV: steel_TV.gif
@@ -42,7 +42,7 @@ TEMA_TV: steel_TV.gif
 TITULO: RPGN RADIO
 IMAGEN: cass004.png
 CONTENIDO: http://listen.rpgamers.net/rpgn
-COLOR: #0079D9
+COLOR: #1364e8
 PANTALLA_GIF: rpgn_ANI.gif
 TEMA_FONDO: 09_TH.gif
 TEMA_TV: rpgnrad_TV.gif
@@ -60,7 +60,7 @@ TEMA_TV: flowbk_TV.gif
 TITULO: RAD CLASSIC ROCK
 IMAGEN: cass001.png
 CONTENIDO: https://classicrock.streamingmedia.it/audio.aac
-COLOR: #1A1A1A
+COLOR: #ff1e05
 PANTALLA_GIF: tigersn_ANI.gif
 TEMA_FONDO: 06_TH.gif
 TEMA_TV: steel_TV.gif
@@ -96,7 +96,7 @@ TEMA_TV: flowbk_TV.gif
 TITULO: POP DANCE
 IMAGEN: cass009.png
 CONTENIDO: https://boxradio-edge-01.streamafrica.net/dance.aac
-COLOR: #9B59B6
+COLOR: #da47ff
 PANTALLA_GIF: girl2_ANI.gif
 TEMA_FONDO: 01_TH.gif
 TEMA_TV: bluesk_TV.gif
@@ -105,7 +105,7 @@ TEMA_TV: bluesk_TV.gif
 TITULO: RAINWAVE ALL
 IMAGEN: cass008.png
 CONTENIDO: https://allrelays.rainwave.cc/all.mp3
-COLOR: #364691
+COLOR: #1d1df2
 PANTALLA_GIF: sega_ANI.gif
 TEMA_FONDO: 05_TH.gif
 TEMA_TV: old_TV.gif
@@ -114,7 +114,7 @@ TEMA_TV: old_TV.gif
 TITULO: RAINWAVE GAME
 IMAGEN: cass007.png
 CONTENIDO: https://relay.rainwave.cc/game.mp3
-COLOR: #364691
+COLOR: #1d1df2
 PANTALLA_GIF: sega_ANI.gif
 TEMA_FONDO: 05_TH.gif
 TEMA_TV: old_TV.gif
@@ -123,7 +123,7 @@ TEMA_TV: old_TV.gif
 TITULO: RADIO SEGA
 IMAGEN: cass012.png
 CONTENIDO: https://icecast.radiosega.net/live
-COLOR: #008dd0
+COLOR: #00a6ff
 PANTALLA_GIF: son_ANI.gif
 TEMA_FONDO: 11_TH.gif
 TEMA_TV: segg_TV.gif
@@ -167,8 +167,8 @@ TEMA_TV: slayy_TV.gif
 [CASSETTE 18]
 TITULO: CAPRICE CLASS PIANO
 IMAGEN: cass016.png
-CONTENIDO: http://79.120.39.202:8002/classpiano
-COLOR: #8a0000
+CONTENIDO:  
+COLOR: #e00000
 PANTALLA_GIF: fairy_ANI.gif
 TEMA_FONDO: 13_TH.gif
 TEMA_TV: piano_TV.gif
@@ -177,7 +177,7 @@ TEMA_TV: piano_TV.gif
 TITULO:SpriteLayer VGR
 IMAGEN: cass018.png
 CONTENIDO: https://radio.spritelayerradio.com:8010/all
-COLOR: #2b004d
+COLOR: #b829ff
 PANTALLA_GIF: yixu_ANI.gif
 TEMA_FONDO: 15_TH.gif
 TEMA_TV: segg_TV.gif
@@ -186,7 +186,7 @@ TEMA_TV: segg_TV.gif
 TITULO:POSITIVE
 IMAGEN: cass018.png
 CONTENIDO: https://streaming.positivity.radio/pr/workoutrelax/icecast.audio
-COLOR: #2b004d
+COLOR: #ffabfe
 PANTALLA_GIF: posi_ANI.gif
 TEMA_FONDO: 15_TH.gif
 TEMA_TV: segg_TV.gif
@@ -195,7 +195,7 @@ TEMA_TV: segg_TV.gif
 TITULO:R Workout 160 BPM
 IMAGEN: cass018.png
 CONTENIDO: https://drive.uber.radio/uber-app/sportifybpm160/icecast.audio
-COLOR: #2b004d
+COLOR: #7e0dff
 PANTALLA_GIF: work160_ANI.gif
 TEMA_FONDO: 15_TH.gif
 TEMA_TV: segg_TV.gif
@@ -204,7 +204,7 @@ TEMA_TV: segg_TV.gif
 TITULO: Hip Hop Workout
 IMAGEN: cass018.png
 CONTENIDO: https://drive.uber.radio/uber-app/sportifyrandb/icecast.audio
-COLOR: #2b004d
+COLOR: #bb00ff
 PANTALLA_GIF: girl2_ANI.gif
 TEMA_FONDO: 15_TH.gif
 TEMA_TV: segg_TV.gif
@@ -213,7 +213,7 @@ TEMA_TV: segg_TV.gif
 TITULO: THE BEATLES
 IMAGEN: cass024.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/beatles/icecast.audio
-COLOR: #bfbfbf
+COLOR: #0029e0
 PANTALLA_GIF: beat_ANI.gif
 TEMA_FONDO: 19_TH.gif
 TEMA_TV: voldoff_TV.gif
@@ -222,7 +222,7 @@ TEMA_TV: voldoff_TV.gif
 TITULO: AC DC
 IMAGEN: cass025.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/acdc/icecast.audio
-COLOR: #000000
+COLOR: #fc1c1c
 PANTALLA_GIF: acdc_ANI.gif
 TEMA_FONDO: 18_TH.gif
 TEMA_TV: steel_TV.gif
@@ -231,7 +231,7 @@ TEMA_TV: steel_TV.gif
 TITULO: GUNS AND ROSES
 IMAGEN: cass026.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/gunsnroses/icecast.audio
-COLOR: #2b004d
+COLOR: #fc881c
 PANTALLA_GIF: guns_ANI.gif
 TEMA_FONDO: 06_TH.gif
 TEMA_TV: steel_TV.gif
@@ -240,7 +240,7 @@ TEMA_TV: steel_TV.gif
 TITULO: METALLICA
 IMAGEN: cass027.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/metallica/icecast.audio
-COLOR: #2b004d
+COLOR: #0e2ecc
 PANTALLA_GIF: metall_ANI.gif
 TEMA_FONDO: 06_TH.gif
 TEMA_TV: steel_TV.gif
@@ -249,7 +249,7 @@ TEMA_TV: steel_TV.gif
 TITULO: IRON MAIDEN
 IMAGEN: cass028.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/ironmaiden/icecast.audio
-COLOR: #2b004d
+COLOR: #8400b8
 PANTALLA_GIF: ironm_ANI.gif
 TEMA_FONDO: 06_TH.gif
 TEMA_TV: steel_TV.gif
@@ -258,7 +258,7 @@ TEMA_TV: steel_TV.gif
 TITULO: MOTORHEAD
 IMAGEN: cass029.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/motorhead/icecast.audio
-COLOR: #2b004d
+COLOR: #a900c7
 PANTALLA_GIF: motorh_ANI.gif
 TEMA_FONDO: 06_TH.gif
 TEMA_TV: steel_TV.gif
@@ -267,7 +267,7 @@ TEMA_TV: steel_TV.gif
 TITULO: BOSTON
 IMAGEN: cass030.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/boston/icecast.audio
-COLOR: #2b004d
+COLOR: #dee600
 PANTALLA_GIF: boston_ANI.gif
 TEMA_FONDO: 06_TH.gif
 TEMA_TV: vold_TV.gif
@@ -276,7 +276,7 @@ TEMA_TV: vold_TV.gif
 TITULO: BILLY IDOL
 IMAGEN: cass021.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/billyidol/icecast.audio
-COLOR: #261d25
+COLOR: #fa1191
 PANTALLA_GIF: billy_ANI.gif
 TEMA_FONDO: 16_TH.gif
 TEMA_TV: slayy_TV.gif
@@ -285,7 +285,7 @@ TEMA_TV: slayy_TV.gif
 TITULO: HUEY LEWIS
 IMAGEN: cass020.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/hueylewis/icecast.audio
-COLOR: #4a2525
+COLOR: #0eaae8
 PANTALLA_GIF: huey_ANI.gif
 TEMA_FONDO: 06_TH.gif
 TEMA_TV: steel_TV.gif
@@ -294,7 +294,7 @@ TEMA_TV: steel_TV.gif
 TITULO: CHICAGO
 IMAGEN: cass031.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/chicago/icecast.audio
-COLOR: #4a2525
+COLOR: #14f7f0
 PANTALLA_GIF: chicago_ANI.gif
 TEMA_FONDO: 06_TH.gif
 TEMA_TV: steel_TV.gif
@@ -303,7 +303,7 @@ TEMA_TV: steel_TV.gif
 TITULO: BON JOVI
 IMAGEN: cass032.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/bonjovi/icecast.audio
-COLOR: #4a2525
+COLOR: #34edea
 PANTALLA_GIF: bonj_ANI.gif
 TEMA_FONDO: 06_TH.gif
 TEMA_TV: steel_TV.gif
@@ -321,7 +321,7 @@ TEMA_TV: vold_TV.gif
 TITULO: AEROSMITH
 IMAGEN: cass034.png
 CONTENIDO: http://streaming.exclusive.radio/er-app/aerosmith/icecast.audio
-COLOR: #ffc919
+COLOR: #4200db
 PANTALLA_GIF: aero_ANI.gif
 TEMA_FONDO: 06_TH.gif
 TEMA_TV: steel_TV.gif
@@ -330,7 +330,7 @@ TEMA_TV: steel_TV.gif
 TITULO: ZZ TOP
 IMAGEN: cass035.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/zztop/icecast.audio
-COLOR: #800317
+COLOR: #ebae15
 PANTALLA_GIF: zztop_ANI.gif
 TEMA_FONDO: 20_TH.gif
 TEMA_TV: steel_TV.gif
@@ -339,7 +339,7 @@ TEMA_TV: steel_TV.gif
 TITULO: VAN HALEN
 IMAGEN: cass036.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/vanhalen/icecast.audio
-COLOR: #80031
+COLOR: #04de00
 PANTALLA_GIF: van_ANI.gif
 TEMA_FONDO: 20_TH.gif
 TEMA_TV: steel_TV.gif
@@ -348,7 +348,7 @@ TEMA_TV: steel_TV.gif
 TITULO: MOTLEY CRUE
 IMAGEN: cass037.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/motleycrue/icecast.audio
-COLOR: #80031
+COLOR: #ba4400
 PANTALLA_GIF: motley_ANI.gif
 TEMA_FONDO: 20_TH.gif
 TEMA_TV: steel_TV.gif
@@ -357,7 +357,7 @@ TEMA_TV: steel_TV.gif
 TITULO: BLACK SABBATH
 IMAGEN: cass038.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/blacksabbath/icecast.audio
-COLOR: #80031
+COLOR: #720ac7
 PANTALLA_GIF: ozy_ANI.gif
 TEMA_FONDO: 20_TH.gif
 TEMA_TV: steel_TV.gif
@@ -366,7 +366,7 @@ TEMA_TV: steel_TV.gif
 TITULO: ROLLING STONES
 IMAGEN: cass039.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/rollingstones/icecast.audio
-COLOR: #80031
+COLOR: #c70021
 PANTALLA_GIF: roll_ANI.gif
 TEMA_FONDO: 20_TH.gif
 TEMA_TV: steel_TV.gif
@@ -375,7 +375,7 @@ TEMA_TV: steel_TV.gif
 TITULO: TikTok TRENDING
 IMAGEN: cass019.png
 CONTENIDO: https://streaming.exclusive.radio/er-app/tiktoktrending/icecast.audio
-COLOR: #de5480
+COLOR: #ff00bf
 PANTALLA_GIF: girl13_ANI.gif
 TEMA_FONDO: 14_TH.gif
 TEMA_TV: vocca_TV.gif
@@ -384,7 +384,7 @@ TEMA_TV: vocca_TV.gif
 TITULO: Final Fantasy RADIO
 IMAGEN: cass022.png
 CONTENIDO: http://finalfantasystation.com:8000/stream
-COLOR: #000000
+COLOR: #00ccff
 PANTALLA_GIF: finalf_ANI.gif
 TEMA_FONDO: 21_TH.gif
 TEMA_TV: finaltev_TV.gif

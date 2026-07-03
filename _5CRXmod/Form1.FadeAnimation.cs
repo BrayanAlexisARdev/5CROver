@@ -237,26 +237,14 @@ partial class Form1
 		string text = lbl.Text;
 		Font font = lbl.Font;
 		Color glowColor = (_appColor != Color.Transparent) ? _appColor : Color.Cyan;
-		for (int i = 1; i <= 3; i++)
+		for (int i = 1; i <= 2; i++)
 		{
 			using Brush glowBrush = new SolidBrush(Color.FromArgb(50 / i, glowColor));
-			int[] array = new int[2]
-			{
-				-i,
-				i
-			};
-			foreach (int dx in array)
-			{
-				int[] array2 = new int[2]
-				{
-					-i,
-					i
-				};
-				foreach (int dy in array2)
-				{
-					e.Graphics.DrawString(text, font, glowBrush, new PointF(dx, dy));
-				}
-			}
+			int n = i;
+			e.Graphics.DrawString(text, font, glowBrush, new PointF(-n, -n));
+			e.Graphics.DrawString(text, font, glowBrush, new PointF(-n, n));
+			e.Graphics.DrawString(text, font, glowBrush, new PointF(n, -n));
+			e.Graphics.DrawString(text, font, glowBrush, new PointF(n, n));
 		}
 		using Brush textBrush = new SolidBrush(lbl.ForeColor);
 		e.Graphics.DrawString(text, font, textBrush, new PointF(0f, 0f));
