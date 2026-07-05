@@ -181,12 +181,23 @@ partial class Form1
 			{
 				lblTaskInfo.Text = $"{nameLabel.Text}  •  {FormatTaskTime(data.Time)}";
 				lblTaskInfo.ForeColor = Color.White;
+				lblTaskRemaining.Text = $"REST: {FormatTaskTime(_timeRemaining)}";
+				lblTaskRemaining.ForeColor = Color.Gray;
 			}
+		}
+		else if (_timeRemaining.TotalSeconds > 0)
+		{
+			double total = _manualTotalSeconds > 0 ? _manualTotalSeconds : _timeRemaining.TotalSeconds;
+			lblTaskInfo.Text = FormatTaskTime(TimeSpan.FromSeconds(total));
+			lblTaskInfo.ForeColor = Color.White;
+			lblTaskRemaining.Text = $"REST: {FormatTaskTime(_timeRemaining)}";
+			lblTaskRemaining.ForeColor = Color.Gray;
 		}
 		else
 		{
-			lblTaskInfo.Text = "NO TASK";
+			lblTaskInfo.Text = "---";
 			lblTaskInfo.ForeColor = Color.Gray;
+			lblTaskRemaining.Text = "";
 		}
 	}
 

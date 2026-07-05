@@ -71,8 +71,10 @@ partial class Form1
 		{
 			StopTimer();
 			_timeRemaining = TimeSpan.Zero;
+			_manualTotalSeconds = 0;
 			UpdateTimerDisplay();
 		}
+		UpdateTaskInfo();
 	}
 
 	private void StartTimer()
@@ -105,6 +107,7 @@ partial class Form1
 		{
 			_timeRemaining = _timeRemaining.Subtract(TimeSpan.FromSeconds(1L));
 			UpdateTimerDisplay();
+			UpdateTaskInfo();
 			if (_activeTaskPanel != null)
 			{
 				UpdateTaskProgress();

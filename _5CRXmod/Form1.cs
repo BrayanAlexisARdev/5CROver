@@ -109,6 +109,8 @@ public partial class Form1 : Form
 
 	private Label lblTaskInfo;
 
+	private Label lblTaskRemaining;
+
 	private Panel pnlProgressBg;
 
 	private Panel pnlProgressFill;
@@ -594,13 +596,15 @@ public partial class Form1 : Form
 			Margin = new Padding(0),
 			Name = "pnlTaskInfo"
 		};
+		FontFamily? dcFamily = null;
+		try { if (_pfc.Families.Length > 0) dcFamily = _pfc.Families[0]; } catch { }
 		lblTaskInfo = new Label
 		{
-			Text = "NO TASK",
+			Text = "---",
 			TextAlign = ContentAlignment.MiddleCenter,
 			Dock = DockStyle.Fill,
 			ForeColor = Color.Gray,
-			Font = new Font("Segoe UI", 8f, FontStyle.Bold)
+			Font = dcFamily != null ? new Font(dcFamily, 8f, FontStyle.Bold) : new Font("Segoe UI", 8f, FontStyle.Bold)
 		};
 		pnlTaskInfo.Controls.Add(lblTaskInfo);
 		pnlProgressBg = new Panel
@@ -710,8 +714,20 @@ public partial class Form1 : Form
 			BackColor = Color.Transparent
 		};
 
-		lblTaskInfo.Dock = DockStyle.Fill;
+		lblTaskInfo.Dock = DockStyle.Top;
+		lblTaskInfo.Height = 20;
 		pnlTaskInfoTop.Controls.Add(lblTaskInfo);
+
+		lblTaskRemaining = new Label
+		{
+			Text = "",
+			Dock = DockStyle.Bottom,
+			Height = 20,
+			TextAlign = ContentAlignment.MiddleCenter,
+			ForeColor = Color.Gray,
+			Font = dcFamily != null ? new Font(dcFamily, 7f, FontStyle.Bold) : new Font("Segoe UI", 6.5f, FontStyle.Bold)
+		};
+		pnlTaskInfoTop.Controls.Add(lblTaskRemaining);
 
 		pnlTaskInfo.Controls.Add(pnlTaskInfoTop);
 		pnlProgressBg.Dock = DockStyle.Bottom;
@@ -832,6 +848,7 @@ public partial class Form1 : Form
 			UpdateTimerDisplay();
 			if (_timeRemaining.TotalSeconds > 0)
 				StartTimer();
+			UpdateTaskInfo();
 		};
 
 		Button btnStop = new Button
@@ -852,7 +869,9 @@ public partial class Form1 : Form
 		{
 			StopTimer();
 			_timeRemaining = TimeSpan.Zero;
+			_manualTotalSeconds = 0;
 			UpdateTimerDisplay();
+			UpdateTaskInfo();
 		};
 
 		int btnGap2 = 12;
