@@ -709,25 +709,25 @@ public partial class Form1 : Form
 
 		Panel pnlTaskInfoTop = new Panel
 		{
-			Height = 40,
+			Height = 26,
 			Dock = DockStyle.Top,
 			BackColor = Color.Transparent
 		};
 
-		lblTaskInfo.Dock = DockStyle.Top;
-		lblTaskInfo.Height = 20;
-		pnlTaskInfoTop.Controls.Add(lblTaskInfo);
-
 		lblTaskRemaining = new Label
 		{
 			Text = "",
-			Dock = DockStyle.Bottom,
-			Height = 20,
-			TextAlign = ContentAlignment.MiddleCenter,
+			Dock = DockStyle.Right,
+			Width = 180,
+			TextAlign = ContentAlignment.MiddleRight,
 			ForeColor = Color.Gray,
-			Font = dcFamily != null ? new Font(dcFamily, 7f, FontStyle.Bold) : new Font("Segoe UI", 6.5f, FontStyle.Bold)
+			Font = dcFamily != null ? new Font(dcFamily, 8f, FontStyle.Bold) : new Font("Segoe UI", 8f, FontStyle.Bold)
 		};
 		pnlTaskInfoTop.Controls.Add(lblTaskRemaining);
+
+		lblTaskInfo.Dock = DockStyle.Fill;
+		lblTaskInfo.TextAlign = ContentAlignment.MiddleLeft;
+		pnlTaskInfoTop.Controls.Add(lblTaskInfo);
 
 		pnlTaskInfo.Controls.Add(pnlTaskInfoTop);
 		pnlProgressBg.Dock = DockStyle.Bottom;

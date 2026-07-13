@@ -179,9 +179,9 @@ partial class Form1
 			}
 			if (nameLabel != null && _activeTaskPanel.Tag is TaskData data)
 			{
-				lblTaskInfo.Text = $"{nameLabel.Text}  •  {FormatTaskTime(data.Time)}";
+				lblTaskInfo.Text = FormatTaskTime(data.Time);
 				lblTaskInfo.ForeColor = Color.White;
-				lblTaskRemaining.Text = $"REST: {FormatTaskTime(_timeRemaining)}";
+				lblTaskRemaining.Text = FormatTaskTime(_timeRemaining);
 				lblTaskRemaining.ForeColor = Color.Gray;
 			}
 		}
@@ -190,7 +190,7 @@ partial class Form1
 			double total = _manualTotalSeconds > 0 ? _manualTotalSeconds : _timeRemaining.TotalSeconds;
 			lblTaskInfo.Text = FormatTaskTime(TimeSpan.FromSeconds(total));
 			lblTaskInfo.ForeColor = Color.White;
-			lblTaskRemaining.Text = $"REST: {FormatTaskTime(_timeRemaining)}";
+			lblTaskRemaining.Text = FormatTaskTime(_timeRemaining);
 			lblTaskRemaining.ForeColor = Color.Gray;
 		}
 		else
