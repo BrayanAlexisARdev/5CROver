@@ -129,6 +129,7 @@ partial class Form1
 		lblHours.Invalidate();
 		lblMinutes.Invalidate();
 		lblSeconds.Invalidate();
+		InvalidatePresetButtons();
 	}
 
 	private void CycleTheme()
@@ -187,6 +188,7 @@ partial class Form1
 		}
 
 		timerPanel.Invalidate();
+		InvalidatePresetButtons();
 		Invalidate();
 	}
 
@@ -265,6 +267,7 @@ partial class Form1
 		UpdateControlContrast(pnlGrip, pnlGrip.BackColor);
 		SetSafeBackColor(pnlEqualizer, darkSolid);
 		SetSafeBackColor(pnlVolume, darkSolid);
+		InvalidatePresetButtons();
 	}
 
 	private void SetSafeBackColor(Control c, Color bg)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -766,17 +767,14 @@ public partial class Form1 : Form
 				if (lastHourBtn == btn)
 				{
 					_manualHours = 0;
-					btn.BackColor = Color.FromArgb(50, 50, 50);
-					btn.ForeColor = Color.White;
+					SetPresetSelected(btn, false);
 					lastHourBtn = null;
 				}
 				else
 				{
 					_manualHours = h;
-					Color hl = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.FromArgb(100, 100, 100) : _appColor;
-					if (lastHourBtn != null) { lastHourBtn.BackColor = Color.FromArgb(50, 50, 50); lastHourBtn.ForeColor = Color.White; }
-					btn.BackColor = hl;
-					btn.ForeColor = Color.White;
+					if (lastHourBtn != null) SetPresetSelected(lastHourBtn, false);
+					SetPresetSelected(btn, true);
 					lastHourBtn = btn;
 				}
 			};
@@ -802,17 +800,14 @@ public partial class Form1 : Form
 				if (lastMinBtn == btn)
 				{
 					_manualMinutes = 0;
-					btn.BackColor = Color.FromArgb(50, 50, 50);
-					btn.ForeColor = Color.White;
+					SetPresetSelected(btn, false);
 					lastMinBtn = null;
 				}
 				else
 				{
 					_manualMinutes = m;
-					Color hl = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.FromArgb(100, 100, 100) : _appColor;
-					if (lastMinBtn != null) { lastMinBtn.BackColor = Color.FromArgb(50, 50, 50); lastMinBtn.ForeColor = Color.White; }
-					btn.BackColor = hl;
-					btn.ForeColor = Color.White;
+					if (lastMinBtn != null) SetPresetSelected(lastMinBtn, false);
+					SetPresetSelected(btn, true);
 					lastMinBtn = btn;
 				}
 			};
@@ -1090,25 +1085,122 @@ public partial class Form1 : Form
 			Width = 58,
 			Height = 25,
 			FlatStyle = FlatStyle.Flat,
-			FlatAppearance = { BorderSize = 0 },
+			FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Transparent, MouseDownBackColor = Color.Transparent },
 			BackColor = Color.FromArgb(50, 50, 50),
-			ForeColor = Color.FromArgb(200, 200, 200),
+			ForeColor = Color.White,
 			Font = new Font("Segoe UI", 8f, FontStyle.Bold),
 			UseVisualStyleBackColor = false,
 			TextAlign = ContentAlignment.MiddleCenter,
-			Cursor = Cursors.Hand
+			Cursor = Cursors.Hand,
+			Tag = false
 		};
 		ApplyRoundedRegion(btn);
 		btn.Paint += (s, e) =>
 		{
 			if (s is Button b)
 			{
-				Color accent = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.FromArgb(100, 100, 100) : _appColor;
-				using var pen = new Pen(Color.FromArgb(60, accent), 2f);
-				e.Graphics.DrawLine(pen, 4, b.Height - 3, b.Width - 4, b.Height - 3);
+				e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+				e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
+				bool selected = b.Tag is bool sel && sel;
+				RectangleF rect = new RectangleF(1f, 1f, b.Width - 2f, b.Height - 2f);
+				float radius = 6f;
+				using (var path = RoundedPath(rect, radius))
+				{
+					if (selected)
+					{
+						Color accent = GetAccentColor();
+						Color top = ControlPaint.Light(accent, 0.45f);
+						Color bottom = ControlPaint.Dark(accent, 0.3f);
+						using (var fill = new LinearGradientBrush(rect, top, bottom, LinearGradientMode.Vertical))
+							e.Graphics.FillPath(fill, path);
+						using (var halo = new Pen(Color.FromArgb(120, accent), 2.5f))
+							e.Graphics.DrawPath(halo, path);
+						RectangleF innerRect = new RectangleF(3.5f, 3.5f, b.Width - 7f, b.Height - 7f);
+						using (var innerPath = RoundedPath(innerRect, radius - 1.5f))
+						{
+							using (var glow = new LinearGradientBrush(innerRect,
+								Color.FromArgb(170, ControlPaint.Light(accent)),
+								Color.FromArgb(50, accent), LinearGradientMode.Vertical))
+								e.Graphics.FillPath(glow, innerPath);
+							using (var ring = new Pen(Color.FromArgb(200, Color.White), 1f))
+								e.Graphics.DrawPath(ring, innerPath);
+						}
+					}
+					else
+					{
+						using (var fill = new LinearGradientBrush(rect,
+							Color.FromArgb(82, 82, 86), Color.FromArgb(36, 36, 40), LinearGradientMode.Vertical))
+							e.Graphics.FillPath(fill, path);
+						using (var sheen = new LinearGradientBrush(rect,
+							Color.FromArgb(60, Color.White), Color.FromArgb(0, Color.White), LinearGradientMode.Vertical))
+							e.Graphics.FillPath(sheen, path);
+						using (var edge = new Pen(Color.FromArgb(70, 255, 255, 255), 1f))
+							e.Graphics.DrawPath(edge, path);
+						using (var border = new Pen(Color.FromArgb(120, 0, 0, 0), 1f))
+							e.Graphics.DrawPath(border, path);
+					}
+				}
+				Color fg = selected ? Color.White : Color.FromArgb(205, 205, 205);
+				using (var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+				{
+					if (selected)
+					{
+						Color accent = GetAccentColor();
+						for (int i = 1; i <= 2; i++)
+						{
+							using var glowBrush = new SolidBrush(Color.FromArgb(70 / i, accent));
+							e.Graphics.DrawString(b.Text, b.Font, glowBrush, new RectangleF(i, i, b.Width - 2, b.Height - 2), fmt);
+							e.Graphics.DrawString(b.Text, b.Font, glowBrush, new RectangleF(-i, -i, b.Width - 2, b.Height - 2), fmt);
+						}
+					}
+					using (var textBrush = new SolidBrush(fg))
+						e.Graphics.DrawString(b.Text, b.Font, textBrush, new RectangleF(1, 1, b.Width - 2, b.Height - 2), fmt);
+				}
 			}
 		};
 		return btn;
+	}
+
+	private void SetPresetSelected(Button b, bool selected)
+	{
+		b.Tag = selected;
+		b.Invalidate();
+	}
+
+	private Color GetAccentColor()
+	{
+		if (_appColor != Color.Transparent && _appColor != Color.Empty)
+			return _appColor;
+		if (_currentThemeImage != null)
+			return Color.FromArgb(100, 100, 100);
+		return _themes[_currentThemeIndex].Item1;
+	}
+
+	private static GraphicsPath RoundedPath(RectangleF r, float radius)
+	{
+		GraphicsPath path = new GraphicsPath();
+		float d = radius * 2f;
+		path.AddArc(r.X, r.Y, d, d, 180, 90);
+		path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
+		path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
+		path.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
+		path.CloseFigure();
+		return path;
+	}
+
+	private void InvalidatePresetButtons()
+	{
+		foreach (Control row in tasksListPanel.Controls)
+		{
+			if (row is Panel p)
+			{
+				foreach (Control c in p.Controls)
+				{
+					if (c is Button b)
+						b.Invalidate();
+				}
+			}
+		}
 	}
 
 	private void RoundButtonPaint(object? s, PaintEventArgs e)
