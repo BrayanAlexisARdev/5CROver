@@ -19,6 +19,21 @@ partial class Form1
 
 	private double _manualTotalSeconds;
 
+	private int _presetBlockGen;
+
+	private async void ShowPresetBlockMessage()
+	{
+		int gen = ++_presetBlockGen;
+		_presetBlockMsg = true;
+		UpdateTimeSelectorInfo();
+		await Task.Delay(3000);
+		if (gen == _presetBlockGen)
+		{
+			_presetBlockMsg = false;
+			UpdateTimeSelectorInfo();
+		}
+	}
+
 	private void btnAddTime_Click(object? sender, EventArgs e)
 	{
 		using SetTimeForm setTimeForm = new SetTimeForm();
@@ -108,6 +123,7 @@ partial class Form1
 			_timeRemaining = _timeRemaining.Subtract(TimeSpan.FromSeconds(1L));
 			UpdateTimerDisplay();
 			UpdateTaskInfo();
+			UpdateTimeSelectorInfo();
 			if (_activeTaskPanel != null)
 			{
 				UpdateTaskProgress();
@@ -125,6 +141,8 @@ partial class Form1
 		_timeRemaining = TimeSpan.Zero;
 		UpdateTimerDisplay();
 		ResetNodeProgress();
+		_presetBlockMsg = false;
+		UpdateTimeSelectorInfo();
 		if (_isLearningSession)
 		{
 			return;
@@ -182,5 +200,42 @@ partial class Form1
 		for (int i = 0; i < _nodeCount; i++)
 			_nodeIntensities[i] = 0;
 		pnlProgressFill?.Invalidate();
+	}
+
+	private void UpdateTimeSelectorInfo()
+	{
+		if (lblTimeSelector == null) return;
+		if (_presetBlockMsg)
+		{
+			lblTimeSelector.Text = "PLEASE STOP TIMER";
+			lblTimeSelector.ForeColor = Color.FromArgb(230, 120, 120);
+		}
+		else if (_timerRunning)
+		{
+			lblTimeSelector.Text = FormatRemaining(_timeRemaining);
+			lblTimeSelector.ForeColor = Color.FromArgb(140, 220, 160);
+		}
+		else if (_manualHours > 0 || _manualMinutes > 0)
+		{
+			string sel = "";
+			if (_manualHours > 0) sel += $"{_manualHours}H";
+			if (_manualMinutes > 0) sel += (sel.Length > 0 ? " " : "") + $"{_manualMinutes}M";
+			lblTimeSelector.Text = $"{sel} SET";
+			lblTimeSelector.ForeColor = Color.FromArgb(140, 220, 160);
+		}
+		else
+		{
+			lblTimeSelector.Text = "SELECT TIME";
+			lblTimeSelector.ForeColor = Color.FromArgb(160, 160, 160);
+		}
+	}
+
+	private static string FormatRemaining(TimeSpan t)
+	{
+		string s = "";
+		if (t.Hours > 0) s += $"{t.Hours}H";
+		if (t.Minutes > 0) s += (s.Length > 0 ? " " : "") + $"{t.Minutes}M";
+		if (s.Length == 0) s = "0M";
+		return s + " REMAIN";
 	}
 }

@@ -313,13 +313,9 @@ partial class Form1
 
 	private void LayoutCassetteHeader()
 	{
-		int x = 5;
-		lblCassettes.Location = new Point(x, 4);
-		x += lblCassettes.Width + 3;
-		txtCassetteNum.Location = new Point(x, 2);
-		txtCassetteNum.Width = TextRenderer.MeasureText("888", txtCassetteNum.Font).Width + 2;
-		x += txtCassetteNum.Width + 3;
-		lblCassetteTotal.Location = new Point(x, 4);
 		lblCassetteTotal.Text = $"/{_cassettes.Count}";
+		txtCassetteNum.Width = TextRenderer.MeasureText("888", txtCassetteNum.Font).Width;
+		txtCassetteNum.Location = new Point(70, 3);
+		lblCassetteTotal.Location = new Point(70 + txtCassetteNum.Width + 2, 6);
 	}
 }

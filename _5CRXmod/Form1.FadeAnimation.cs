@@ -68,6 +68,13 @@ partial class Form1
 		int w = pnlEqualizer.Width;
 		int h = pnlEqualizer.Height;
 
+		using (var recess = new SolidBrush(_radioRecess))
+			e.Graphics.FillRectangle(recess, 0, 0, w, h);
+		using (var brass = new Pen(Color.FromArgb(160, 196, 164, 92), 1f))
+			e.Graphics.DrawRectangle(brass, 1, 1, w - 3, h - 3);
+		using (var inner = new Pen(Color.FromArgb(70, 0, 0, 0), 1f))
+			e.Graphics.DrawRectangle(inner, 2, 2, w - 5, h - 5);
+
 		Color neonColor = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
 
 		int barCount = 13;

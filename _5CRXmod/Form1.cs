@@ -88,6 +88,12 @@ public partial class Form1 : Form
 
 	private Label lblTasks;
 
+	private BufferedPanel toolsHeaderPanel;
+
+	private Label lblTools;
+
+	private Panel toolsRow;
+
 	private BufferedPanel playerFooterPanel;
 
 	private Label lblM3uTitle;
@@ -111,6 +117,14 @@ public partial class Form1 : Form
 	private Label lblTaskInfo;
 
 	private Label lblTaskRemaining;
+
+	private Label lblTimeSelector;
+
+	private bool _presetBlockMsg;
+
+	private Button? _hourPresetBtn;
+
+	private Button? _minPresetBtn;
 
 	private Panel pnlProgressBg;
 
@@ -157,6 +171,7 @@ public partial class Form1 : Form
 		base.Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, base.Width, base.Height, 12, 12));
 		playerFooterPanel.Paint += delegate(object? s, PaintEventArgs e)
 		{
+			DrawFooterSkin(e.Graphics);
 			if (_appColor != Color.Transparent)
 			{
 				Color overlay = Color.FromArgb(102, _appColor);
@@ -278,6 +293,12 @@ public partial class Form1 : Form
 		btnS.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnPrevM3u.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnNextM3u.BackColor = Color.FromArgb(0, 0, 0, 0);
+		btnPrevM3u.FlatAppearance.MouseOverBackColor = Color.Transparent;
+		btnPrevM3u.FlatAppearance.MouseDownBackColor = Color.Transparent;
+		btnPrevM3u.UseVisualStyleBackColor = false;
+		btnNextM3u.FlatAppearance.MouseOverBackColor = Color.Transparent;
+		btnNextM3u.FlatAppearance.MouseDownBackColor = Color.Transparent;
+		btnNextM3u.UseVisualStyleBackColor = false;
 		btnVolLow.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnVolMid.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnVolMax.BackColor = Color.FromArgb(0, 0, 0, 0);
@@ -378,6 +399,13 @@ public partial class Form1 : Form
 	private void pnlGrip_Paint(object? sender, PaintEventArgs e)
 	{
 		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+		using (var brush = MetalBrush(new RectangleF(0, 0, pnlGrip.Width, pnlGrip.Height)))
+			e.Graphics.FillRectangle(brush, pnlGrip.ClientRectangle);
+		DrawBrushed(e.Graphics, pnlGrip.ClientRectangle);
+		using (var top = new Pen(Color.FromArgb(90, 255, 255, 255), 1f))
+			e.Graphics.DrawLine(top, 0, 0, pnlGrip.Width, 0);
+		using (var groove = new SolidBrush(Color.FromArgb(70, 8, 8, 10)))
+			e.Graphics.FillRectangle(groove, 0, pnlGrip.Height / 2 - 5, pnlGrip.Width, 10);
 		int lineHeight = 2;
 		int lineSpacing = 4;
 		int totalHeight = 3 * lineHeight + 2 * lineSpacing;
@@ -592,8 +620,8 @@ public partial class Form1 : Form
 		Panel pnlTaskInfo = new Panel
 		{
 			Width = base.Width,
-			Height = 60,
-			BackColor = Color.FromArgb(40, 40, 40),
+			Height = 20,
+			BackColor = Color.Transparent,
 			Margin = new Padding(0),
 			Name = "pnlTaskInfo"
 		};
@@ -607,7 +635,6 @@ public partial class Form1 : Form
 			ForeColor = Color.Gray,
 			Font = dcFamily != null ? new Font(dcFamily, 8f, FontStyle.Bold) : new Font("Segoe UI", 8f, FontStyle.Bold)
 		};
-		pnlTaskInfo.Controls.Add(lblTaskInfo);
 		pnlProgressBg = new Panel
 		{
 			Height = 20,
@@ -708,54 +735,47 @@ public partial class Form1 : Form
 		pnlTopButtons.Controls.Add(picCincross);
 		pnlTaskInfo.Controls.Clear();
 
-		Panel pnlTaskInfoTop = new Panel
-		{
-			Height = 26,
-			Dock = DockStyle.Top,
-			BackColor = Color.Transparent
-		};
-
 		lblTaskRemaining = new Label
 		{
 			Text = "",
-			Dock = DockStyle.Right,
-			Width = 180,
-			TextAlign = ContentAlignment.MiddleRight,
-			ForeColor = Color.Gray,
-			Font = dcFamily != null ? new Font(dcFamily, 8f, FontStyle.Bold) : new Font("Segoe UI", 8f, FontStyle.Bold)
+			ForeColor = Color.Gray
 		};
-		pnlTaskInfoTop.Controls.Add(lblTaskRemaining);
-
-		lblTaskInfo.Dock = DockStyle.Fill;
-		lblTaskInfo.TextAlign = ContentAlignment.MiddleLeft;
-		pnlTaskInfoTop.Controls.Add(lblTaskInfo);
-
-		pnlTaskInfo.Controls.Add(pnlTaskInfoTop);
 		pnlProgressBg.Dock = DockStyle.Bottom;
 		pnlTaskInfo.Controls.Add(pnlProgressBg);
 
 		// ── Row 1: TIME SELECTOR label ──
-		Panel row1 = new Panel { Height = 26, Width = base.Width, BackColor = Color.FromArgb(30, 30, 30) };
+		Panel row1 = new Panel { Height = 26, Width = base.Width, BackColor = Color.Transparent, Margin = new Padding(0) };
 
-		Label lblTimeSelector = new Label
+		lblTimeSelector = new Label
 		{
-			Text = "TIME SELECTOR",
+			Text = "",
 			Dock = DockStyle.Fill,
 			ForeColor = Color.FromArgb(160, 160, 160),
 			Font = new Font("Segoe UI", 8f, FontStyle.Bold),
 			TextAlign = ContentAlignment.MiddleCenter,
 			BackColor = Color.Transparent
 		};
+		lblTimeSelector.Paint += delegate(object? s, PaintEventArgs e)
+		{
+			if (s is not Label lbl || lbl.Text.Length == 0) return;
+			Rectangle rect = lbl.ClientRectangle;
+			TextRenderer.DrawText(e.Graphics, lbl.Text, lbl.Font,
+				new Rectangle(rect.X + 1, rect.Y + 1, rect.Width, rect.Height),
+				Color.FromArgb(120, 0, 0, 0),
+				TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+			TextRenderer.DrawText(e.Graphics, lbl.Text, lbl.Font, rect, lbl.ForeColor,
+				TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+		};
 		row1.Controls.Add(lblTimeSelector);
 		tasksListPanel.Controls.Add(row1);
 		tasksListPanel.Controls.SetChildIndex(row1, 1);
+		UpdateTimeSelectorInfo();
 
 		// ── Row 2 & 3: presets with same background ──
-		Color presetBg = Color.FromArgb(30, 30, 30);
+		Color presetBg = Color.Transparent;
 
 		string[] hourPresets = ["1H", "2H", "3H", "4H"];
 		Panel row2 = new Panel { Height = 26, Width = base.Width, BackColor = presetBg, Margin = new Padding(0) };
-		Button? lastHourBtn = null;
 		for (int i = 0; i < hourPresets.Length; i++)
 		{
 			string txt = hourPresets[i];
@@ -764,19 +784,26 @@ public partial class Form1 : Form
 			Button btn = MakeRoundedBtn(txt);
 			btn.Click += (_, _) =>
 			{
-				if (lastHourBtn == btn)
+				if (_timerRunning)
+				{
+					ShowPresetBlockMessage();
+					return;
+				}
+				_presetBlockMsg = false;
+				if (_hourPresetBtn == btn)
 				{
 					_manualHours = 0;
 					SetPresetSelected(btn, false);
-					lastHourBtn = null;
+					_hourPresetBtn = null;
 				}
 				else
 				{
 					_manualHours = h;
-					if (lastHourBtn != null) SetPresetSelected(lastHourBtn, false);
+					if (_hourPresetBtn != null) SetPresetSelected(_hourPresetBtn, false);
 					SetPresetSelected(btn, true);
-					lastHourBtn = btn;
+					_hourPresetBtn = btn;
 				}
+				UpdateTimeSelectorInfo();
 			};
 			int total = 58 * hourPresets.Length + 5 * (hourPresets.Length - 1);
 			btn.Left = (base.Width - total) / 2 + i * (58 + 5);
@@ -788,7 +815,6 @@ public partial class Form1 : Form
 
 		string[] minPresets = ["5M", "10M", "15M", "30M"];
 		Panel row3 = new Panel { Height = 26, Width = base.Width, BackColor = presetBg, Margin = new Padding(0) };
-		Button? lastMinBtn = null;
 		for (int i = 0; i < minPresets.Length; i++)
 		{
 			string txt = minPresets[i];
@@ -797,19 +823,26 @@ public partial class Form1 : Form
 			Button btn = MakeRoundedBtn(txt);
 			btn.Click += (_, _) =>
 			{
-				if (lastMinBtn == btn)
+				if (_timerRunning)
+				{
+					ShowPresetBlockMessage();
+					return;
+				}
+				_presetBlockMsg = false;
+				if (_minPresetBtn == btn)
 				{
 					_manualMinutes = 0;
 					SetPresetSelected(btn, false);
-					lastMinBtn = null;
+					_minPresetBtn = null;
 				}
 				else
 				{
 					_manualMinutes = m;
-					if (lastMinBtn != null) SetPresetSelected(lastMinBtn, false);
+					if (_minPresetBtn != null) SetPresetSelected(_minPresetBtn, false);
 					SetPresetSelected(btn, true);
-					lastMinBtn = btn;
+					_minPresetBtn = btn;
 				}
+				UpdateTimeSelectorInfo();
 			};
 			int total = 58 * minPresets.Length + 5 * (minPresets.Length - 1);
 			btn.Left = (base.Width - total) / 2 + i * (58 + 5);
@@ -819,23 +852,13 @@ public partial class Form1 : Form
 		tasksListPanel.Controls.Add(row3);
 		tasksListPanel.Controls.SetChildIndex(row3, 3);
 
-		// ── Row 4: START / STOP (outlined, transparent) ──
-		Panel row4 = new Panel { Height = 30, Width = base.Width, BackColor = Color.Transparent };
+		// ── Row 4: START / STOP (preset style, lit green/red) ──
+		Panel row4 = new Panel { Height = 30, Width = base.Width, BackColor = Color.Transparent, Margin = new Padding(0) };
 
-		Button btnStart = new Button
-		{
-			Text = "START", Width = 90, Height = 28,
-			FlatStyle = FlatStyle.Flat,
-			FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Transparent, MouseDownBackColor = Color.Transparent },
-			BackColor = Color.Transparent,
-			ForeColor = Color.FromArgb(120, 220, 120),
-			Font = new Font("Segoe UI", 8f, FontStyle.Bold),
-			UseVisualStyleBackColor = false,
-			TextAlign = ContentAlignment.MiddleCenter,
-			Cursor = Cursors.Hand
-		};
-		btnStart.Paint += OutlinedButtonPaint;
+		Button btnStart = MakeRoundedBtn("START", Color.FromArgb(70, 200, 90));
+		btnStart.Width = 85;
 		ApplyRoundedRegion(btnStart);
+		btnStart.Tag = true;
 		btnStart.Click += (_, _) =>
 		{
 			_manualTotalSeconds = _manualHours * 3600 + _manualMinutes * 60;
@@ -844,46 +867,45 @@ public partial class Form1 : Form
 			if (_timeRemaining.TotalSeconds > 0)
 				StartTimer();
 			UpdateTaskInfo();
+			UpdateTimeSelectorInfo();
 		};
 
-		Button btnStop = new Button
-		{
-			Text = "STOP", Width = 90, Height = 28,
-			FlatStyle = FlatStyle.Flat,
-			FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Transparent, MouseDownBackColor = Color.Transparent },
-			BackColor = Color.Transparent,
-			ForeColor = Color.FromArgb(220, 120, 120),
-			Font = new Font("Segoe UI", 8f, FontStyle.Bold),
-			UseVisualStyleBackColor = false,
-			TextAlign = ContentAlignment.MiddleCenter,
-			Cursor = Cursors.Hand
-		};
-		btnStop.Paint += OutlinedButtonPaint;
+		Button btnStop = MakeRoundedBtn("STOP", Color.FromArgb(220, 70, 70));
+		btnStop.Width = 85;
 		ApplyRoundedRegion(btnStop);
+		btnStop.Tag = true;
 		btnStop.Click += (_, _) =>
 		{
 			StopTimer();
 			_timeRemaining = TimeSpan.Zero;
 			_manualTotalSeconds = 0;
+			_manualHours = 0;
+			_manualMinutes = 0;
+			ClearPresetSelections();
 			UpdateTimerDisplay();
 			UpdateTaskInfo();
+			_presetBlockMsg = false;
+			UpdateTimeSelectorInfo();
 		};
 
 		int btnGap2 = 12;
 		int startBtns = (base.Width - btnStart.Width - btnStop.Width - btnGap2) / 2;
-		btnStart.Left = startBtns; btnStart.Top = 1;
-		btnStop.Left = startBtns + btnStart.Width + btnGap2; btnStop.Top = 1;
+		btnStart.Left = startBtns; btnStart.Top = 2;
+		btnStop.Left = startBtns + btnStart.Width + btnGap2; btnStop.Top = 2;
 		row4.Controls.Add(btnStart);
 		row4.Controls.Add(btnStop);
 		tasksListPanel.Controls.Add(row4);
-		tasksListPanel.Controls.SetChildIndex(row4, 4);
+		tasksListPanel.Controls.SetChildIndex(row4, 0);
 
-		// ── Row 5: ABRIR PDF (full width) ──
-		Panel row5 = new Panel { Height = 26, Width = base.Width, BackColor = Color.FromArgb(35, 35, 35), Margin = new Padding(0) };
+		// ── TOOLS row: PDF / YT / LEARN (one line) ──
+		int toolMargin = 6;
+		int toolGap = 4;
+		int toolW = (base.Width - toolMargin * 2 - toolGap * 2) / 3;
+
 		Button btnOpenPdf = new Button
 		{
-			Text = "ABRIR PDF",
-			Width = base.Width - 12,
+			Text = "PDF",
+			Width = toolW,
 			Height = 22,
 			FlatStyle = FlatStyle.Flat,
 			FlatAppearance = { BorderSize = 0 },
@@ -904,18 +926,11 @@ public partial class Form1 : Form
 				form.ShowDialog();
 			}
 		};
-		btnOpenPdf.Left = 6; btnOpenPdf.Top = 2;
-		row5.Controls.Add(btnOpenPdf);
-		tasksListPanel.Controls.Add(row5);
-		tasksListPanel.Controls.SetChildIndex(row5, 5);
-		FontHelper.ApplyFont(btnOpenPdf, 7f, FontStyle.Bold);
 
-		// ── Row 6: YOUTUBE (full width) ──
-		Panel row6 = new Panel { Height = 26, Width = base.Width, BackColor = Color.FromArgb(35, 35, 35), Margin = new Padding(0) };
 		Button btnYoutube = new Button
 		{
-			Text = "YOUTUBE",
-			Width = base.Width - 12,
+			Text = "YT",
+			Width = toolW,
 			Height = 22,
 			FlatStyle = FlatStyle.Flat,
 			FlatAppearance = { BorderSize = 0 },
@@ -932,11 +947,25 @@ public partial class Form1 : Form
 			using var form = new FormYoutube(this);
 			form.ShowDialog();
 		};
-		btnYoutube.Left = 6; btnYoutube.Top = 2;
-		row6.Controls.Add(btnYoutube);
-		tasksListPanel.Controls.Add(row6);
-		tasksListPanel.Controls.SetChildIndex(row6, 6);
+
+		btnLearn.Text = "LEARN";
+		btnLearn.Width = toolW;
+		btnLearn.Height = 22;
+		btnLearn.Font = new Font("Segoe UI", 7f, FontStyle.Bold);
+		btnLearn.BackColor = Color.FromArgb(50, 50, 50);
+		btnLearn.ForeColor = Color.FromArgb(200, 200, 200);
+		btnLearn.UseVisualStyleBackColor = false;
+		ApplyRoundedRegion(btnLearn);
+
+		btnOpenPdf.Left = toolMargin; btnOpenPdf.Top = 3;
+		btnYoutube.Left = toolMargin + toolW + toolGap; btnYoutube.Top = 3;
+		btnLearn.Left = toolMargin + 2 * (toolW + toolGap); btnLearn.Top = 3;
+		toolsRow.Controls.Add(btnOpenPdf);
+		toolsRow.Controls.Add(btnYoutube);
+		toolsRow.Controls.Add(btnLearn);
+		FontHelper.ApplyFont(btnOpenPdf, 7f, FontStyle.Bold);
 		FontHelper.ApplyFont(btnYoutube, 7f, FontStyle.Bold);
+		FontHelper.ApplyFont(btnLearn, 7f, FontStyle.Bold);
 
 		FontHelper.ApplyFont(row1, 8f, FontStyle.Bold);
 		FontHelper.ApplyFont(row2, 8f, FontStyle.Bold);
@@ -965,35 +994,50 @@ public partial class Form1 : Form
 		pnlVolume.Controls.Remove(pnlVolumeLine);
 		pnlVolumeLine.Controls.Remove(pnlVolumeThumb);
 
-		Label lblVolLabel = new Label
+		Label lblVolSpeaker = new Label
 		{
-			Text = "♬ VOLUMEN",
-			Location = new Point(2, 32),
-			AutoSize = true,
-			ForeColor = Color.White,
-			BackColor = Color.Transparent,
-			Font = new Font("Segoe UI", 5f, FontStyle.Bold)
+			Location = new Point(2, 33),
+			Size = new Size(80, 80),
+			AutoSize = false,
+			BackColor = Color.Transparent
 		};
-		pnlVolume.Controls.Add(lblVolLabel);
+		lblVolSpeaker.Paint += SpeakerCirclePaint;
+		pnlVolume.Controls.Add(lblVolSpeaker);
 
-		btnVolLow.Location = new Point(70, 30);
-		btnVolLow.Size = new Size(55, 22);
-		btnVolLow.Font = new Font("Segoe UI", 4.5f, FontStyle.Bold);
-		btnVolMid.Location = new Point(129, 30);
-		btnVolMid.Size = new Size(55, 22);
-		btnVolMid.Font = new Font("Segoe UI", 4.5f, FontStyle.Bold);
-		btnVolMax.Location = new Point(188, 30);
-		btnVolMax.Size = new Size(55, 22);
-		btnVolMax.Font = new Font("Segoe UI", 4.5f, FontStyle.Bold);
+		playerFooterPanel.Height = 336;
+		pnlVolume.Location = new Point(5, 206);
+		pnlVolume.Size = new Size(250, 125);
+		btnVolLow.Location = new Point(88, 49);
+		btnVolLow.Size = new Size(48, 48);
+		btnVolLow.Font = new Font("Segoe UI", 7f, FontStyle.Bold);
+		btnVolMid.Location = new Point(138, 49);
+		btnVolMid.Size = new Size(48, 48);
+		btnVolMid.Font = new Font("Segoe UI", 7f, FontStyle.Bold);
+		btnVolMax.Location = new Point(188, 49);
+		btnVolMax.Size = new Size(48, 48);
+		btnVolMax.Font = new Font("Segoe UI", 7f, FontStyle.Bold);
+		foreach (Button volBtn in new[] { btnVolLow, btnVolMid, btnVolMax })
+		{
+			volBtn.BackColor = Color.Transparent;
+			volBtn.FlatAppearance.BorderSize = 0;
+			volBtn.FlatAppearance.BorderColor = Color.FromArgb(0, 0, 0, 0);
+			volBtn.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			volBtn.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			volBtn.UseVisualStyleBackColor = false;
+		}
 
 		base.Controls.Remove(pnlFullListRow);
 		pnlFullListRow.Controls.Remove(btnFavList);
 		pnlFullListRow.Controls.Remove(btnCassetteList);
-		btnFavList.Location = new Point(70, 3);
-		btnFavList.Size = new Size(84, 22);
+		cassettesHeaderPanel.Controls.Remove(txtCassetteNum);
+		cassettesHeaderPanel.Controls.Remove(lblCassetteTotal);
+		btnCassetteList.Text = "LIST";
 		btnCassetteList.Location = new Point(159, 3);
-		btnCassetteList.Size = new Size(84, 22);
-		pnlVolume.Controls.Add(btnFavList);
+		btnCassetteList.Size = new Size(72, 22);
+		txtCassetteNum.Location = new Point(70, 3);
+		lblCassetteTotal.Location = new Point(70 + txtCassetteNum.Width + 2, 6);
+		pnlVolume.Controls.Add(txtCassetteNum);
+		pnlVolume.Controls.Add(lblCassetteTotal);
 		pnlVolume.Controls.Add(btnCassetteList);
 
 		Button btnLive = new Button
@@ -1032,29 +1076,42 @@ public partial class Form1 : Form
 			btnLive.ForeColor = _isPlaying ? Color.Red : Color.LightGray;
 		};
 		pnlVolume.Controls.Add(btnLive);
+		btnLive.Paint += LiveButtonPaint;
 		btnLive.BringToFront();
 
-		btnVolLow.Paint += (s, e) =>
-		{
-			if (btnVolLow.Tag is bool sel && sel)
-				using (var pen = new Pen(Color.White, 5f))
-					e.Graphics.DrawLine(pen, 1, btnVolLow.Height - 2, btnVolLow.Width - 1, btnVolLow.Height - 2);
-		};
-		btnVolMid.Paint += (s, e) =>
-		{
-			if (btnVolMid.Tag is bool sel && sel)
-				using (var pen = new Pen(Color.White, 5f))
-					e.Graphics.DrawLine(pen, 1, btnVolMid.Height - 2, btnVolMid.Width - 1, btnVolMid.Height - 2);
-		};
-		btnVolMax.Paint += (s, e) =>
-		{
-			if (btnVolMax.Tag is bool sel && sel)
-				using (var pen = new Pen(Color.White, 5f))
-					e.Graphics.DrawLine(pen, 1, btnVolMax.Height - 2, btnVolMax.Width - 1, btnVolMax.Height - 2);
-		};
+		btnVolLow.Paint += VolumeKnobPaint;
+		btnVolMid.Paint += VolumeKnobPaint;
+		btnVolMax.Paint += VolumeKnobPaint;
 		btnVolLow.Invalidate();
 		btnVolMid.Invalidate();
 		btnVolMax.Invalidate();
+
+		Color[] jackColors =
+		[
+			Color.FromArgb(255, 80, 80),
+			Color.FromArgb(235, 235, 235),
+			Color.FromArgb(120, 220, 120),
+			Color.FromArgb(90, 150, 255),
+			Color.FromArgb(255, 210, 80),
+			Color.FromArgb(255, 140, 60)
+		];
+		for (int i = 0; i < jackColors.Length; i++)
+		{
+			Panel jack = new Panel
+			{
+				Name = "jack" + (i + 1),
+				Location = new Point(78 + i * 28, 101),
+				Size = new Size(20, 20),
+				BackColor = Color.Transparent,
+				Tag = jackColors[i]
+			};
+			jack.Paint += JackSocketPaint;
+			pnlVolume.Controls.Add(jack);
+		}
+
+		picPlayer.Paint += CassetteGlassPaint;
+		picPlayerNext.Paint += CassetteGlassPaint;
+		ApplyRadioSkin();
 	}
 
 	private Button MakeMiniBtn(string text)
@@ -1077,7 +1134,7 @@ public partial class Form1 : Form
 		return btn;
 	}
 
-	private Button MakeRoundedBtn(string text)
+	private Button MakeRoundedBtn(string text, Color? fixedAccent = null)
 	{
 		Button btn = new Button
 		{
@@ -1108,7 +1165,7 @@ public partial class Form1 : Form
 				{
 					if (selected)
 					{
-						Color accent = GetAccentColor();
+						Color accent = fixedAccent ?? GetAccentColor();
 						Color top = ControlPaint.Light(accent, 0.45f);
 						Color bottom = ControlPaint.Dark(accent, 0.3f);
 						using (var fill = new LinearGradientBrush(rect, top, bottom, LinearGradientMode.Vertical))
@@ -1145,7 +1202,7 @@ public partial class Form1 : Form
 				{
 					if (selected)
 					{
-						Color accent = GetAccentColor();
+						Color accent = fixedAccent ?? GetAccentColor();
 						for (int i = 1; i <= 2; i++)
 						{
 							using var glowBrush = new SolidBrush(Color.FromArgb(70 / i, accent));
@@ -1165,6 +1222,20 @@ public partial class Form1 : Form
 	{
 		b.Tag = selected;
 		b.Invalidate();
+	}
+
+	private void ClearPresetSelections()
+	{
+		if (_hourPresetBtn != null)
+		{
+			SetPresetSelected(_hourPresetBtn, false);
+			_hourPresetBtn = null;
+		}
+		if (_minPresetBtn != null)
+		{
+			SetPresetSelected(_minPresetBtn, false);
+			_minPresetBtn = null;
+		}
 	}
 
 	private Color GetAccentColor()
@@ -1278,6 +1349,9 @@ public partial class Form1 : Form
 		this.countdownTimer = new System.Windows.Forms.Timer(this.components);
 		this.tasksHeaderPanel = new BufferedPanel();
 		this.lblTasks = new System.Windows.Forms.Label();
+		this.toolsHeaderPanel = new BufferedPanel();
+		this.lblTools = new System.Windows.Forms.Label();
+		this.toolsRow = new System.Windows.Forms.Panel();
 		this.cassettesHeaderPanel = new BufferedPanel();
 		this.lblCassettes = new System.Windows.Forms.Label();
 		this.playerFooterPanel = new BufferedPanel();
@@ -1386,7 +1460,6 @@ public partial class Form1 : Form
 		this.btnAddFav.Text = "ADD FAV";
 		this.btnAddFav.UseVisualStyleBackColor = true;
 		this.btnAddFav.Click += new EventHandler(btnAddFav_Click);
-		this.pnlTimerControls.Controls.Add(this.btnAddFav);
 		this.btnLearn = new Button();
 		this.btnLearn.FlatAppearance.BorderSize = 0;
 		this.btnLearn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -1398,14 +1471,13 @@ public partial class Form1 : Form
 		this.btnLearn.TabIndex = 6;
 		this.btnLearn.Text = "LEARN";
 		this.btnLearn.UseVisualStyleBackColor = true;
-		this.pnlTimerControls.Controls.Add(this.btnLearn);
 		this.btnInfo = new Button();
 		this.btnInfo.BackColor = System.Drawing.Color.FromArgb(40, 40, 40);
 		this.btnInfo.FlatAppearance.BorderSize = 0;
 		this.btnInfo.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 		this.btnInfo.Font = new System.Drawing.Font("Segoe UI", 6f);
 		this.btnInfo.ForeColor = System.Drawing.Color.White;
-		this.btnInfo.Location = new System.Drawing.Point(0, 125);
+		this.btnInfo.Location = new System.Drawing.Point(0, 75);
 		this.btnInfo.Name = "btnInfo";
 		this.btnInfo.Size = new System.Drawing.Size(80, 25);
 		this.btnInfo.TabIndex = 7;
@@ -1507,30 +1579,50 @@ public partial class Form1 : Form
 		this.lblTasks.Name = "lblTasks";
 		this.lblTasks.Size = new System.Drawing.Size(260, 25);
 		this.lblTasks.TabIndex = 1;
-		this.lblTasks.Text = "TASKS";
+		this.lblTasks.Text = "TIMER";
 		this.lblTasks.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+		this.toolsHeaderPanel.BackColor = System.Drawing.Color.LightGray;
+		this.toolsHeaderPanel.Controls.Add(this.lblTools);
+		this.toolsHeaderPanel.Dock = System.Windows.Forms.DockStyle.Top;
+		this.toolsHeaderPanel.Location = new System.Drawing.Point(0, 360);
+		this.toolsHeaderPanel.Name = "toolsHeaderPanel";
+		this.toolsHeaderPanel.Size = new System.Drawing.Size(260, 25);
+		this.toolsHeaderPanel.TabIndex = 9;
+		this.lblTools.Dock = System.Windows.Forms.DockStyle.Fill;
+		this.lblTools.Font = new System.Drawing.Font("Segoe UI", 9f, System.Drawing.FontStyle.Bold);
+		this.lblTools.Location = new System.Drawing.Point(0, 0);
+		this.lblTools.Name = "lblTools";
+		this.lblTools.Size = new System.Drawing.Size(260, 25);
+		this.lblTools.TabIndex = 1;
+		this.lblTools.Text = "TOOLS";
+		this.lblTools.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+		this.toolsRow.BackColor = System.Drawing.Color.Transparent;
+		this.toolsRow.Dock = System.Windows.Forms.DockStyle.Top;
+		this.toolsRow.Height = 28;
+		this.toolsRow.Name = "toolsRow";
+		this.toolsRow.TabIndex = 10;
 		this.cassettesHeaderPanel.BackColor = System.Drawing.Color.LightGray;
 		this.cassettesHeaderPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
 		this.cassettesHeaderPanel.Location = new System.Drawing.Point(0, 200);
 		this.cassettesHeaderPanel.Name = "cassettesHeaderPanel";
-		this.cassettesHeaderPanel.Size = new System.Drawing.Size(260, 28);
+		this.cassettesHeaderPanel.Size = new System.Drawing.Size(260, 25);
 		this.cassettesHeaderPanel.TabIndex = 4;
 
-		this.lblCassettes.AutoSize = true;
-		this.lblCassettes.Font = new System.Drawing.Font("Segoe UI", 11f, System.Drawing.FontStyle.Bold);
-		this.lblCassettes.Location = new System.Drawing.Point(5, 4);
+		this.lblCassettes.Dock = System.Windows.Forms.DockStyle.Fill;
+		this.lblCassettes.Font = new System.Drawing.Font("Segoe UI", 9f, System.Drawing.FontStyle.Bold);
 		this.lblCassettes.Name = "lblCassettes";
+		this.lblCassettes.Size = new System.Drawing.Size(260, 25);
 		this.lblCassettes.Text = "CASSETTES";
-		this.lblCassettes.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+		this.lblCassettes.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 
 		this.txtCassetteNum = new TextBox();
-		this.txtCassetteNum.BackColor = System.Drawing.Color.Black;
+		this.txtCassetteNum.BackColor = System.Drawing.Color.FromArgb(235, 235, 235);
 		this.txtCassetteNum.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-		this.txtCassetteNum.Font = new System.Drawing.Font("Segoe UI", 11f, System.Drawing.FontStyle.Bold);
-		this.txtCassetteNum.ForeColor = System.Drawing.Color.White;
-		this.txtCassetteNum.Location = new System.Drawing.Point(110, 2);
+		this.txtCassetteNum.Font = new System.Drawing.Font("Segoe UI", 9f, System.Drawing.FontStyle.Bold);
+		this.txtCassetteNum.ForeColor = System.Drawing.Color.Black;
+		this.txtCassetteNum.Location = new System.Drawing.Point(70, 3);
 		this.txtCassetteNum.Name = "txtCassetteNum";
-		this.txtCassetteNum.Size = new System.Drawing.Size(28, 23);
+		this.txtCassetteNum.Size = new System.Drawing.Size(20, 18);
 		this.txtCassetteNum.TabIndex = 1;
 		this.txtCassetteNum.Text = "1";
 		this.txtCassetteNum.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -1538,7 +1630,7 @@ public partial class Form1 : Form
 		this.lblCassetteTotal = new Label();
 		this.lblCassetteTotal.AutoSize = true;
 		this.lblCassetteTotal.Font = new System.Drawing.Font("Segoe UI", 11f, System.Drawing.FontStyle.Bold);
-		this.lblCassetteTotal.Location = new System.Drawing.Point(148, 4);
+		this.lblCassetteTotal.Location = new System.Drawing.Point(233, 4);
 		this.lblCassetteTotal.Name = "lblCassetteTotal";
 		this.lblCassetteTotal.Text = "/0";
 		this.lblCassetteTotal.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -1552,7 +1644,7 @@ public partial class Form1 : Form
 		this.btnCassetteList.Name = "btnCassetteList";
 		this.btnCassetteList.Size = new System.Drawing.Size(110, 28);
 		this.btnCassetteList.TabIndex = 2;
-		this.btnCassetteList.Text = "FULL LIST";
+		this.btnCassetteList.Text = "LIST";
 		this.btnCassetteList.UseVisualStyleBackColor = false;
 		this.btnCassetteList.Click += new EventHandler(this.btnCassetteList_Click);
 
@@ -1569,8 +1661,6 @@ public partial class Form1 : Form
 		this.btnFavList.UseVisualStyleBackColor = false;
 		this.btnFavList.Click += new EventHandler(this.btnFavList_Click);
 
-		this.cassettesHeaderPanel.Controls.Add(this.lblCassetteTotal);
-		this.cassettesHeaderPanel.Controls.Add(this.txtCassetteNum);
 		this.cassettesHeaderPanel.Controls.Add(this.lblCassettes);
 
 		this.pnlFullListRow = new Panel();
@@ -1593,7 +1683,7 @@ public partial class Form1 : Form
 		this.playerFooterPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
 		this.playerFooterPanel.Location = new System.Drawing.Point(0, 200);
 		this.playerFooterPanel.Name = "playerFooterPanel";
-		this.playerFooterPanel.Size = new System.Drawing.Size(260, 250);
+		this.playerFooterPanel.Size = new System.Drawing.Size(260, 300);
 		this.playerFooterPanel.TabIndex = 3;
 		this.pnlEqualizer.BackColor = System.Drawing.Color.Transparent;
 		this.pnlEqualizer.Location = new System.Drawing.Point(28, 93);
@@ -1607,7 +1697,7 @@ public partial class Form1 : Form
 		this.pnlVolume.Controls.Add(this.btnStopPlayer);
 		this.pnlVolume.Controls.Add(this.pnlVolumeLine);
 		this.pnlVolume.Controls.Add(this.pnlVolumeThumb);
-		this.pnlVolume.Location = new System.Drawing.Point(5, 180);
+		this.pnlVolume.Location = new System.Drawing.Point(5, 216);
 		this.pnlVolume.Name = "pnlVolume";
 		this.pnlVolume.Size = new System.Drawing.Size(250, 60);
 		this.pnlVolume.TabIndex = 5;
@@ -1672,21 +1762,21 @@ public partial class Form1 : Form
 		this.pnlVolumeThumb.TabIndex = 0;
 		this.btnNextM3u.FlatAppearance.BorderSize = 0;
 		this.btnNextM3u.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-		this.btnNextM3u.Font = new System.Drawing.Font("Segoe UI", 12f, System.Drawing.FontStyle.Bold);
+		this.btnNextM3u.Font = new System.Drawing.Font("Segoe UI", 18f, System.Drawing.FontStyle.Bold);
 		this.btnNextM3u.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
-		this.btnNextM3u.Location = new System.Drawing.Point(220, 20);
+		this.btnNextM3u.Location = new System.Drawing.Point(220, 0);
 		this.btnNextM3u.Name = "btnNextM3u";
-		this.btnNextM3u.Size = new System.Drawing.Size(30, 40);
+		this.btnNextM3u.Size = new System.Drawing.Size(40, 90);
 		this.btnNextM3u.TabIndex = 3;
 		this.btnNextM3u.Text = "\u25B6";
 		this.btnNextM3u.UseVisualStyleBackColor = true;
 		this.btnPrevM3u.FlatAppearance.BorderSize = 0;
 		this.btnPrevM3u.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-		this.btnPrevM3u.Font = new System.Drawing.Font("Segoe UI", 12f, System.Drawing.FontStyle.Bold);
+		this.btnPrevM3u.Font = new System.Drawing.Font("Segoe UI", 18f, System.Drawing.FontStyle.Bold);
 		this.btnPrevM3u.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
-		this.btnPrevM3u.Location = new System.Drawing.Point(10, 20);
+		this.btnPrevM3u.Location = new System.Drawing.Point(0, 0);
 		this.btnPrevM3u.Name = "btnPrevM3u";
-		this.btnPrevM3u.Size = new System.Drawing.Size(30, 40);
+		this.btnPrevM3u.Size = new System.Drawing.Size(40, 90);
 		this.btnPrevM3u.TabIndex = 2;
 		this.btnPrevM3u.Text = "\u25C0";
 		this.btnPrevM3u.UseVisualStyleBackColor = true;
@@ -1712,21 +1802,21 @@ public partial class Form1 : Form
 		this.lblM3uTitle.Font = new System.Drawing.Font("Segoe UI", 8f, System.Drawing.FontStyle.Bold);
 		this.lblM3uTitle.Location = new System.Drawing.Point(10, 124);
 		this.lblM3uTitle.Name = "lblM3uTitle";
-		this.lblM3uTitle.Size = new System.Drawing.Size(240, 16);
+		this.lblM3uTitle.Size = new System.Drawing.Size(240, 32);
 		this.lblM3uTitle.TabIndex = 0;
 		this.lblM3uTitle.Text = "M3U TITLE";
 		this.lblM3uTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 		this.lblMetadata.Font = new System.Drawing.Font("Segoe UI", 7f, System.Drawing.FontStyle.Bold);
-		this.lblMetadata.Location = new System.Drawing.Point(10, 141);
+		this.lblMetadata.Location = new System.Drawing.Point(10, 158);
 		this.lblMetadata.Name = "lblMetadata";
-		this.lblMetadata.Size = new System.Drawing.Size(240, 15);
+		this.lblMetadata.Size = new System.Drawing.Size(240, 22);
 		this.lblMetadata.TabIndex = 6;
 		this.lblMetadata.Text = "SONG TITLE";
 		this.lblMetadata.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 		this.lblExtraMetadata.Font = new System.Drawing.Font("Segoe UI", 6.5f);
-		this.lblExtraMetadata.Location = new System.Drawing.Point(10, 157);
+		this.lblExtraMetadata.Location = new System.Drawing.Point(10, 182);
 		this.lblExtraMetadata.Name = "lblExtraMetadata";
-		this.lblExtraMetadata.Size = new System.Drawing.Size(240, 15);
+		this.lblExtraMetadata.Size = new System.Drawing.Size(240, 22);
 		this.lblExtraMetadata.TabIndex = 7;
 		this.lblExtraMetadata.Text = "ARTIST - ALBUM";
 		this.lblExtraMetadata.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -1740,13 +1830,15 @@ public partial class Form1 : Form
 
 		base.AutoScaleDimensions = new System.Drawing.SizeF(10f, 25f);
 		base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-		base.ClientSize = new System.Drawing.Size(260, 825);
+		base.ClientSize = new System.Drawing.Size(260, 860);
 		base.Controls.Add(this.cassettesHeaderPanel);
 		base.Controls.Add(this.pnlFullListRow);
 		base.Controls.Add(this.playerFooterPanel);
 		base.Controls.Add(this.btnCloseApp);
 		base.Controls.Add(this.tasksListPanel);
 		base.Controls.Add(this.tasksHeaderPanel);
+		base.Controls.Add(this.toolsRow);
+		base.Controls.Add(this.toolsHeaderPanel);
 		base.Controls.Add(this.pnlGrip);
 		base.Controls.Add(this.timerPanel);
 		base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;

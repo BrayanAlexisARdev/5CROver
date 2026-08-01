@@ -62,9 +62,10 @@ partial class Form1
 		if (FontHelper.CustomFontFamily != null)
 		{
 			lblTasks.Font = new Font(FontHelper.CustomFontFamily, 9f, FontStyle.Bold);
+			lblTools.Font = new Font(FontHelper.CustomFontFamily, 9f, FontStyle.Bold);
 			lblCassettes.Font = new Font(FontHelper.CustomFontFamily, 9f, FontStyle.Bold);
 			txtCassetteNum.Font = new Font(FontHelper.CustomFontFamily, 9f, FontStyle.Bold);
-			lblCassetteTotal.Font = new Font(FontHelper.CustomFontFamily, 9f, FontStyle.Bold);
+			lblCassetteTotal.Font = new Font(FontHelper.CustomFontFamily, 8f, FontStyle.Bold);
 			lblM3uTitle.Font = new Font(FontHelper.CustomFontFamily, 8f, FontStyle.Bold);
 			lblMetadata.Font = new Font(FontHelper.CustomFontFamily, 6.5f, FontStyle.Regular);
 			lblExtraMetadata.Font = new Font(FontHelper.CustomFontFamily, 6f, FontStyle.Regular);
@@ -96,6 +97,7 @@ partial class Form1
 		pnlTimerControls.BackColor = Color.Transparent;
 		tasksHeaderPanel.BackColor = headerColor;
 		cassettesHeaderPanel.BackColor = headerColor;
+		toolsHeaderPanel.BackColor = headerColor;
 		playerFooterPanel.BackColor = Color.Transparent;
 		playerFooterPanel.Invalidate();
 		tasksListPanel.BackColor = listColor;
@@ -110,6 +112,7 @@ partial class Form1
 
 		UpdateControlContrast(tasksHeaderPanel, headerColor);
 		UpdateControlContrast(cassettesHeaderPanel, headerColor);
+		UpdateControlContrast(toolsHeaderPanel, headerColor);
 		UpdateControlContrast(playerFooterPanel, transparent);
 
 		foreach (Control c in tasksListPanel.Controls)
@@ -121,7 +124,7 @@ partial class Form1
 			}
 			else if (c.Name == "pnlTaskInfo")
 			{
-				c.BackColor = Color.FromArgb(30, 30, 30);
+				c.BackColor = Color.Transparent;
 			}
 		}
 
@@ -251,6 +254,7 @@ partial class Form1
 		Color headerColor = Color.FromArgb(200, 60, 60, 60);
 		tasksHeaderPanel.BackColor = headerColor;
 		cassettesHeaderPanel.BackColor = headerColor;
+		toolsHeaderPanel.BackColor = headerColor;
 		tasksListPanel.BackColor = listColor;
 		playerFooterPanel.BackColor = Color.Transparent;
 		if (_currentThemeImage != null)
@@ -263,6 +267,7 @@ partial class Form1
 		}
 		UpdateControlContrast(tasksHeaderPanel, headerColor);
 		UpdateControlContrast(cassettesHeaderPanel, headerColor);
+		UpdateControlContrast(toolsHeaderPanel, headerColor);
 		UpdateControlContrast(playerFooterPanel, panelColor);
 		UpdateControlContrast(pnlGrip, pnlGrip.BackColor);
 		SetSafeBackColor(pnlEqualizer, darkSolid);
@@ -288,6 +293,9 @@ partial class Form1
 		foreach (Control c in parent.Controls)
 		{
 			if (c.Name == "btnLive") continue;
+			if (c.Name == "txtCassetteNum") continue;
+			if (c.Name == "btnVolLow" || c.Name == "btnVolMid" || c.Name == "btnVolMax" ||
+				c.Name == "btnPrevM3u" || c.Name == "btnNextM3u") continue;
 			if (c is Label || c is Button || c is TextBox)
 			{
 				c.ForeColor = fg;

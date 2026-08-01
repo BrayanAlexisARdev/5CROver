@@ -229,9 +229,9 @@ partial class Form1
 		btnVolLow.Tag = percent == 3;
 		btnVolMid.Tag = percent == 9;
 		btnVolMax.Tag = percent == 15;
-		btnVolLow.Font = new Font("Segoe UI", 4.5f, FontStyle.Bold);
-		btnVolMid.Font = new Font("Segoe UI", 4.5f, FontStyle.Bold);
-		btnVolMax.Font = new Font("Segoe UI", 4.5f, FontStyle.Bold);
+		btnVolLow.Font = new Font("Segoe UI", 7f, FontStyle.Bold);
+		btnVolMid.Font = new Font("Segoe UI", 7f, FontStyle.Bold);
+		btnVolMax.Font = new Font("Segoe UI", 7f, FontStyle.Bold);
 		btnVolLow.Invalidate();
 		btnVolMid.Invalidate();
 		btnVolMax.Invalidate();
