@@ -141,7 +141,12 @@ partial class Form1
 		_timeRemaining = TimeSpan.Zero;
 		UpdateTimerDisplay();
 		ResetNodeProgress();
+		_manualTotalSeconds = 0;
+		_manualHours = 0;
+		_manualMinutes = 0;
+		ClearPresetSelections();
 		_presetBlockMsg = false;
+		UpdateTaskInfo();
 		UpdateTimeSelectorInfo();
 		if (_isLearningSession)
 		{

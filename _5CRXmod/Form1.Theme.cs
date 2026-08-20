@@ -41,7 +41,6 @@ partial class Form1
 
 	private string _currentColorHex = "";
 	private string _currentTvPath = "";
-	private string _currentFondoPath = "";
 
 	private void LoadCustomFont()
 	{
@@ -86,21 +85,22 @@ partial class Form1
 	{
 		_appColor = baseColor;
 		_currentColorHex = ColorTranslator.ToHtml(baseColor);
-		Color transparent = Color.FromArgb(102, baseColor);
-		Color headerColor = Color.FromArgb(133, baseColor);
 		Color listColor = Color.FromArgb(100, ControlPaint.Dark(baseColor));
 		Color darkColor = Color.FromArgb(120, ControlPaint.Dark(baseColor));
 
-		try { BackColor = transparent; } catch (Exception ex) { Logger.Error("Form1.ApplyAppColor", ex); }
+		try { BackColor = Color.FromArgb(255, DarkenColor(baseColor, 0.82)); } catch (Exception ex) { Logger.Error("Form1.ApplyAppColor", ex); }
 		timerPanel.BackColor = Color.Transparent;
 		pnlTopButtons.BackColor = Color.Transparent;
 		pnlTimerControls.BackColor = Color.Transparent;
-		tasksHeaderPanel.BackColor = headerColor;
-		cassettesHeaderPanel.BackColor = headerColor;
-		toolsHeaderPanel.BackColor = headerColor;
+		tasksHeaderPanel.BackColor = Color.Transparent;
+		cassettesHeaderPanel.BackColor = Color.Transparent;
+		toolsHeaderPanel.BackColor = Color.Transparent;
 		playerFooterPanel.BackColor = Color.Transparent;
 		playerFooterPanel.Invalidate();
-		tasksListPanel.BackColor = listColor;
+		toolsRow.Invalidate();
+		tasksListPanel.Invalidate();
+		tasksListPanel.BackColor = Color.Transparent;
+		pnlFullListRow.BackColor = Color.Transparent;
 		pnlCassetteContainer.BackColor = Color.Transparent;
 		pnlEqualizer.BackColor = darkColor;
 		pnlVolume.BackColor = darkColor;
@@ -110,10 +110,10 @@ partial class Form1
 		lblMinutes.ForeColor = Color.White;
 		lblSeconds.ForeColor = Color.White;
 
-		UpdateControlContrast(tasksHeaderPanel, headerColor);
-		UpdateControlContrast(cassettesHeaderPanel, headerColor);
-		UpdateControlContrast(toolsHeaderPanel, headerColor);
-		UpdateControlContrast(playerFooterPanel, transparent);
+		UpdateControlContrast(tasksHeaderPanel, Color.Transparent);
+		UpdateControlContrast(cassettesHeaderPanel, Color.Transparent);
+		UpdateControlContrast(toolsHeaderPanel, Color.Transparent);
+		UpdateControlContrast(playerFooterPanel, Color.Transparent);
 
 		foreach (Control c in tasksListPanel.Controls)
 		{
@@ -181,15 +181,6 @@ partial class Form1
 		timerPanel.BackColor = Color.Transparent;
 		_currentTvPath = theme.TvPath;
 
-		string thDir = Path.GetDirectoryName(theme.ThPath) ?? "";
-		if (File.Exists(theme.ThPath))
-		{
-			if (_currentThemeImage != null) _currentThemeImage.Dispose();
-			_currentThemeImage = PathHelper.LoadImage(theme.ThPath);
-			_currentFondoPath = theme.ThPath;
-			BackgroundImage = null;
-		}
-
 		timerPanel.Invalidate();
 		InvalidatePresetButtons();
 		Invalidate();
@@ -237,12 +228,9 @@ partial class Form1
 		_appColor = Color.Transparent;
 		(Color, Color, Color, Color) theme = _themes[_currentThemeIndex];
 		Color darkSolid = Color.FromArgb(20, 20, 20);
-		Color bgColor = Color.FromArgb(240, 20, 20, 20);
-		Color panelColor = Color.FromArgb(180, 40, 40, 40);
-		Color listColor = Color.FromArgb(150, 30, 30, 30);
 		try
 		{
-			BackColor = bgColor;
+			BackColor = Color.FromArgb(255, DarkenColor(theme.Item1, 0.82));
 		}
 		catch (Exception ex)
 		{
@@ -251,11 +239,11 @@ partial class Form1
 		pnlGrip.BackColor = Color.FromArgb(40, 40, 40);
 		pnlGrip.Height = 20;
 		pnlGrip.BorderStyle = BorderStyle.None;
-		Color headerColor = Color.FromArgb(200, 60, 60, 60);
-		tasksHeaderPanel.BackColor = headerColor;
-		cassettesHeaderPanel.BackColor = headerColor;
-		toolsHeaderPanel.BackColor = headerColor;
-		tasksListPanel.BackColor = listColor;
+		tasksHeaderPanel.BackColor = Color.Transparent;
+		cassettesHeaderPanel.BackColor = Color.Transparent;
+		toolsHeaderPanel.BackColor = Color.Transparent;
+		tasksListPanel.BackColor = Color.Transparent;
+		pnlFullListRow.BackColor = Color.Transparent;
 		playerFooterPanel.BackColor = Color.Transparent;
 		if (_currentThemeImage != null)
 		{
@@ -265,10 +253,10 @@ partial class Form1
 		{
 			timerPanel.BackColor = theme.Item1;
 		}
-		UpdateControlContrast(tasksHeaderPanel, headerColor);
-		UpdateControlContrast(cassettesHeaderPanel, headerColor);
-		UpdateControlContrast(toolsHeaderPanel, headerColor);
-		UpdateControlContrast(playerFooterPanel, panelColor);
+		UpdateControlContrast(tasksHeaderPanel, Color.Transparent);
+		UpdateControlContrast(cassettesHeaderPanel, Color.Transparent);
+		UpdateControlContrast(toolsHeaderPanel, Color.Transparent);
+		UpdateControlContrast(playerFooterPanel, Color.Transparent);
 		UpdateControlContrast(pnlGrip, pnlGrip.BackColor);
 		SetSafeBackColor(pnlEqualizer, darkSolid);
 		SetSafeBackColor(pnlVolume, darkSolid);

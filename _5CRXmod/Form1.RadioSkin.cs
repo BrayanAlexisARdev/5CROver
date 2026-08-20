@@ -19,6 +19,8 @@ partial class Form1
 		cassettesHeaderPanel.Paint += HeaderPlatePaint;
 		tasksHeaderPanel.Paint += HeaderPlatePaint;
 		toolsHeaderPanel.Paint += HeaderPlatePaint;
+		toolsRow.Paint += SectionBodyPaint;
+		tasksListPanel.Paint += SectionBodyPaint;
 		btnP.Paint += KnobButtonPaint;
 		btnS.Paint += KnobButtonPaint;
 		btnPrevM3u.Paint += MetalButtonPaint;
@@ -29,12 +31,30 @@ partial class Form1
 		cassettesHeaderPanel.Invalidate();
 		tasksHeaderPanel.Invalidate();
 		toolsHeaderPanel.Invalidate();
+		toolsRow.Invalidate();
+		tasksListPanel.Invalidate();
 		btnP.Invalidate();
 		btnS.Invalidate();
 		btnPrevM3u.Invalidate();
 		btnNextM3u.Invalidate();
 		btnCloseApp.Invalidate();
 		pnlProgressBg.Invalidate();
+	}
+
+	private void SectionBodyPaint(object? sender, PaintEventArgs e)
+	{
+		if (sender is not Control c) return;
+		Graphics g = e.Graphics;
+		g.SmoothingMode = SmoothingMode.AntiAlias;
+		Rectangle r = c.ClientRectangle;
+		using (var brush = MetalBrush(new RectangleF(0, 0, r.Width, r.Height)))
+			g.FillRectangle(brush, r);
+		DrawBrushed(g, r);
+		if (_appColor != Color.Transparent)
+		{
+			using var tint = new SolidBrush(Color.FromArgb(102, _appColor));
+			g.FillRectangle(tint, r);
+		}
 	}
 
 	private void DrawFooterSkin(Graphics g)

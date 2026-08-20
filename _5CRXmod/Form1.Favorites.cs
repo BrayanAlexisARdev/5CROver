@@ -24,8 +24,7 @@ partial class Form1
 			CassetteIndex = _currentCassetteIndex,
 			CassetteTitle = title,
 			ColorHex = _currentColorHex,
-			TemaTV = _currentTvPath,
-			TemaFondo = _currentFondoPath
+			TemaTV = _currentTvPath
 		});
 	}
 
@@ -72,15 +71,6 @@ partial class Form1
 			{
 				timerPanel.BackgroundImage = PathHelper.LoadImage(fav.TemaTV);
 				timerPanel.Height = timerPanel.BackgroundImage.Height - 4;
-			}
-		}
-		if (!string.IsNullOrEmpty(fav.TemaFondo))
-		{
-			if (File.Exists(fav.TemaFondo))
-			{
-				_currentThemeImage = PathHelper.LoadImage(fav.TemaFondo);
-				_currentFondoPath = fav.TemaFondo;
-				Invalidate();
 			}
 		}
 	}

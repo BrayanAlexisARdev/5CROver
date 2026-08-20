@@ -130,7 +130,6 @@ partial class Form1
 					case "CONTENIDO": current.Contenido = value; break;
 					case "COLOR": current.Color = value; break;
 					case "PANTALLA_GIF": current.PantallaGif = value; break;
-					case "TEMA_FONDO": current.TemaFondo = value; break;
 					case "TEMA_TV": current.TemaTV = value; break;
 				}
 			}
@@ -200,19 +199,6 @@ partial class Form1
 				timerPanel.BackgroundImageLayout = ImageLayout.None;
 				timerPanel.Height = tvImg.Height - 4;
 				_currentTvPath = tvPath;
-			}
-		}
-
-		if (!string.IsNullOrEmpty(cass.TemaFondo))
-		{
-			string fondoPath = ResolveImgPath(cass.TemaFondo);
-			if (File.Exists(fondoPath))
-			{
-				if (_currentThemeImage != null) _currentThemeImage.Dispose();
-				_currentThemeImage = PathHelper.LoadImage(fondoPath);
-				_currentFondoPath = fondoPath;
-				BackgroundImage = null;
-				Invalidate();
 			}
 		}
 
