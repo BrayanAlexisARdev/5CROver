@@ -8,57 +8,34 @@ internal static class PathHelper
 {
     private const int MaxParentTries = 5;
 
+    private static readonly Lazy<string> _imgDir = new(() => ProbeDir("img"));
+    private static readonly Lazy<string> _m3uDir = new(() => ProbeDir("m3u"));
+    private static readonly Lazy<string> _filesDir = new(() => ProbeDir(null));
+
     public static string StartupPath => AppDomain.CurrentDomain.BaseDirectory;
 
-    public static string GetImgDir()
+    public static string GetImgDir() => _imgDir.Value;
+
+    public static string GetM3uDir() => _m3uDir.Value;
+
+    public static string GetFilesDir() => _filesDir.Value;
+
+    private static string ProbeDir(string? sub)
     {
-        string dir = Path.Combine(StartupPath, "files", "img");
+        string relative = sub == null ? "files" : Path.Combine("files", sub);
+        string dir = Path.Combine(StartupPath, relative);
         if (Directory.Exists(dir)) return dir;
 
         string probe = StartupPath;
         for (int i = 0; i < MaxParentTries; i++)
         {
-            dir = Path.Combine(probe, "files", "img");
+            dir = Path.Combine(probe, relative);
             if (Directory.Exists(dir)) return dir;
             var parent = Directory.GetParent(probe);
             if (parent == null) break;
             probe = parent.FullName;
         }
-        return Path.Combine(StartupPath, "files", "img");
-    }
-
-    public static string GetM3uDir()
-    {
-        string dir = Path.Combine(StartupPath, "files", "m3u");
-        if (Directory.Exists(dir)) return dir;
-
-        string probe = StartupPath;
-        for (int i = 0; i < MaxParentTries; i++)
-        {
-            dir = Path.Combine(probe, "files", "m3u");
-            if (Directory.Exists(dir)) return dir;
-            var parent = Directory.GetParent(probe);
-            if (parent == null) break;
-            probe = parent.FullName;
-        }
-        return Path.Combine(StartupPath, "files", "m3u");
-    }
-
-    public static string GetFilesDir()
-    {
-        string dir = Path.Combine(StartupPath, "files");
-        if (Directory.Exists(dir)) return dir;
-
-        string probe = StartupPath;
-        for (int i = 0; i < MaxParentTries; i++)
-        {
-            dir = Path.Combine(probe, "files");
-            if (Directory.Exists(dir)) return dir;
-            var parent = Directory.GetParent(probe);
-            if (parent == null) break;
-            probe = parent.FullName;
-        }
-        return Path.Combine(StartupPath, "files");
+        return Path.Combine(StartupPath, relative);
     }
 
     public static string ResolveImg(string fileName)

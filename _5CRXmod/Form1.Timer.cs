@@ -98,6 +98,7 @@ partial class Form1
 		_timerRunning = true;
 		btnP.Text = "⏸";
 		btnS.Text = "⏹";
+		SetLighthouseState(1);
 	}
 
 	private void StopTimer()
@@ -106,6 +107,7 @@ partial class Form1
 		_timerRunning = false;
 		btnP.Text = "▶";
 		btnS.Text = "⏹";
+		SetLighthouseState(0);
 	}
 
 	private void PauseTimer()
@@ -114,6 +116,7 @@ partial class Form1
 		_timerRunning = false;
 		btnP.Text = "▶";
 		btnS.Text = "⏹";
+		SetLighthouseState(0);
 	}
 
 	private async void countdownTimer_Tick(object? sender, EventArgs e)
@@ -138,6 +141,7 @@ partial class Form1
 		_timerRunning = false;
 		btnP.Text = "▶";
 		btnS.Text = "⏹";
+		SetLighthouseState(2);
 		_timeRemaining = TimeSpan.Zero;
 		UpdateTimerDisplay();
 		ResetNodeProgress();
@@ -207,31 +211,33 @@ partial class Form1
 		pnlProgressFill?.Invalidate();
 	}
 
+	private static void SetLabelState(Label lbl, string text, Color color)
+	{
+		if (lbl.Text != text) lbl.Text = text;
+		if (lbl.ForeColor != color) lbl.ForeColor = color;
+	}
+
 	private void UpdateTimeSelectorInfo()
 	{
 		if (lblTimeSelector == null) return;
 		if (_presetBlockMsg)
 		{
-			lblTimeSelector.Text = "PLEASE STOP TIMER";
-			lblTimeSelector.ForeColor = Color.FromArgb(230, 120, 120);
+			SetLabelState(lblTimeSelector, "PLEASE STOP TIMER", Color.FromArgb(230, 120, 120));
 		}
 		else if (_timerRunning)
 		{
-			lblTimeSelector.Text = FormatRemaining(_timeRemaining);
-			lblTimeSelector.ForeColor = Color.FromArgb(140, 220, 160);
+			SetLabelState(lblTimeSelector, FormatRemaining(_timeRemaining), Color.FromArgb(140, 220, 160));
 		}
 		else if (_manualHours > 0 || _manualMinutes > 0)
 		{
 			string sel = "";
 			if (_manualHours > 0) sel += $"{_manualHours}H";
 			if (_manualMinutes > 0) sel += (sel.Length > 0 ? " " : "") + $"{_manualMinutes}M";
-			lblTimeSelector.Text = $"{sel} SET";
-			lblTimeSelector.ForeColor = Color.FromArgb(140, 220, 160);
+			SetLabelState(lblTimeSelector, $"{sel} SET", Color.FromArgb(140, 220, 160));
 		}
 		else
 		{
-			lblTimeSelector.Text = "SELECT TIME";
-			lblTimeSelector.ForeColor = Color.FromArgb(160, 160, 160);
+			SetLabelState(lblTimeSelector, "SELECT TIME", Color.FromArgb(160, 160, 160));
 		}
 	}
 

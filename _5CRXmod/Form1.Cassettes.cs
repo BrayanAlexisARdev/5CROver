@@ -88,10 +88,10 @@ partial class Form1
 			{
 				picPlayer.Image = currentImg;
 				picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
-				picPlayer.Size = new Size(140, 88);
-				picPlayer.Left = (pnlCassetteContainer.Width - 140) / 2;
+				picPlayer.Size = new Size(154, 97);
+				picPlayer.Left = (pnlCassetteContainer.Width - 154) / 2;
 				picPlayer.Top = 1;
-				picPlayer.Width = 140;
+				picPlayer.Width = 154;
 			}
 		}
 	}
@@ -172,8 +172,8 @@ partial class Form1
 				if (picPlayer.Image != null) picPlayer.Image.Dispose();
 				picPlayer.Image = PathHelper.LoadImage(imgPath);
 				picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
-				picPlayer.Size = new Size(140, 88);
-				picPlayer.Left = (pnlCassetteContainer.Width - 140) / 2;
+				picPlayer.Size = new Size(154, 97);
+				picPlayer.Left = (pnlCassetteContainer.Width - 154) / 2;
 				picPlayer.Top = 1;
 			}
 		}

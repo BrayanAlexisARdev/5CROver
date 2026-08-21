@@ -165,6 +165,7 @@ public partial class Form1 : Form
 	{
 		InitializeComponent();
 		DoubleBuffered = true;
+		SetupLighthouse();
 		base.FormBorderStyle = FormBorderStyle.None;
 		base.Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, base.Width, base.Height, 12, 12));
 		playerFooterPanel.Paint += delegate(object? s, PaintEventArgs e)
@@ -280,7 +281,16 @@ public partial class Form1 : Form
 		};
 		_eqTimer.Tick += delegate
 		{
-			_eqAnimationOffset += 0.15f;
+			if (!_isPlaying)
+			{
+				if (_eqIdlePainted) return;
+				_eqIdlePainted = true;
+			}
+			else
+			{
+				_eqAnimationOffset += 0.15f;
+				_eqIdlePainted = false;
+			}
 			pnlEqualizer.Invalidate();
 		};
 		pnlEqualizer.Paint += pnlEqualizer_Paint;
@@ -306,11 +316,11 @@ public partial class Form1 : Form
 		lblMinutes.BackColor = Color.Transparent;
 		lblSeconds.BackColor = Color.Transparent;
 		picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
-		picPlayer.Size = new Size(140, 88);
-		picPlayer.Left = (pnlCassetteContainer.Width - 140) / 2;
+		picPlayer.Size = new Size(154, 97);
+		picPlayer.Left = (pnlCassetteContainer.Width - 154) / 2;
 		picPlayer.Top = 1;
 		picPlayerNext.SizeMode = PictureBoxSizeMode.Zoom;
-		picPlayerNext.Size = new Size(140, 88);
+		picPlayerNext.Size = new Size(154, 97);
 		lblTasks.Click += delegate(object? s, EventArgs e)
 		{
 			btnAddTask_Click(s, e);
@@ -528,13 +538,11 @@ public partial class Form1 : Form
 				{
 					try
 					{
-					Image img = PathHelper.LoadImage(file2);
-					_themeImages.Add(img);
 						_themeFilePaths.Add(file2);
 						if (file2.EndsWith("05_TH.gif", StringComparison.OrdinalIgnoreCase))
 						{
-							_currentThemeImageIndex = _themeImages.Count - 1;
-							_currentThemeImage = img;
+							_currentThemeImageIndex = _themeFilePaths.Count - 1;
+							_currentThemeImage = PathHelper.LoadImage(file2);
 							BackgroundImage = null;
 						}
 					}
@@ -574,7 +582,7 @@ public partial class Form1 : Form
 				if (File.Exists(tvPath))
 				{
 				Image tvImg = PathHelper.LoadImage(tvPath);
-				base.Width = tvImg.Width;
+				base.Width = tvImg.Width + LighthouseWidth;
 				timerPanel.Height = tvImg.Height - 4;
 				timerPanel.BackgroundImage = tvImg;
 				timerPanel.BackgroundImageLayout = ImageLayout.None;
@@ -599,7 +607,7 @@ public partial class Form1 : Form
 		}
 		Panel pnlTaskInfo = new Panel
 		{
-			Width = base.Width,
+			Width = ContentWidth,
 			Height = 20,
 			BackColor = Color.Transparent,
 			Margin = new Padding(0),
@@ -668,39 +676,36 @@ public partial class Form1 : Form
 
 			for (int i = 0; i < _nodeCount; i++)
 			{
-				double intensity = _nodeIntensities[i];
+				double intensity = Math.Max(_nodeIntensities[i], 0.01);
 				int sz = _nodeBaseSizes[i];
 				float cx = _nodeCenterX[i];
 				float cy2 = pnlH;
 
-				if (intensity > 0.01)
+				Color neonColor = _appColor == Color.Transparent || _appColor == Color.Empty
+					? Color.White : _appColor;
+
+				double posProgress = (double)(sz - standardSize) / (maxBaseSize - standardSize);
+
+				float gp = 2f + sz / 3f;
+				using (var path = new GraphicsPath())
 				{
-					Color neonColor = _appColor == Color.Transparent || _appColor == Color.Empty
-						? Color.White : _appColor;
-
-					double posProgress = (double)(sz - standardSize) / (maxBaseSize - standardSize);
-
-					float gp = 2f + sz / 3f;
-					using (var path = new GraphicsPath())
+					path.AddEllipse(cx - sz / 2f - gp, cy2 - sz / 2f - gp, sz + gp * 2f, sz + gp * 2f);
+					using (var brush = new PathGradientBrush(path))
 					{
-						path.AddEllipse(cx - sz / 2f - gp, cy2 - sz / 2f - gp, sz + gp * 2f, sz + gp * 2f);
-						using (var brush = new PathGradientBrush(path))
-						{
-							int glowAlpha = (int)(intensity * (60 + 120 * posProgress));
-							brush.CenterColor = Color.FromArgb(glowAlpha, neonColor);
-							brush.SurroundColors = new[] { Color.FromArgb(0, neonColor) };
-							pe.Graphics.FillPath(brush, path);
-						}
+						int glowAlpha = (int)(intensity * (60 + 120 * posProgress));
+						brush.CenterColor = Color.FromArgb(glowAlpha, neonColor);
+						brush.SurroundColors = new[] { Color.FromArgb(0, neonColor) };
+						pe.Graphics.FillPath(brush, path);
 					}
-
-					int fillAlpha = (int)(80 + intensity * 155);
-					using (var fill = new SolidBrush(Color.FromArgb(fillAlpha, neonColor)))
-						pe.Graphics.FillEllipse(fill, cx - sz / 2f, cy2 - sz / 2f, sz, sz);
-
-					int whiteSz = Math.Max(1, sz * 3 / 5);
-					using (var w = new SolidBrush(Color.FromArgb((int)(intensity * 100), Color.White)))
-						pe.Graphics.FillEllipse(w, cx - whiteSz / 2f, cy2 - whiteSz / 2f, whiteSz, whiteSz);
 				}
+
+				int fillAlpha = (int)(80 + intensity * 155);
+				using (var fill = new SolidBrush(Color.FromArgb(fillAlpha, neonColor)))
+					pe.Graphics.FillEllipse(fill, cx - sz / 2f, cy2 - sz / 2f, sz, sz);
+
+				int whiteSz = Math.Max(1, sz * 3 / 5);
+				using (var w = new SolidBrush(Color.FromArgb((int)(intensity * 100), Color.White)))
+					pe.Graphics.FillEllipse(w, cx - whiteSz / 2f, cy2 - whiteSz / 2f, whiteSz, whiteSz);
 			}
 		};
 
@@ -726,7 +731,7 @@ public partial class Form1 : Form
 		pnlTaskInfo.Controls.Add(pnlProgressBg);
 
 		// ── Row 1: TIME SELECTOR label ──
-		Panel row1 = new Panel { Height = 26, Width = base.Width, BackColor = Color.Transparent, Margin = new Padding(0) };
+		Panel row1 = new Panel { Height = 26, Width = ContentWidth, BackColor = Color.Transparent, Margin = new Padding(0) };
 
 		lblTimeSelector = new Label
 		{
@@ -757,7 +762,7 @@ public partial class Form1 : Form
 		Color presetBg = Color.Transparent;
 
 		string[] hourPresets = ["1H", "2H", "3H", "4H"];
-		Panel row2 = new Panel { Height = 26, Width = base.Width, BackColor = presetBg, Margin = new Padding(0) };
+		Panel row2 = new Panel { Height = 26, Width = ContentWidth, BackColor = presetBg, Margin = new Padding(0) };
 		for (int i = 0; i < hourPresets.Length; i++)
 		{
 			string txt = hourPresets[i];
@@ -788,7 +793,7 @@ public partial class Form1 : Form
 				UpdateTimeSelectorInfo();
 			};
 			int total = 58 * hourPresets.Length + 5 * (hourPresets.Length - 1);
-			btn.Left = (base.Width - total) / 2 + i * (58 + 5);
+			btn.Left = (ContentWidth - total) / 2 + i * (58 + 5);
 			btn.Top = 2;
 			row2.Controls.Add(btn);
 		}
@@ -796,7 +801,7 @@ public partial class Form1 : Form
 		tasksListPanel.Controls.SetChildIndex(row2, 2);
 
 		string[] minPresets = ["5M", "10M", "15M", "30M"];
-		Panel row3 = new Panel { Height = 26, Width = base.Width, BackColor = presetBg, Margin = new Padding(0) };
+		Panel row3 = new Panel { Height = 26, Width = ContentWidth, BackColor = presetBg, Margin = new Padding(0) };
 		for (int i = 0; i < minPresets.Length; i++)
 		{
 			string txt = minPresets[i];
@@ -827,7 +832,7 @@ public partial class Form1 : Form
 				UpdateTimeSelectorInfo();
 			};
 			int total = 58 * minPresets.Length + 5 * (minPresets.Length - 1);
-			btn.Left = (base.Width - total) / 2 + i * (58 + 5);
+			btn.Left = (ContentWidth - total) / 2 + i * (58 + 5);
 			btn.Top = 2;
 			row3.Controls.Add(btn);
 		}
@@ -835,10 +840,10 @@ public partial class Form1 : Form
 		tasksListPanel.Controls.SetChildIndex(row3, 3);
 
 		// ── Row 4: START / STOP (black, full row) ──
-		Panel row4 = new Panel { Height = 30, Width = base.Width, BackColor = Color.Transparent, Margin = new Padding(0) };
+		Panel row4 = new Panel { Height = 30, Width = ContentWidth, BackColor = Color.Transparent, Margin = new Padding(0) };
 
 		int btnGap2 = 12;
-		int startStopW = (base.Width - btnGap2) / 2;
+		int startStopW = (ContentWidth - btnGap2) / 2;
 
 		Button btnStart = new Button
 		{
@@ -880,7 +885,7 @@ public partial class Form1 : Form
 		Button btnStop = new Button
 		{
 			Text = "STOP",
-			Size = new Size(base.Width - startStopW - btnGap2, row4.Height),
+			Size = new Size(ContentWidth - startStopW - btnGap2, row4.Height),
 			Location = new Point(startStopW + btnGap2, 0),
 			FlatStyle = FlatStyle.Flat,
 			FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Transparent, MouseDownBackColor = Color.Transparent },
@@ -923,7 +928,7 @@ public partial class Form1 : Form
 		// ── TOOLS row: PDF / YT / LEARN (one line) ──
 		int toolMargin = 6;
 		int toolGap = 4;
-		int toolW = (base.Width - toolMargin * 2 - toolGap * 2) / 3;
+		int toolW = (ContentWidth - toolMargin * 2 - toolGap * 2) / 3;
 
 		Button btnOpenPdf = new Button
 		{
@@ -1814,20 +1819,20 @@ public partial class Form1 : Form
 		this.pnlCassetteContainer.BackColor = System.Drawing.Color.Transparent;
 		this.pnlCassetteContainer.Controls.Add(this.picPlayer);
 		this.pnlCassetteContainer.Controls.Add(this.picPlayerNext);
-		this.pnlCassetteContainer.Location = new System.Drawing.Point(60, 0);
+		this.pnlCassetteContainer.Location = new System.Drawing.Point(53, 0);
 		this.pnlCassetteContainer.Name = "pnlCassetteContainer";
-		this.pnlCassetteContainer.Size = new System.Drawing.Size(140, 90);
+		this.pnlCassetteContainer.Size = new System.Drawing.Size(154, 99);
 		this.pnlCassetteContainer.TabIndex = 1;
 		this.picPlayer.BackColor = System.Drawing.Color.Transparent;
 		this.picPlayer.Location = new System.Drawing.Point(0, 0);
 		this.picPlayer.Name = "picPlayer";
-		this.picPlayer.Size = new System.Drawing.Size(140, 90);
+		this.picPlayer.Size = new System.Drawing.Size(154, 97);
 		this.picPlayer.TabIndex = 0;
 		this.picPlayer.TabStop = false;
 		this.picPlayerNext.BackColor = System.Drawing.Color.Transparent;
-		this.picPlayerNext.Location = new System.Drawing.Point(140, 0);
+		this.picPlayerNext.Location = new System.Drawing.Point(154, 0);
 		this.picPlayerNext.Name = "picPlayerNext";
-		this.picPlayerNext.Size = new System.Drawing.Size(140, 88);
+		this.picPlayerNext.Size = new System.Drawing.Size(154, 97);
 		this.picPlayerNext.TabIndex = 1;
 		this.picPlayerNext.TabStop = false;
 		this.lblM3uTitle.Font = new System.Drawing.Font("Segoe UI", 8f, System.Drawing.FontStyle.Bold);
@@ -1861,7 +1866,7 @@ public partial class Form1 : Form
 
 		base.AutoScaleDimensions = new System.Drawing.SizeF(10f, 25f);
 		base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-		base.ClientSize = new System.Drawing.Size(260, 860);
+		base.ClientSize = new System.Drawing.Size(280, 860);
 		base.Controls.Add(this.cassettesHeaderPanel);
 		base.Controls.Add(this.pnlFullListRow);
 		base.Controls.Add(this.playerFooterPanel);

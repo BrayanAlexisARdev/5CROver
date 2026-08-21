@@ -52,15 +52,19 @@ partial class Form1
 	private int _pendingCassetteIndex = -1;
 	private FavoriteData? _pendingFavOverride;
 
-	private const int PictureBoxWidth = 140;
+	private const int PictureBoxWidth = 154;
 
-	private const int PictureBoxHeight = 88;
+	private const int PictureBoxHeight = 97;
 
 	private Timer? _eqTimer;
 
 	private float _eqAnimationOffset;
 
+	private bool _eqIdlePainted;
+
 	private static readonly System.Drawing.Imaging.ImageAttributes _alphaAttrs = new System.Drawing.Imaging.ImageAttributes();
+
+	private static readonly System.Drawing.Imaging.ColorMatrix _alphaMatrix = new System.Drawing.Imaging.ColorMatrix();
 
 	private void pnlEqualizer_Paint(object? sender, PaintEventArgs e)
 	{
@@ -214,7 +218,8 @@ partial class Form1
 		var bmp = new Bitmap(PictureBoxWidth, PictureBoxHeight);
 		using (var g = Graphics.FromImage(bmp))
 		{
-			_alphaAttrs.SetColorMatrix(new System.Drawing.Imaging.ColorMatrix { Matrix33 = alpha });
+			_alphaMatrix.Matrix33 = alpha;
+			_alphaAttrs.SetColorMatrix(_alphaMatrix);
 			g.DrawImage(img, new Rectangle(0, 0, PictureBoxWidth, PictureBoxHeight),
 				0, 0, img.Width, img.Height, GraphicsUnit.Pixel, _alphaAttrs);
 		}

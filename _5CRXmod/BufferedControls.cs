@@ -6,8 +6,10 @@ namespace _5CRXmod
     {
         public BufferedPanel()
         {
+            SetStyle(ControlStyles.SupportsTransparentBackColor
+                | ControlStyles.OptimizedDoubleBuffer
+                | ControlStyles.AllPaintingInWmPaint, true);
             DoubleBuffered = true;
-            SetStyle(ControlStyles.SupportsTransparentBackColor, true);
         }
     }
 
@@ -15,7 +17,10 @@ namespace _5CRXmod
     {
         public BufferedLabel()
         {
-            SetStyle(ControlStyles.SupportsTransparentBackColor, true);
+            SetStyle(ControlStyles.SupportsTransparentBackColor
+                | ControlStyles.OptimizedDoubleBuffer
+                | ControlStyles.AllPaintingInWmPaint, true);
+            DoubleBuffered = true;
         }
     }
 }
