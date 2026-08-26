@@ -14,7 +14,7 @@
 [CASSETTE 01]
 TITULO: LO-FI CHILL
 IMAGEN: cass010.png
-CONTENIDO: https://boxradio-edge-00.streamafrica.net/lofi_radio/aac_hifi.aac
+CONTENIDO: https://edge01.streamafrica.net/b36112f0-97e8-4c5c-b6d3-a030a959fb6b
 COLOR: #ff0099
 PANTALLA_GIF: girl7_ANI.gif
 TEMA_TV: rain_TV.gif
@@ -22,7 +22,7 @@ TEMA_TV: rain_TV.gif
 [CASSETTE 02]
 TITULO: WEEB ANIME RADIO
 IMAGEN: cass011.png
-CONTENIDO: https://boxradio-edge-01.streamafrica.net/anime.aac
+CONTENIDO: https://edge01.streamafrica.net/fee126e2-ab7c-47a2-8952-7ba254b7fb59
 COLOR: #FFCC00
 PANTALLA_GIF: saiyanm_ANI.gif
 TEMA_TV: gcard_TV.gif
@@ -86,7 +86,7 @@ TEMA_TV: flowbk_TV.gif
 [CASSETTE 10]
 TITULO: POP DANCE
 IMAGEN: cass009.png
-CONTENIDO: https://boxradio-edge-01.streamafrica.net/dance.aac
+CONTENIDO: https://edge01.streamafrica.net/6efae8cd-e1b2-45f9-950c-d1aa34d90888
 COLOR: #da47ff
 PANTALLA_GIF: girl2_ANI.gif
 TEMA_TV: bluesk_TV.gif
@@ -95,16 +95,16 @@ TEMA_TV: bluesk_TV.gif
 TITULO: RAINWAVE ALL
 IMAGEN: cass008.png
 CONTENIDO: https://allrelays.rainwave.cc/all.mp3
-COLOR: #1d1df2
-PANTALLA_GIF: sega_ANI.gif
+COLOR: #5d3693
+PANTALLA_GIF: rwave_all.gif
 TEMA_TV: old_TV.gif
 
 [CASSETTE 12]
 TITULO: RAINWAVE GAME
 IMAGEN: cass007.png
 CONTENIDO: https://relay.rainwave.cc/game.mp3
-COLOR: #1d1df2
-PANTALLA_GIF: sega_ANI.gif
+COLOR: #db393a
+PANTALLA_GIF: rwave_game.gif
 TEMA_TV: old_TV.gif
 
 [CASSETTE 13]
@@ -150,13 +150,13 @@ TEMA_TV: slayy_TV.gif
 [CASSETTE 18]
 TITULO: CAPRICE CLASS PIANO
 IMAGEN: cass016.png
-CONTENIDO:  
+CONTENIDO: http://79.120.77.11:8002/piano
 COLOR: #e00000
 PANTALLA_GIF: fairy_ANI.gif
 TEMA_TV: piano_TV.gif
 
 [CASSETTE 19]
-TITULO:SpriteLayer VGR
+TITULO: SpriteLayer VGR
 IMAGEN: cass018.png
 CONTENIDO: https://radio.spritelayerradio.com:8010/all
 COLOR: #b829ff
@@ -354,4 +354,52 @@ CONTENIDO: https://27613.live.streamtheworld.com/ASPEN.mp3
 COLOR: #db0000
 PANTALLA_GIF: girl12_ANI.gif
 TEMA_TV: vocca_TV.gif
+
+[CASSETTE 44]
+TITULO: RADIO DISNEY
+IMAGEN: cass023.png
+CONTENIDO: https://24233.live.streamtheworld.com/DISNEY_ARG_BA.mp3
+COLOR: #cdcdcd
+PANTALLA_GIF: radisney_ANI.gif
+TEMA_TV: vocca_TV.gif
+
+[CASSETTE 45]
+TITULO: BLUE FM
+IMAGEN: cass023.png
+CONTENIDO: https://27433.live.streamtheworld.com/BLUE_FM_100_7AAC_SC
+COLOR: #0053c7
+PANTALLA_GIF: waters_ANI.gif
+TEMA_TV: vocca_TV.gif
+
+[CASSETTE 46]
+TITULO: Rock Nacional ARG
+IMAGEN: cass023.png
+CONTENIDO: https://ec3.yesstreaming.net:4505/stream
+COLOR: #31c1e8
+PANTALLA_GIF: girl14_ANI.gif
+TEMA_TV: voldoff_TV.gif
+
+[CASSETTE 47]
+TITULO: LOS 40 PRINCIPALES
+IMAGEN: cass023.png
+CONTENIDO: https://edge03.radiohdvivo.com/los40
+COLOR: #31c1e8
+PANTALLA_GIF: los40_ANI.gif
+TEMA_TV: voldoff_TV.gif
+
+[CASSETTE 48]
+TITULO: FM ROCK AND POP
+IMAGEN: cass023.png
+CONTENIDO: https://27393.live.streamtheworld.com/ROCKANDPOPAAC_SC
+COLOR: #65b665
+PANTALLA_GIF: girl14_ANI.gif
+TEMA_TV: voldoff_TV.gif
+
+[CASSETTE 49]
+TITULO: RAD ARG TROPICAL
+IMAGEN: cass023.png
+CONTENIDO: https://stream-204.surfernetwork.com/vwhtrlkke04tv
+COLOR: #305889
+PANTALLA_GIF: tropical_ANI.gif
+TEMA_TV: voldoff_TV.gif
 

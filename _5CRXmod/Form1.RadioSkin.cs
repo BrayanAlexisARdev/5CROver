@@ -23,8 +23,8 @@ partial class Form1
 		tasksListPanel.Paint += SectionBodyPaint;
 		btnP.Paint += KnobButtonPaint;
 		btnS.Paint += KnobButtonPaint;
-		btnPrevM3u.Paint += MetalButtonPaint;
-		btnNextM3u.Paint += MetalButtonPaint;
+		btnPrevM3u.Paint += CassetteNavPaint;
+		btnNextM3u.Paint += CassetteNavPaint;
 		btnCloseApp.Paint += ClosePlatePaint;
 		pnlProgressBg.Paint += ScaleSlotPaint;
 
@@ -126,6 +126,75 @@ partial class Form1
 		using (var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
 		using (var brush = new SolidBrush(Color.White))
 			e.Graphics.DrawString(b.Text, b.Font, brush, new RectangleF(0, 0, b.Width, b.Height), fmt);
+	}
+
+	private readonly bool[] _cassetteNavHover = new bool[2];
+	private readonly bool[] _cassetteNavPress = new bool[2];
+
+	private void CassetteNavPaint(object? sender, PaintEventArgs e)
+	{
+		if (sender is not Button b) return;
+		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+		int idx = b.Name == "btnPrevM3u" ? 0 : 1;
+
+		RectangleF rect = new RectangleF(0, 0, b.Width, b.Height);
+		using (var bg = MetalBrush(rect))
+			e.Graphics.FillRectangle(bg, rect);
+		DrawBrushed(e.Graphics, b.ClientRectangle);
+
+		bool hover = _cassetteNavHover[idx];
+		bool press = _cassetteNavPress[idx];
+		float cx = b.Width / 2f;
+		float cy = b.Height / 2f;
+
+		if (hover)
+		{
+			float glowR = Math.Min(b.Width, b.Height) * 0.55f;
+			Color glowCenter = press
+				? Color.FromArgb(25, 224, 186, 108)
+				: Color.FromArgb(14, 224, 186, 108);
+			using (var path = new GraphicsPath())
+			{
+				path.AddEllipse(cx - glowR, cy - glowR, glowR * 2f, glowR * 2f);
+				using (var blend = new PathGradientBrush(path))
+				{
+					blend.CenterColor = glowCenter;
+					blend.SurroundColors = [Color.FromArgb(0, 224, 186, 108)];
+					e.Graphics.FillPath(blend, path);
+				}
+			}
+		}
+
+		float h = b.Height * 0.32f;
+		float w = h * 0.78f;
+		PointF[] tri;
+		if (idx == 0)
+		{
+			tri =
+			[
+				new PointF(cx + w * 0.4f, cy),
+				new PointF(cx - w * 0.6f, cy - h),
+				new PointF(cx - w * 0.6f, cy + h)
+			];
+		}
+		else
+		{
+			tri =
+			[
+				new PointF(cx - w * 0.4f, cy),
+				new PointF(cx + w * 0.6f, cy - h),
+				new PointF(cx + w * 0.6f, cy + h)
+			];
+		}
+
+		float penAlpha = press ? 220f : hover ? 180f : 100f;
+		using (var triPath = new GraphicsPath())
+		{
+			triPath.AddPolygon(tri);
+			Color brass = Color.FromArgb((int)penAlpha, 196, 164, 92);
+			using (var pen = new Pen(brass, 1.4f) { LineJoin = LineJoin.Round, StartCap = LineCap.Round, EndCap = LineCap.Round })
+				e.Graphics.DrawPath(pen, triPath);
+		}
 	}
 
 	private void ClosePlatePaint(object? sender, PaintEventArgs e)

@@ -61,6 +61,7 @@ partial class Form1
 		{
 			_currentM3uIndex = (_currentM3uIndex + direction + _m3uFiles.Count) % _m3uFiles.Count;
 			ResetCassetteTitle();
+			AdvanceEqStyle();
 			string path = _m3uFiles[_currentM3uIndex];
 			_ = PlayM3uAsync(path);
 			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
@@ -144,6 +145,7 @@ partial class Form1
 		if (index < 0 || index >= _cassettes.Count) return;
 		CassetteData cass = _cassettes[index];
 		_currentCassetteIndex = index;
+		AdvanceEqStyle();
 
 		lblCassettes.Text = "CASSETTES";
 		txtCassetteNum.Text = (index + 1).ToString();

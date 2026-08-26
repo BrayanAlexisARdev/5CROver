@@ -108,6 +108,7 @@ partial class Form1
 		btnP.Text = "▶";
 		btnS.Text = "⏹";
 		SetLighthouseState(0);
+		StopAlarm();
 	}
 
 	private void PauseTimer()
@@ -142,6 +143,7 @@ partial class Form1
 		btnP.Text = "▶";
 		btnS.Text = "⏹";
 		SetLighthouseState(2);
+		PlayAlarmSound();
 		_timeRemaining = TimeSpan.Zero;
 		UpdateTimerDisplay();
 		ResetNodeProgress();

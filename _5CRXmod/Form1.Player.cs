@@ -11,6 +11,8 @@ partial class Form1
 {
 	private dynamic? _wmp;
 
+	private dynamic? _wmpAlarm;
+
 	private Timer? _metaTimer;
 
 	private Timer? _m3u8WatchTimer;
@@ -22,6 +24,8 @@ partial class Form1
 	private string? _lastHlsUrl;
 
 	private bool _isPlaying;
+
+	private int _playGen;
 
 	private string _currentM3uName = "";
 	private string _lastTitle = "";
@@ -75,6 +79,19 @@ partial class Form1
 		catch (Exception ex)
 		{
 			Logger.Error("Form1.InitPlayer.WMP", ex);
+		}
+		try
+		{
+			Type alarmType = Type.GetTypeFromProgID("WMPlayer.OCX.7");
+			if (alarmType != null)
+			{
+				_wmpAlarm = Activator.CreateInstance(alarmType);
+				_wmpAlarm.settings.autoStart = false;
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Form1.InitPlayer.WMPAlarm", ex);
 		}
 		try
 		{
@@ -163,7 +180,10 @@ partial class Form1
 
 	private async Task PlayM3uAsync(string path)
 	{
-		_isHlsStream = path.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase);
+		int gen = ++_playGen;
+		_isHlsStream = path.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+			|| path.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+			|| path.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase);
 		if (_isHlsStream)
 		{
 			_metaTimer?.Stop();
@@ -208,12 +228,53 @@ partial class Form1
 			_metaTimer?.Start();
 			_isPlaying = true;
 			SetVolumePreset(3);
+			_ = WatchWmpThenFallbackAsync(path, gen);
 		}
 		catch
 		{
 			lblMetadata.Text = "";
 			lblExtraMetadata.Text = "";
 		}
+	}
+
+	private async Task WatchWmpThenFallbackAsync(string url, int gen)
+	{
+		await Task.Delay(10000);
+		if (gen != _playGen || _isHlsStream || _wmp == null) return;
+		int state;
+		try
+		{
+			state = (int)_wmp.playState;
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Form1.WatchWmpThenFallback", ex);
+			return;
+		}
+		bool alive = state == 3 || state == 6 || state == 7 || state == 11;
+		if (alive) return;
+		try { lblExtraMetadata.Text = "SINTONIZANDO..."; } catch (Exception ex) { Logger.Error("Form1.WatchWmpThenFallback.lbl", ex); }
+		try { _wmp.controls.stop(); } catch (Exception ex) { Logger.Error("Form1.WatchWmpThenFallback.stop", ex); }
+		_metaTimer?.Stop();
+		_m3u8WatchTimer?.Stop();
+		_hlsPlayer?.Stop();
+		_isHlsStream = true;
+		_lastHlsUrl = url;
+		_lastTitle = "";
+		try
+		{
+			lblMetadata.Text = "";
+			lblExtraMetadata.Text = "";
+			lblM3uTitle.Visible = true;
+			lblMetadata.Visible = true;
+			lblExtraMetadata.Visible = true;
+		}
+		catch (Exception ex) { Logger.Error("Form1.WatchWmpThenFallback.ui", ex); }
+		if (_hlsPlayer != null)
+			await _hlsPlayer.PlayAsync(url);
+		if (gen != _playGen) return;
+		_isPlaying = true;
+		SetVolumePreset(3);
 	}
 
 	private void SetVolumePreset(int percent)
@@ -273,6 +334,7 @@ partial class Form1
 	
 	private void StopM3u()
 	{
+		_playGen++;
 		_hlsPlayer?.Stop();
 		_metaTimer?.Stop();
 		_m3u8WatchTimer?.Stop();
@@ -303,5 +365,48 @@ partial class Form1
 			_wmp.controls.play();
 			lblMetadata.Text = "";
 		}
+	}
+
+	private async void PlayAlarmSound()
+	{
+		if (_wmpAlarm == null) return;
+
+		string alarmPath = Path.Combine(PathHelper.GetFilesDir(), "mp3", "alarm000.mp3");
+		if (!File.Exists(alarmPath)) return;
+
+		for (int i = 0; i < 2; i++)
+		{
+			try
+			{
+				_wmpAlarm.URL = alarmPath;
+				_wmpAlarm.settings.volume = 40;
+				_wmpAlarm.controls.play();
+
+				await Task.Delay(200);
+
+				for (int j = 0; j < 600; j++)
+				{
+					await Task.Delay(50);
+					try
+					{
+						int state = (int)_wmpAlarm.playState;
+						if (state == 1 || state == 0) break;
+					}
+					catch { break; }
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error("Form1.PlayAlarmSound", ex);
+				break;
+			}
+		}
+	}
+
+	private void StopAlarm()
+	{
+		if (_wmpAlarm == null) return;
+		try { _wmpAlarm.controls.stop(); }
+		catch (Exception ex) { Logger.Error("Form1.StopAlarm", ex); }
 	}
 }

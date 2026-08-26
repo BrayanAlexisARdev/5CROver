@@ -303,10 +303,18 @@ public partial class Form1 : Form
 		btnNextM3u.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnPrevM3u.FlatAppearance.MouseOverBackColor = Color.Transparent;
 		btnPrevM3u.FlatAppearance.MouseDownBackColor = Color.Transparent;
-		btnPrevM3u.UseVisualStyleBackColor = false;
 		btnNextM3u.FlatAppearance.MouseOverBackColor = Color.Transparent;
 		btnNextM3u.FlatAppearance.MouseDownBackColor = Color.Transparent;
-		btnNextM3u.UseVisualStyleBackColor = false;
+		btnPrevM3u.Cursor = Cursors.Hand;
+		btnNextM3u.Cursor = Cursors.Hand;
+		btnPrevM3u.MouseEnter += (_, _) => { _cassetteNavHover[0] = true; btnPrevM3u.Invalidate(); };
+		btnPrevM3u.MouseLeave += (_, _) => { _cassetteNavHover[0] = false; _cassetteNavPress[0] = false; btnPrevM3u.Invalidate(); };
+		btnPrevM3u.MouseDown += (_, _) => { _cassetteNavPress[0] = true; btnPrevM3u.Invalidate(); };
+		btnPrevM3u.MouseUp += (_, _) => { _cassetteNavPress[0] = false; btnPrevM3u.Invalidate(); };
+		btnNextM3u.MouseEnter += (_, _) => { _cassetteNavHover[1] = true; btnNextM3u.Invalidate(); };
+		btnNextM3u.MouseLeave += (_, _) => { _cassetteNavHover[1] = false; _cassetteNavPress[1] = false; btnNextM3u.Invalidate(); };
+		btnNextM3u.MouseDown += (_, _) => { _cassetteNavPress[1] = true; btnNextM3u.Invalidate(); };
+		btnNextM3u.MouseUp += (_, _) => { _cassetteNavPress[1] = false; btnNextM3u.Invalidate(); };
 		btnVolLow.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnVolMid.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnVolMax.BackColor = Color.FromArgb(0, 0, 0, 0);
@@ -1360,6 +1368,12 @@ public partial class Form1 : Form
 				catch (Exception ex) { Logger.Error("Form1.Dispose.Wmp", ex); }
 				_wmp = null;
 			}
+			if (_wmpAlarm != null)
+			{
+				try { System.Runtime.InteropServices.Marshal.ReleaseComObject(_wmpAlarm); }
+				catch (Exception ex) { Logger.Error("Form1.Dispose.WmpAlarm", ex); }
+				_wmpAlarm = null;
+			}
 			components?.Dispose();
 		}
 		base.Dispose(disposing);
@@ -1798,21 +1812,21 @@ public partial class Form1 : Form
 		this.pnlVolumeThumb.TabIndex = 0;
 		this.btnNextM3u.FlatAppearance.BorderSize = 0;
 		this.btnNextM3u.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-		this.btnNextM3u.Font = new System.Drawing.Font("Segoe UI", 18f, System.Drawing.FontStyle.Bold);
+		this.btnNextM3u.Font = new System.Drawing.Font("Segoe UI", 16f, System.Drawing.FontStyle.Bold);
 		this.btnNextM3u.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
-		this.btnNextM3u.Location = new System.Drawing.Point(220, 0);
+		this.btnNextM3u.Location = new System.Drawing.Point(215, 0);
 		this.btnNextM3u.Name = "btnNextM3u";
-		this.btnNextM3u.Size = new System.Drawing.Size(40, 90);
+		this.btnNextM3u.Size = new System.Drawing.Size(30, 90);
 		this.btnNextM3u.TabIndex = 3;
 		this.btnNextM3u.Text = "\u25B6";
 		this.btnNextM3u.UseVisualStyleBackColor = true;
 		this.btnPrevM3u.FlatAppearance.BorderSize = 0;
 		this.btnPrevM3u.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-		this.btnPrevM3u.Font = new System.Drawing.Font("Segoe UI", 18f, System.Drawing.FontStyle.Bold);
+		this.btnPrevM3u.Font = new System.Drawing.Font("Segoe UI", 16f, System.Drawing.FontStyle.Bold);
 		this.btnPrevM3u.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
-		this.btnPrevM3u.Location = new System.Drawing.Point(0, 0);
+		this.btnPrevM3u.Location = new System.Drawing.Point(12, 0);
 		this.btnPrevM3u.Name = "btnPrevM3u";
-		this.btnPrevM3u.Size = new System.Drawing.Size(40, 90);
+		this.btnPrevM3u.Size = new System.Drawing.Size(30, 90);
 		this.btnPrevM3u.TabIndex = 2;
 		this.btnPrevM3u.Text = "\u25C0";
 		this.btnPrevM3u.UseVisualStyleBackColor = true;

@@ -116,39 +116,51 @@ namespace _5CRXmod
             {
                 bool isHttp = url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                               url.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+                bool looksLikeHls = url.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase) ||
+                                    url.EndsWith(".m3u", StringComparison.OrdinalIgnoreCase);
 
-                if (isHttp)
+                if (isHttp && looksLikeHls)
                 {
-                    _isHls = true;
                     _hlsDownloader = new HlsDownloader(url);
                     if (!await _hlsDownloader.LoadPlaylistAsync().ConfigureAwait(false))
                     {
-                        Log("Failed to load HLS playlist");
-                        Error?.Invoke("FALLO AL CARGAR PLAYLIST HLS");
+                        Log("Failed to load HLS playlist -> falling back to direct stream");
                         _hlsDownloader.Dispose();
                         _hlsDownloader = null;
+                        _isHls = false;
+                        PlayDirect(url, isHttp);
                         return;
                     }
+                    _isHls = true;
                     await PlayNextBatchAsync().ConfigureAwait(false);
                 }
                 else
                 {
                     _isHls = false;
-                    _currentMedia?.Dispose();
-                    _currentMedia = null;
-                    _currentMedia = new Media(_libVlc, url);
-                    bool result = _mediaPlayer.Play(_currentMedia);
-                    Log($"  Play() result: {result}, State: {_mediaPlayer.State}");
-                    if (!result)
-                    {
-                        Error?.Invoke("FALLO AL REPRODUCIR");
-                    }
+                    PlayDirect(url, isHttp);
                 }
             }
             catch (Exception ex)
             {
                 Log($"Play ERROR: {ex.GetType().Name}: {ex.Message}");
                 Error?.Invoke($"ERROR: {ex.Message}");
+            }
+        }
+
+        private void PlayDirect(string url, bool isHttp)
+        {
+            _currentMedia?.Dispose();
+            _currentMedia = null;
+            _currentMedia = isHttp
+                ? new Media(_libVlc, url, FromType.FromLocation)
+                : new Media(_libVlc, url);
+            if (isHttp)
+                _currentMedia.AddOption(":http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+            bool result = _mediaPlayer.Play(_currentMedia);
+            Log($"  Play() result: {result}, State: {_mediaPlayer.State}");
+            if (!result)
+            {
+                Error?.Invoke("FALLO AL REPRODUCIR");
             }
         }
 
