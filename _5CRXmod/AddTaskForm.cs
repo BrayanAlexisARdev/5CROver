@@ -19,41 +19,41 @@ public class AddTaskForm : Form
 
 	private Point _startPoint = new Point(0, 0);
 
-	private IContainer components;
+	private IContainer components = null!;
 
-	private Label labelTaskName;
+	private Label labelTaskName = null!;
 
-	private TextBox txtTaskName;
+	private TextBox txtTaskName = null!;
 
-	private Label labelTime;
+	private Label labelTime = null!;
 
-	private ComboBox cmbHours;
+	private ComboBox cmbHours = null!;
 
-	private ComboBox cmbMinutes;
+	private ComboBox cmbMinutes = null!;
 
-	private Label labelHours;
+	private Label labelHours = null!;
 
-	private Label labelMinutes;
+	private Label labelMinutes = null!;
 
-	private Label labelM3u;
+	private Label labelM3u = null!;
 
-	private TextBox txtM3uPath;
+	private TextBox txtM3uPath = null!;
 
-	private Button btnBrowseM3u;
+	private Button btnBrowseM3u = null!;
 
-	private Button btnAccept;
+	private Button btnAccept = null!;
 
-	private Button btnCancel;
+	private Button btnCancel = null!;
 
-	private Label labelIcon;
+	private Label labelIcon = null!;
 
-	private PictureBox picIconPreview;
+	private PictureBox picIconPreview = null!;
 
-	private Button btnPrevIcon;
+	private Button btnPrevIcon = null!;
 
-	private Button btnNextIcon;
+	private Button btnNextIcon = null!;
 
-	private OpenFileDialog openFileDialogM3u;
+	private OpenFileDialog openFileDialogM3u = null!;
 
 	public string TaskName { get; private set; }
 
@@ -222,7 +222,7 @@ public class AddTaskForm : Form
 		Close();
 	}
 
-	private void btnCancel_Click(object sender, EventArgs e)
+	private void btnCancel_Click(object? sender, EventArgs e)
 	{
 		base.DialogResult = DialogResult.Cancel;
 		Close();

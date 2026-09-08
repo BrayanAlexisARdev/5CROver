@@ -12,12 +12,13 @@
     <LangVersion>12.0</LangVersion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup />
-  <ItemGroup />
   <ItemGroup>
-    <Content Include="files\**\*.*">
+    <Content Include="files\**\*.*" Exclude="files\img\progreso.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="files\img\progreso.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="LibVLCSharp" Version="3.9.7.1" />
@@ -28,5 +29,13 @@
   </ItemGroup>
   <Target Name="CopyPdfiumNative" AfterTargets="Build">
     <Copy SourceFiles="$(NuGetPackageRoot)pdfiumviewer.native.x86_64.v8-xfa\2018.4.8.256\Build\x64\pdfium.dll" DestinationFolder="$(OutputPath)" />
+  </Target>
+  <!-- The Microsoft.Web.WebView2 package always adds its WPF assembly, which pulls in
+       WindowsBase 5.0 and triggers MSB3277. This project only uses the WinForms control,
+       so drop the WPF reference before assembly resolution. -->
+  <Target Name="RemoveWebView2WpfReference" BeforeTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <Reference Remove="@(Reference)" Condition="'%(FileName)' == 'Microsoft.Web.WebView2.Wpf'" />
+    </ItemGroup>
   </Target>
 </Project>

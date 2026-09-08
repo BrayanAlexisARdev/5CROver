@@ -1,3 +1,11 @@
 bin/
 obj/
 .vs/
+
+# Visual Studio user-specific files
+*.user
+*.suo
+*.userprefs
+
+# Logs
+*.log

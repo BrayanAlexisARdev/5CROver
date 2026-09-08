@@ -21,11 +21,6 @@ partial class Form1
 		var form = new LearnForm(_learningData, 0);
 		form.Location = new Point(Left - form.Width, Top);
 
-		form.StartRequested += (subjectName, minutes) =>
-		{
-			// Quiz runs inside LearnForm — no action needed from Form1
-		};
-
 		form.FormClosed += (_, _) =>
 		{
 			btnLearn.Enabled = true;
@@ -55,21 +50,21 @@ partial class Form1
 
 		if (subj.CurrentStreak > prevStreak)
 		{
-			FlashMessage($"🔥 ¡Racha de {subj.CurrentStreak} días!", Color.FromArgb(255, 150, 0));
+			_ = FlashMessage($"🔥 ¡Racha de {subj.CurrentStreak} días!", Color.FromArgb(255, 150, 0));
 		}
 
 		if (subj.Level > prevLevel)
 		{
-			FlashMessage($"🎉 ¡SUBISTE AL NIVEL {subj.Level} en {subj.DisplayName}!", Color.FromArgb(88, 204, 2));
+			_ = FlashMessage($"🎉 ¡SUBISTE AL NIVEL {subj.Level} en {subj.DisplayName}!", Color.FromArgb(88, 204, 2));
 		}
 
 		if (subj.TodayMinutesStudied >= _learningData.DailyGoalMinutes)
 		{
-			FlashMessage($"🎯 ¡META DIARIA COMPLETADA!", Color.FromArgb(88, 204, 2));
+			_ = FlashMessage($"🎯 ¡META DIARIA COMPLETADA!", Color.FromArgb(88, 204, 2));
 		}
 	}
 
-	private async void FlashMessage(string message, Color color)
+	private async Task FlashMessage(string message, Color color)
 	{
 		string origText = lblMetadata.Text;
 		Color origColor = lblMetadata.ForeColor;

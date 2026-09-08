@@ -14,7 +14,7 @@
 [CASSETTE 01]
 TITULO: LO-FI CHILL
 IMAGEN: cass010.png
-CONTENIDO: https://edge01.streamafrica.net/b36112f0-97e8-4c5c-b6d3-a030a959fb6b
+CONTENIDO: https://stream-289.surfernetwork.com/g1eblmkk5dvuv?zt
 COLOR: #ff0099
 PANTALLA_GIF: girl7_ANI.gif
 TEMA_TV: rain_TV.gif
@@ -22,7 +22,7 @@ TEMA_TV: rain_TV.gif
 [CASSETTE 02]
 TITULO: WEEB ANIME RADIO
 IMAGEN: cass011.png
-CONTENIDO: https://edge01.streamafrica.net/fee126e2-ab7c-47a2-8952-7ba254b7fb59
+CONTENIDO: https://stream-286.surfernetwork.com/2d764zgh2uhvv?zt
 COLOR: #FFCC00
 PANTALLA_GIF: saiyanm_ANI.gif
 TEMA_TV: gcard_TV.gif
@@ -46,7 +46,7 @@ TEMA_TV: rpgnrad_TV.gif
 [CASSETTE 05]
 TITULO: ADR Jazz Sakura
 IMAGEN: cass002.png
-CONTENIDO: https://kathy.torontocast.com:3330/
+CONTENIDO: https://kathy.torontocast.com:3330/stream
 COLOR: #FF69B4
 PANTALLA_GIF: girl8_ANI.gif
 TEMA_TV: flowbk_TV.gif
@@ -54,7 +54,7 @@ TEMA_TV: flowbk_TV.gif
 [CASSETTE 06]
 TITULO: RAD CLASSIC ROCK
 IMAGEN: cass001.png
-CONTENIDO: https://classicrock.streamingmedia.it/audio.aac
+CONTENIDO: https://stream-204.surfernetwork.com/7w3yq9w0k8quv?zt
 COLOR: #ff1e05
 PANTALLA_GIF: tigersn_ANI.gif
 TEMA_TV: steel_TV.gif
@@ -86,7 +86,7 @@ TEMA_TV: flowbk_TV.gif
 [CASSETTE 10]
 TITULO: POP DANCE
 IMAGEN: cass009.png
-CONTENIDO: https://edge01.streamafrica.net/6efae8cd-e1b2-45f9-950c-d1aa34d90888
+CONTENIDO: https://stream-204.surfernetwork.com/gk5unhbt1uhvv?zt
 COLOR: #da47ff
 PANTALLA_GIF: girl2_ANI.gif
 TEMA_TV: bluesk_TV.gif

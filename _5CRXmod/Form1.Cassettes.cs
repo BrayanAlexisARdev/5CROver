@@ -11,12 +11,27 @@ partial class Form1
 {
 	private List<Image> _cassetteImages = new List<Image>();
 
+	private Image? _playerImage;
+
 	private List<CassetteData> _cassettes = new List<CassetteData>();
 
 	private int _currentCassetteIndex;
 	private string _currentCassetteTitle = "";
 
 	private Color _cassetteColor = Color.FromArgb(40, 40, 40);
+
+	private void ReplacePlayerImage(Image newImage)
+	{
+		if (!ReferenceEquals(newImage, _playerImage))
+		{
+			_playerImage?.Dispose();
+			_playerImage = newImage;
+		}
+		picPlayer.Image = newImage;
+		picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
+		picPlayer.Size = new Size(233, 147);
+		picPlayer.Location = new Point((ContentWidth - 233) / 2, 8);
+	}
 
 	private Image? GetCassetteImageFromM3u(string m3uPath, int indexFallback)
 	{
@@ -45,7 +60,7 @@ partial class Form1
 		}
 		if (_cassetteImages.Count > 0)
 		{
-			return _cassetteImages[indexFallback % _cassetteImages.Count];
+			return new Bitmap(_cassetteImages[indexFallback % _cassetteImages.Count]);
 		}
 		return null;
 	}
@@ -67,7 +82,7 @@ partial class Form1
 			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
 			lblM3uTitle.Text = _currentM3uName;
 			lblMetadata.Text = "";
-			Image nextImg = GetCassetteImageFromM3u(path, _currentM3uIndex);
+			Image? nextImg = GetCassetteImageFromM3u(path, _currentM3uIndex);
 			if (nextImg != null)
 			{
 				StartFade(nextImg);
@@ -84,15 +99,10 @@ partial class Form1
 			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
 			lblM3uTitle.Text = _currentM3uName;
 			lblMetadata.Text = "";
-			Image currentImg = GetCassetteImageFromM3u(path, _currentM3uIndex);
+			Image? currentImg = GetCassetteImageFromM3u(path, _currentM3uIndex);
 			if (currentImg != null)
 			{
-				picPlayer.Image = currentImg;
-				picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
-				picPlayer.Size = new Size(154, 97);
-				picPlayer.Left = (pnlCassetteContainer.Width - 154) / 2;
-				picPlayer.Top = 1;
-				picPlayer.Width = 154;
+				ReplacePlayerImage(currentImg);
 			}
 		}
 	}
@@ -140,6 +150,23 @@ partial class Form1
 
 	private static string ResolveImgPath(string fileName) => PathHelper.ResolveImg(fileName);
 
+	private static Image? LoadCassetteImage(string imgName)
+	{
+		try
+		{
+			string imgPath = ResolveImgPath(imgName);
+			if (File.Exists(imgPath))
+			{
+				return PathHelper.LoadImage(imgPath);
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Form1.LoadCassetteImage", ex);
+		}
+		return null;
+	}
+
 	private void ApplyCassette(int index)
 	{
 		if (index < 0 || index >= _cassettes.Count) return;
@@ -166,17 +193,12 @@ partial class Form1
 			catch (Exception ex) { Logger.Error("Form1.ApplyCassette.Color", ex); }
 		}
 		
-		if (!string.IsNullOrEmpty(cass.Imagen))
+		if (!string.IsNullOrEmpty(cass.Imagen) && _nextCassetteImage == null)
 		{
-			string imgPath = ResolveImgPath(cass.Imagen);
-			if (File.Exists(imgPath))
+			Image? newImg = LoadCassetteImage(cass.Imagen);
+			if (newImg != null)
 			{
-				if (picPlayer.Image != null) picPlayer.Image.Dispose();
-				picPlayer.Image = PathHelper.LoadImage(imgPath);
-				picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
-				picPlayer.Size = new Size(154, 97);
-				picPlayer.Left = (pnlCassetteContainer.Width - 154) / 2;
-				picPlayer.Top = 1;
+				ReplacePlayerImage(newImg);
 			}
 		}
 
@@ -204,7 +226,8 @@ partial class Form1
 			}
 		}
 
-		if (!string.IsNullOrEmpty(cass.Contenido))
+		if (!string.IsNullOrEmpty(cass.Contenido) &&
+			!cass.Contenido.Equals("ARREGLAR", StringComparison.OrdinalIgnoreCase))
 		{
 			_ = PlayM3uAsync(cass.Contenido);
 		}
@@ -222,8 +245,7 @@ partial class Form1
 			Image? nextImg = null;
 			if (!string.IsNullOrEmpty(nextCass.Imagen))
 			{
-				string imgPath = ResolveImgPath(nextCass.Imagen);
-				if (File.Exists(imgPath)) nextImg = PathHelper.LoadImage(imgPath);
+				nextImg = LoadCassetteImage(nextCass.Imagen);
 			}
 
 			if (nextImg != null)
@@ -249,8 +271,7 @@ partial class Form1
 		Image? nextImg = null;
 		if (!string.IsNullOrEmpty(cass.Imagen))
 		{
-			string imgPath = ResolveImgPath(cass.Imagen);
-			if (File.Exists(imgPath)) nextImg = PathHelper.LoadImage(imgPath);
+			nextImg = LoadCassetteImage(cass.Imagen);
 		}
 
 		if (nextImg != null)

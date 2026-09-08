@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5CROver — Gestor de Actividades</title>
+
+<style>
+  @font-face {
+    font-family: "Nasalization";
+    src: url("files/typo/nasa.otf") format("opentype"),
+         url("files/typo/nasa2.ttf") format("truetype");
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Digital Clock";
+    src: url("files/typo/dc.ttf") format("truetype");
+    font-display: swap;
+  }
+
+  :root {
+    --accent: #3c8dff;
+    --accent-dark: rgba(0, 0, 0, 0.35);
+    --bg: #141416;
+    --panel: #202023;
+    --panel-2: #2b2b2e;
+    --panel-3: #36363a;
+    --panel-4: #46464c;
+    --line: #3a3a3f;
+    --text: #f2f2f2;
+    --muted: #9aa0a8;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ---------- Lighthouse edge (like the app side bar) ---------- */
+  .lighthouse {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    z-index: 50;
+    background: linear-gradient(180deg, #626268, #323236);
+    border-right: 1px solid rgba(0, 0, 0, 0.55);
+    box-shadow: inset -1px 0 rgba(255, 255, 255, 0.14);
+    padding: 6px 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .lighthouse .slot {
+    flex: 1;
+    width: 12px;
+    border-radius: 4px;
+    background: #18181b;
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+  }
+  .lighthouse .lamp {
+    position: absolute;
+    inset: 3px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--accent) 85%, white 15%);
+    opacity: 0;
+    transition: opacity 0.25s;
+    animation: lampPulse 3.5s infinite;
+  }
+  @keyframes lampPulse {
+    0%, 100% { opacity: 0; }
+    55% { opacity: 1; }
+    78% { opacity: 0.15; }
+  }
+  .lighthouse .rivet {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #8a8a90;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+    margin: 8px 0;
+  }
+
+  /* ---------- Layout ---------- */
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 28px 60px 48px;
+  }
+
+  .brand-bar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: rgba(20, 20, 22, 0.85);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 0;
+  }
+  .brand-bar .inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 28px 0 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand-row img.logo { height: 34px; image-rendering: auto; }
+  .brand-title {
+    font-family: "Nasalization", "Segoe UI", sans-serif;
+    letter-spacing: 3px;
+    font-size: 20px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .brand-title b { color: var(--accent); }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  nav a {
+    font-family: "Nasalization", "Segoe UI", sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-decoration: none;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 7px 14px;
+    border-radius: 8px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+  nav a:hover { color: var(--accent); border-color: var(--accent); background: var(--panel-2); }
+
+  /* ---------- Hero / TV screen ---------- */
+  .hero {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 34px;
+    align-items: center;
+    padding: 48px 0 26px;
+  }
+  .hero h1 {
+    font-family: "Nasalization", "Segoe UI", sans-serif;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 40px;
+    line-height: 1.1;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p.lead {
+    color: var(--muted);
+    margin-top: 16px;
+    max-width: 46ch;
+    font-size: 15px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .chip {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    padding: 5px 11px;
+    border-radius: 99px;
+  }
+  .chip b { color: var(--accent); }
+
+  .tv {
+    position: relative;
+    border-radius: var(--radius);
+    background:
+      radial-gradient(circle at 50% 12%, rgba(255,255,255,.05), transparent 60%),
+      linear-gradient(180deg, #2c2c2f, #17171a);
+    border: 1px solid #0a0a0c;
+    box-shadow:
+      0 30px 60px rgba(0,0,0,.6),
+      inset 0 0 0 6px #1d1d20,
+      inset 0 0 0 7px rgba(255,255,255,.05);
+    padding: 22px;
+  }
+  .tv .screen {
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 4 / 3;
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+  .tv .screen img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .tv .scan {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+  .tv .glare {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, rgba(255,255,255,.12), transparent 40%);
+    pointer-events: none;
+  }
+  .tv .clock {
+    position: absolute;
+    left: 14px;
+    bottom: 12px;
+    color: var(--accent);
+    font-family: "Digital Clock", "Consolas", monospace;
+    font-size: 22px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 80%, transparent);
+  }
+  .tv .behind {
+    display: none;
+  }
+  .tv .knob-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  .tv .knob {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #6a6a72, #2a2a2e 70%);
+    border: 1px solid #0a0a0c;
+    box-shadow: inset 0 -2px 3px rgba(0,0,0,.5), 0 2px 3px rgba(0,0,0,.4);
+  }
+  .tv .eq {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: 3px;
+    height: 20px;
+  }
+  .tv .eq i {
+    width: 3px;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 1px;
+    animation: eq 1.1s ease-in-out infinite;
+  }
+  .tv .eq i:nth-child(2) { animation-delay: .15s; height: 60%; }
+  .tv .eq i:nth-child(3) { animation-delay: .3s;  height: 80%; }
+  .tv .eq i:nth-child(4) { animation-delay: .45s; height: 45%; }
+  .tv .eq i:nth-child(5) { animation-delay: .2s;  height: 95%; }
+  .tv .eq i:nth-child(6) { animation-delay: .5s;  height: 55%; }
+  .tv .eq i:nth-child(7) { animation-delay: .1s;  height: 70%; }
+  @keyframes eq {
+    0%, 100% { transform: scaleY(.35); }
+    50% { transform: scaleY(1); }
+  }
+  .tv .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Nasalization", "Segoe UI", sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #ff5757;
+    border: 1px solid #ff5757;
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+  .tv .live::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff5757;
+    animation: blink 1.2s infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
+
+  /* ---------- Sections ---------- */
+  section { margin-top: 56px; }
+  #timer { background: rgba(0, 0, 0, 0.5); padding: 24px; border-radius: 12px; }
+
+  .sec-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .sec-head .plate {
+    background: linear-gradient(180deg, #3c3c42, #26262a);
+    border: 1px solid #0e0e10;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.12),
+      0 3px 8px rgba(0,0,0,.45);
+    padding: 10px 24px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+  }
+  .sec-head .plate::before,
+  .sec-head .plate::after {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #9a9aa2;
+    box-shadow: 0 1px 0 rgba(0,0,0,.6);
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .sec-head .plate::before { left: 8px; }
+  .sec-head .plate::after  { right: 8px; }
+  .sec-head h2 {
+    font-family: "Nasalization", "Segoe UI", sans-serif;
+    font-weight: 400;
+    letter-spacing: 3px;
+    font-size: 20px;
+  }
+  .sec-head .strip { flex: 1; height: 1px; background: var(--line); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: transform .2s, border-color .2s, box-shadow .2s;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+    box-shadow: 0 14px 30px rgba(0,0,0,.45);
+  }
+  .card .card-top {
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #26262a, #1c1c1f);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .card .card-top .icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--accent) 18%, #16161a);
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    font-family: "Nasalization", "Segoe UI", sans-serif;
+    color: var(--accent);
+    font-size: 15px;
+    letter-spacing: 1px;
+  }
+  .card h3 {
+    font-family: "Nasalization", "Segoe UI", sans-serif;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    font-size: 15px;
+  }
+  .card .card-top small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .card .card-body { padding: 16px 18px 20px; color: #cdd1d6; }
+  .card .card-body p { font-size: 13.5px; }
+  .card .card-body ul { list-style: none; margin-top: 12px; }
+  .card .card-body li {
+    font-size: 12.5px;
+    color: var(--muted);
+    padding: 5px 0 5px 22px;
+    position: relative;
+    border-top: 1px dashed #2e2e33;
+  }
+  .card .card-body li:first-child { border-top: none; }
+  .card .card-body li::before {
+    content: "▸";
+    position: absolute;
+    left: 4px;
+    color: var(--accent);
+  }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .tag {
+    font-size: 10.5px;
+    color: var(--muted);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    padding: 3px 9px;
+    border-radius: 99px;
+  }
+
+  /* ---------- Cassette deck ---------- */
+  .deck {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 22px;
+    align-items: center;
+  }
+  .deck .cassette {
+    background: linear-gradient(180deg, #3f3f44, #26262a);
+    border: 1px solid #0c0c0e;
+    border-radius: 8px;
+    box-shadow: 0 12px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.1);
+    padding: 12px;
+    text-align: center;
+  }
+  .deck .cassette .window {
+    background: linear-gradient(180deg, #0a0a0c, #141416);
+    border-radius: 4px;
+    padding: 6px;
+    border: 1px solid #000;
+  }
+  .deck .cassette .window img { width: 100%; height: 92px; object-fit: cover; border-radius: 3px; }
+  .deck .cassette .label {
+    font-family: "Nasalization", "Segoe UI", sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text);
+    margin-top: 10px;
+  }
+  .deck .cassette .label span { display: block; font-size: 9px; color: var(--muted); letter-spacing: 1px; margin-top: 2px; }
+  .deck .m3u-list h4 {
+    font-family: "Nasalization", "Segoe UI", sans-serif;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    color: var(--muted);
+  }
+  .deck .m3u-list .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+  }
+  .deck .m3u-list .row span {
+    font-size: 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 7px 12px;
+    color: #d7dade;
+  }
+  .deck .m3u-list .row span i { color: var(--accent); font-style: normal; margin-right: 6px; }
+
+  /* ---------- Theme swatches ---------- */
+  .swatches { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; }
+  .swatch {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.25);
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .swatch:hover { transform: scale(1.12); }
+  .swatch.sel {
+    box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--accent);
+    transform: scale(1.08);
+  }
+
+  /* ---------- Keycaps / buttons ---------- */
+  .btnrow { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .key {
+    font-family: "Nasalization", "Segoe UI", sans-serif;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--text);
+    background: linear-gradient(180deg, #4a4a50, #2e2e33);
+    border: 1px solid #101012;
+    border-bottom-width: 3px;
+    border-radius: 7px;
+    padding: 9px 16px;
+    box-shadow: 0 4px 8px rgba(0,0,0,.4);
+  }
+
+  /* ---------- Timeline of secondary apps ---------- */
+  .apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+  .app {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid color-mix(in srgb, var(--accent) 65%, transparent);
+    border-radius: 10px;
+    padding: 16px 18px;
+    transition: transform .2s, border-color .2s;
+  }
+  .app:hover { transform: translateY(-2px); }
+  .app h5 {
+    font-family: "Nasalization", "Segoe UI", sans-serif;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .app p { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+  /* ---------- Footer / disclaimer ---------- */
+  footer {
+    margin-top: 70px;
+    border-top: 1px solid var(--line);
+    background: linear-gradient(180deg, transparent, #111114);
+    padding: 34px 0 40px;
+  }
+  footer .inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 28px 0 48px;
+  }
+  footer .legal {
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    line-height: 1.7;
+  }
+  footer .legal b { color: var(--text); }
+  footer .legal a { color: var(--accent); }
+  footer .feet { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 18px; font-size: 11px; color: #6f747b; }
+
+  @media (max-width: 820px) {
+    .hero { grid-template-columns: 1fr; }
+    .deck { grid-template-columns: 1fr; }
+    .wrap, .brand-bar .inner, footer .inner { padding-left: 24px; }
+    .lighthouse { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Lighthouse (lado izquierdo, como en la app) ===== -->
+<div class="lighthouse" aria-hidden="true">
+  <div class="rivet"></div>
+  <div class="slot"><div class="lamp"></div></div>
+  <div class="rivet"></div>
+</div>
+
+<!-- ===== Barra superior ===== -->
+<header class="brand-bar">
+  <div class="inner">
+    <div class="brand-row">
+      <img class="logo" src="files/img/cincross.png" alt="CINCROSS"
+           onerror="this.style.display='none'">
+      <div class="brand-title">5CRO<span>b</span>VER</div>
+    </div>
+    <nav aria-label="Secciones">
+      <a href="#timer">TIMER</a>
+      <a href="#cassettes">CASSETTES</a>
+      <a href="#tools">TOOLS</a>
+      <a href="#player">PLAYER</a>
+      <a href="#extras">EXTRAS</a>
+      <a href="#temas">TEMAS</a>
+      <a href="#info">INFO</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ===== Portada / pantalla TV ===== -->
+  <div class="hero">
+    <div>
+      <h1>Gestiona tus <span>tareas</span> y escucha <span>radio online</span></h1>
+      <p class="lead">
+        <b style="color:var(--text)">5CROver</b> es un gestor de actividades con
+        temporizador Pomodoro, reproductor de streams públicos y cintas de cassette
+        curadas, todo integrado en un escritorio con estética retro de radio y TV.
+      </p>
+      <div class="chips">
+        <span class="chip"><b>TIMER</b> Pomodoro</span>
+        <span class="chip"><b>CASSETTES</b> Radio online</span>
+        <span class="chip"><b>TOOLS</b> Temas y skins</span>
+        <span class="chip"><b>LEARN</b> Gamificación</span>
+        <span class="chip"><b>HLS</b> Streaming</span>
+      </div>
+    </div>
+
+    <div class="tv">
+      <div class="screen">
+        <img src="files/img/wave1.gif"
+             onerror="this.style.background='radial-gradient(circle at 40% 40%, #0c2a55, #05060a)'; this.remove()"
+             alt="Pantalla de la app">
+        <div class="scan"></div>
+        <div class="glare"></div>
+        <div class="clock" id="clock">00:00:00</div>
+      </div>
+      <div class="knob-row">
+        <div class="live">LIVE</div>
+        <div class="eq" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="knob"></div>
+        <div class="knob"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECCION 1: TIMER ===== -->
+  <section id="timer">
+    <div class="sec-head">
+      <div class="plate"><h2>TIMER</h2></div>
+      <div class="strip"></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-top">
+          <div class="icon">TM</div>
+          <div>
+            <h3>Cronómetro Pomodoro</h3>
+            <small>Cuenta atrás con presets y suma de tiempo</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <p>Selección de horas y minutos con presets, controles
+            <b>START / STOP</b>, botones <b>◀ ▶</b> y un bloqueo de presets para
+            evitar toques accidentales mientras corre el tiempo.</p>
+          <ul>
+            <li>Presets de hora y minuto con selección visual</li>
+            <li>Selector de tiempo con horas y minutos (START / STOP)</li>
+            <li>Alarma al terminar el tiempo</li>
+          </ul>
+          <div class="tags">
+            <span class="tag">Pomodoro</span><span class="tag">Alarma</span><span class="tag">Presets</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="icon">ND</div>
+          <div>
+            <h3>Nodos de progreso</h3>
+            <small>Indicador luminoso paso a paso</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <p>Una secuencia de 10 nodos se enciende de forma progresiva mientras
+            avanza el tiempo, con picos de luz que recorren el panel (estilo
+            "lighthouse").</p>
+          <ul>
+            <li>10 nodos con intensidad y color dinámicos</li>
+            <li>Barra lateral de faro con destellos de acento</li>
+            <li>Sincronizado con el modo de tarea</li>
+          </ul>
+          <div class="tags"><span class="tag">Lighthouse</span><span class="tag">Progreso</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="icon">TV</div>
+          <div>
+            <h3>Pantalla con fondo de TV</h3>
+            <small>Marcos y GIF animados de tema</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <p>El panel del temporizador luce un marco de TV (los temas viejos,
+            acero o consola) y en su interior se proyecta el tiempo en fuente
+            digital.</p>
+          <ul>
+            <li>Reloj digital con fuente "Digital Clock"</li>
+            <li>Marcos de TV animados según el tema de cassette</li>
+            <li>Altura del panel adaptada al marco seleccionado</li>
+          </ul>
+          <div class="tags"><span class="tag">DC font</span><span class="tag">TV themes</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECCION 2: CASSETTES ===== -->
+  <section id="cassettes">
+    <div class="sec-head">
+      <div class="plate"><h2>CASSETTES</h2></div>
+      <div class="strip"></div>
+    </div>
+
+    <div class="deck">
+      <div class="cassette">
+        <div class="window">
+          <img src="files/img/cass001.png"
+               onerror="this.style.display='none'"
+               alt="Cinta de cassette">
+        </div>
+        <div class="label">CASS-001<span>radio online</span></div>
+        <div class="btnrow" style="justify-content:center;margin-top:12px">
+          <span class="key">◀</span>
+          <span class="key">PLAY</span>
+          <span class="key">▶</span>
+        </div>
+      </div>
+
+      <div>
+        <h4>RADIO / PLAYLISTS (.m3u)</h4>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">
+          Cada cassette guarda su imagen, color de interfaz, GIF de pantalla,
+          marco de TV y el listado de emisoras o canciones a reproducir.
+        </p>
+        <div class="m3u-list">
+          <div class="row">
+            <span><i>▶</i>radio</span>
+            <span><i>▶</i>rock</span>
+            <span><i>▶</i>pop dance</span>
+            <span><i>▶</i>lofi</span>
+            <span><i>▶</i>jpop</span>
+            <span><i>▶</i>game</span>
+            <span><i>▶</i>chiptune</span>
+            <span><i>▶</i>hatsune</span>
+            <span><i>▶</i>blues</span>
+            <span><i>▶</i>smooth jazz</span>
+          </div>
+        </div>
+        <div class="btnrow">
+          <span class="key">LIST</span>
+          <span class="key">FAV LIST</span>
+          <span class="key">ADD FAV</span>
+          <span class="key">LEARN</span>
+          <span class="key">INFO</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:18px">
+      <div class="card">
+        <div class="card-top">
+          <div class="icon">CF</div>
+          <div><h3>Colección de cassettes</h3><small>CASS_master.txt</small></div>
+        </div>
+        <div class="card-body">
+          <p>Una librería de cassettes definidos en un archivo maestro. Cada uno
+            puede cambiar el color de toda la interfaz al reproducirse.</p>
+          <ul>
+            <li>Navegación ◀ ▶ y salto directo (escribí el número)</li>
+            <li>Lista de cassettes con vista previa (CASSETTE LIST)</li>
+            <li>Créditos por cassette: imagen + GIF + color + tema TV</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="icon">FV</div>
+          <div><h3>Favoritos</h3><small>Acceso rápido</small></div>
+        </div>
+        <div class="card-body">
+          <p>Guardá tus cassettes preferidos y aplicá su color y marco de TV al
+            instante con un solo toque.</p>
+          <ul>
+            <li>ADD FAV / FAV LIST para administrar</li>
+            <li>Restaura color de interfaz, tema y título</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="icon">EQ</div>
+          <div><h3>Ecualizador animado</h3><small>Estética radio</small></div>
+        </div>
+        <div class="card-body">
+          <p>El reproductor dibuja un ecualizador y una piel de radio con
+            perillas, parlantes, parlante grillé y tornillos.</p>
+          <ul>
+            <li>Perillas de volumen dibujadas a medida</li>
+            <li>Grilla de parlante y dispensador metálico</li>
+            <li>Transiciones con fundido entre cassettes</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECCION 3: TOOLS ===== -->
+  <section id="tools">
+    <div class="sec-head">
+      <div class="plate"><h2>TOOLS</h2></div>
+      <div class="strip"></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-top">
+          <div class="icon">CO</div>
+          <div><h3>Color de la app</h3><small>Color picker</small></div>
+        </div>
+        <div class="card-body">
+          <p>Elegí un color base y toda la interfaz se recalcula a partir de él:
+            fondo oscurecido, paneles y listas con contraste automático.</p>
+          <div class="tags"><span class="tag">Acento</span><span class="tag">Contraste</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="icon">TH</div>
+          <div><h3>THEME / IMAGE</h3><small>Ciclos de tema y fondo</small></div>
+        </div>
+        <div class="card-body">
+          <p>Cambiá el marco del aparato y el fondo del panel con fondos de TV
+            animados (clásicos, acero, consola).</p>
+          <ul>
+            <li>THEME: recorre los fondos de TV definidos en THEME.txt</li>
+            <li>IMAGE: cicla imágenes de pantalla / GIF</li>
+            <li>Mantiene el color de acento elegido</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="icon">SK</div>
+          <div><h3>Estilo de radio / skins</h3><small>Draw custom</small></div>
+        </div>
+        <div class="card-body">
+          <p>La interfaz se pinta a mano: tornillos, remaches, placas de
+            cabecera, perillas y rejillas metálicas con relieve.</p>
+          <ul>
+            <li>Header plates con tornillos en las esquinas</li>
+            <li>Botones metálicos y perillas de volumen</li>
+            <li>Contenido de las secciones a medida (SECTION BODY)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="icon">TC</div>
+          <div><h3>Tareas con música</h3><small>AddTask / EditTask</small></div>
+        </div>
+        <div class="card-body">
+          <p>Las tareas tienen nombre, tiempo, ícono y playlist asociada:
+            al completarlas empieza la música o se reproduce el m3u elegido.</p>
+          <ul>
+            <li>Íconos tipo tarjeta (libro, código, música, deporte…)</li>
+            <li>Slots AUTOMÁTICOS y tareas fijas</li>
+            <li>Barra de progreso y tiempo restante</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECCION 4: PLAYER ===== -->
+  <section id="player">
+    <div class="sec-head">
+      <div class="plate"><h2>PLAYER</h2></div>
+      <div class="strip"></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-top">
+          <div class="icon">PL</div>
+          <div><h3>Reproducción HLS + WMP</h3><small>LibVLC / Windows Media</small></div>
+        </div>
+        <div class="card-body">
+          <p>Múltiples motores según el contenido: Windows Media Player para
+            streams simples y un reproductor VLC (LibVLC) para listas HLS con
+            descarga por segmentos y reproducción continua.</p>
+          <ul>
+            <li>Detección automática de .m3u8/.m3u (HLS)</li>
+            <li>Fallback a stream directo si falla la lista</li>
+            <li>Metadatos de título y artista en vivo</li>
+          </ul>
+          <div class="tags"><span class="tag">HLS</span><span class="tag">LibVLC</span><span class="tag">Streaming</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="icon">VO</div>
+          <div><h3>Volumen por perilla</h3><small>Slider custom</small></div>
+        </div>
+        <div class="card-body">
+          <p>Control de volumen con línea y pulgar deslizantes, actualizado
+            también desde el reproductor de fondo.</p>
+          <ul>
+            <li>Drag con el mouse sobre la pista</li>
+            <li>Liveles bajo / medio / máximo</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="icon">MM</div>
+          <div><h3>Metadatos en pantalla</h3><small>SONG TITLE</small></div>
+        </div>
+        <div class="card-body">
+          <p>La línea inferior muestra el título del m3u y la canción actual, y
+            también se usa para los mensajes del sistema de aprendizaje.</p>
+          <ul>
+            <li>Actualización de metadatos periódica</li>
+            <li>Mensajes de éxito (racha, nivel, meta)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECCION 5: EXTRAS ===== -->
+  <section id="extras">
+    <div class="sec-head">
+      <div class="plate"><h2>EXTRAS</h2></div>
+      <div class="strip"></div>
+    </div>
+    <div class="apps">
+      <div class="app">
+        <h5>LEARNING</h5>
+        <p>Estudio gamificado: materias (Matemáticas, SQL, Programación, Inglés)
+          con XP, niveles, rachas y meta diaria. Paneles de PROGRESO, BOOSTERS,
+          PASSWORD y OPCIONES con tienda de potenciadores.</p>
+      </div>
+      <div class="app">
+        <h5>YOUTUBE VIEWER</h5>
+        <p>Ventana integrada con WebView2 para abrir y navegar videos de YouTube
+          desde la app, con barra de URL y botón GO.</p>
+      </div>
+      <div class="app">
+        <h5>PDF MANUAL</h5>
+        <p>Visor de PDF (PdfiumViewer) para abrir el manual de usuario dentro de
+          la aplicación, con marcadores y barra de herramientas.</p>
+      </div>
+      <div class="app">
+        <h5>SET TIME</h5>
+        <p>Selector de tiempo con horas y minutos, y botones START/STOP para
+          configurar el temporizador de forma rápida.</p>
+      </div>
+      <div class="app">
+        <h5>FAVORITES</h5>
+        <p>Lista de accesos directos para volver a tu cassette favorito con su
+          tema, color y música.</p>
+      </div>
+      <div class="app">
+        <h5>INFORMACIÓN</h5>
+        <p>Notas legales de CINCROSS: no es propietaria de las emisoras y cede
+          todos los derechos de los contenidos a sus dueños.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECCION 6: TEMAS ===== -->
+  <section id="temas">
+    <div class="sec-head">
+      <div class="plate"><h2>TEMAS</h2></div>
+      <div class="strip"></div>
+    </div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">
+      Elegí un color y la página cambia de acento, tal como lo hace la app al
+      aplicar el color base de cada cassette o tema:
+    </p>
+    <div class="swatches" id="swatches">
+      <div class="swatch"  data-c="#ffffff" title="Clásico" style="background:#ffffff"></div>
+      <div class="swatch"  data-c="#4169e1"  title="RoyalBlue" style="background:#4169e1"></div>
+      <div class="swatch"  data-c="#111111"  title="Black" style="background:#111111"></div>
+      <div class="swatch"  data-c="#f0f0f0"  title="White" style="background:#f0f0f0"></div>
+      <div class="swatch"  data-c="#dc143c"  title="Crimson" style="background:#dc143c"></div>
+      <div class="swatch"  data-c="#228b22"  title="ForestGreen" style="background:#228b22"></div>
+      <div class="swatch"  data-c="#ffd700"  title="Gold" style="background:#ffd700"></div>
+      <div class="swatch"  data-c="#800080"  title="Purple" style="background:#800080"></div>
+    </div>
+  </section>
+
+  <!-- ===== SECCION 7: INFO / disclaimer ===== -->
+  <footer id="info">
+    <div class="inner">
+      <div class="legal">
+        <b>INFORMACIÓN</b> — Esta aplicación es un reproductor de radio online con
+        temporizador que facilita el acceso a streams públicos.<br><br>
+        CINCROSS no es propietaria, ni tiene relación comercial con estas emisoras
+        reproducidas. Todos los derechos de los contenidos pertenecen exclusivamente a
+        sus respectivos dueños.<br><br>
+        Si usted es titular de una emisora y desea que esta sea retirada de la
+        plataforma, contacte a <a href="mailto:X@gmail.com">X@gmail.com</a>.
+      </div>
+      <div class="feet">
+        <span>5CROver — x5VER01.netcoreapp9.0-windows</span>
+        <span>CINCROSS</span>
+      </div>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+  // Reloj digital en vivo (estilo de la app)
+  const clock = document.getElementById("clock");
+  const pad = n => String(n).padStart(2, "0");
+  setInterval(() => {
+    const d = new Date();
+    clock.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }, 200);
+
+  // Cambio de acento al hacer clic en una muestra de color
+  const root = document.documentElement;
+  const swatches = document.querySelectorAll("#swatches .swatch");
+  swatches.forEach(s => s.addEventListener("click", () => {
+    swatches.forEach(x => x.classList.remove("sel"));
+    s.classList.add("sel");
+    root.style.setProperty("--accent", s.dataset.c);
+  }));
+  swatches[1].classList.add("sel");
+</script>
+
+</body>
+</html>

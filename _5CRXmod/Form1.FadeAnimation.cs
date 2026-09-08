@@ -19,18 +19,6 @@ partial class Form1
 
 	private string? _noiseFile;
 
-	private string? _avatarPath;
-	private string? _savedDisplayPath;
-	private Bitmap? _tvCharacterComposite;
-	private string? _avatarHead;
-	private string? _avatarHair;
-	private string? _avatarBody;
-	private string? _avatarFace;
-	private string? _avatarAccessories;
-	private string? _avatarBg;
-	private string? _avatarFullOutfit;
-	private string? _avatarPet;
-
 	private List<Bitmap> _spriteFrames = new List<Bitmap>();
 
 	private int _currentSpriteFrame;
@@ -95,6 +83,7 @@ partial class Form1
 		if (!_isPlaying)
 		{
 			DrawEqIdle(e.Graphics, w, h, neonColor);
+			DrawStationTitleOverlay(e.Graphics, w, h);
 			return;
 		}
 
@@ -132,6 +121,31 @@ partial class Form1
 			case 29: DrawEqChirp(e.Graphics, w, h, neonColor, _eqAnimationOffset); break;
 			default: DrawEqSoftWave(e.Graphics, w, h, neonColor, _eqAnimationOffset); break;
 		}
+		DrawStationTitleOverlay(e.Graphics, w, h);
+	}
+
+	private void DrawStationTitleOverlay(Graphics g, int w, int h)
+	{
+		if (string.IsNullOrEmpty(lblM3uTitle.Text)) return;
+		g.SmoothingMode = SmoothingMode.AntiAlias;
+		g.TextRenderingHint = TextRenderingHint.AntiAlias;
+		string text = lblM3uTitle.Text;
+		Font font = lblM3uTitle.Font;
+		SizeF sz = g.MeasureString(text, font);
+		float tx = (w - sz.Width) / 2f;
+		float ty = (h - sz.Height) / 2f;
+		using (var outline = new SolidBrush(Color.Black))
+		{
+			(float dx, float dy)[] offsets =
+			[
+				(-1f, 0f), (1f, 0f), (0f, -1f), (0f, 1f),
+				(-1f, -1f), (1f, -1f), (-1f, 1f), (1f, 1f)
+			];
+			foreach (var (dx, dy) in offsets)
+				g.DrawString(text, font, outline, tx + dx, ty + dy);
+		}
+		using (var core = new SolidBrush(lblM3uTitle.ForeColor))
+			g.DrawString(text, font, core, tx, ty);
 	}
 
 	private static void GetEqLayout(int w, int barCount, out int gap, out int barWidth)
@@ -791,13 +805,13 @@ partial class Form1
 				}
 				_fadePhase = 1;
 				_fadeFrameIndex = 0;
-				frames = _fadeInFrames;
+				frames = _fadeInFrames!;
 			}
 			else
 			{
 				if (_nextCassetteImage != null)
 				{
-					picPlayer.Image = _nextCassetteImage;
+					ReplacePlayerImage(_nextCassetteImage);
 					_nextCassetteImage = null;
 				}
 				ClearFrameList(_fadeOutFrames);
@@ -822,7 +836,7 @@ partial class Form1
 	{
 		if (picPlayer.Image == null)
 		{
-			picPlayer.Image = newImage;
+			ReplacePlayerImage(newImage);
 			return;
 		}
 
@@ -830,7 +844,7 @@ partial class Form1
 		ClearFrameList(_fadeInFrames);
 
 		_nextCassetteImage = newImage;
-		var oldImg = picPlayer.Image;
+		Image oldImg = picPlayer.Image;
 
 		int steps = 7;
 		_fadePhase = 0;
@@ -839,16 +853,31 @@ partial class Form1
 		_fadeInFrames = new List<Bitmap>(steps);
 
 		float div = 1f / steps;
-		for (int i = steps; i >= 0; i--)
-			_fadeOutFrames.Add(CreateAlphaCopy(oldImg, i * div));
-		for (int i = 1; i <= steps; i++)
-			_fadeInFrames.Add(CreateAlphaCopy(newImage, i * div));
+		try
+		{
+			for (int i = steps; i >= 0; i--)
+				_fadeOutFrames.Add(CreateAlphaCopy(oldImg, i * div));
+			for (int i = 1; i <= steps; i++)
+				_fadeInFrames.Add(CreateAlphaCopy(newImage, i * div));
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Form1.StartFade", ex);
+			ClearFrameList(_fadeOutFrames);
+			ClearFrameList(_fadeInFrames);
+			_nextCassetteImage = null;
+			ReplacePlayerImage(newImage);
+			return;
+		}
 
 		if (!string.IsNullOrEmpty(_noiseFile))
 			picMainDisplay.ImageLocation = _noiseFile;
 
-		_slideTimer.Interval = 28;
-		_slideTimer?.Start();
+		if (_slideTimer != null)
+		{
+			_slideTimer.Interval = 28;
+			_slideTimer.Start();
+		}
 	}
 
 	private static Bitmap CreateAlphaCopy(Image img, float alpha)
@@ -900,7 +929,7 @@ partial class Form1
 		e.Graphics.DrawString(text, font, textBrush, new PointF(0f, 0f));
 	}
 
-	private async void CycleAni()
+	private async Task CycleAni()
 	{
 		if (_aniFiles.Count != 0)
 		{
@@ -914,13 +943,6 @@ partial class Form1
 			picMainDisplay.ImageLocation = _aniFiles[_currentAniIndex];
 			picMainDisplay.Refresh();
 		}
-	}
-
-	private void PicMainDisplay_Paint(object? sender, PaintEventArgs e)
-	{
-		if (_tvCharacterComposite != null)
-			e.Graphics.DrawImage(_tvCharacterComposite, 0, 0,
-				_tvCharacterComposite.Width, _tvCharacterComposite.Height);
 	}
 
 	private void LoadSpriteSheet(string path, int frameWidth, int frameHeight, int frameCount)

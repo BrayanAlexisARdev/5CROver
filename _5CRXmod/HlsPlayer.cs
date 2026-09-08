@@ -11,8 +11,8 @@ namespace _5CRXmod
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern bool SetDllDirectory(string lpPathName);
 
-        private LibVLC _libVlc;
-        private MediaPlayer _mediaPlayer;
+        private LibVLC? _libVlc;
+        private MediaPlayer? _mediaPlayer;
         private Media? _currentMedia;
         private HlsDownloader? _hlsDownloader;
         private string? _currentTempFile;
@@ -22,7 +22,7 @@ namespace _5CRXmod
         private bool _isHls;
         private bool _stoppedGuard;
 
-        public MediaPlayer Player => _mediaPlayer;
+        public MediaPlayer? Player => _mediaPlayer;
         public bool IsPlaying => _mediaPlayer?.IsPlaying ?? false;
         public string? CurrentTitle { get; private set; }
         public string? CurrentArtist { get; private set; }
@@ -71,10 +71,10 @@ namespace _5CRXmod
                 Log($"Plugin path: {pluginPath} exists: {Directory.Exists(pluginPath)}");
                 Environment.SetEnvironmentVariable("VLC_PLUGIN_PATH", pluginPath);
 
-                _libVlc = new LibVLC("--no-video",
-                    "--verbose=2",
-                    $"--plugin-path={pluginPath}",
-                    "--no-plugins-cache");
+_libVlc = new LibVLC("--no-video",
+					"--verbose=2",
+					$"--plugin-path={pluginPath}",
+					"--no-plugins-cache");
                 Log("LibVLC created OK");
 
                 _libVlc.Log += (s, e) =>
@@ -149,6 +149,12 @@ namespace _5CRXmod
 
         private void PlayDirect(string url, bool isHttp)
         {
+            if (_libVlc == null || _mediaPlayer == null)
+            {
+                Log("PlayDirect: VLC not initialized");
+                Error?.Invoke("VLC NO INICIALIZADO");
+                return;
+            }
             _currentMedia?.Dispose();
             _currentMedia = null;
             _currentMedia = isHttp
@@ -207,6 +213,12 @@ namespace _5CRXmod
             _currentTempFile = result;
             Log($"Playing temp file: {_currentTempFile}");
 
+            if (_libVlc == null || _mediaPlayer == null)
+            {
+                Log("PlayNextBatch: VLC not initialized");
+                Error?.Invoke("VLC NO INICIALIZADO");
+                return false;
+            }
             _currentMedia?.Dispose();
             _currentMedia = new Media(_libVlc, _currentTempFile);
             bool playResult = _mediaPlayer.Play(_currentMedia);
@@ -239,6 +251,10 @@ namespace _5CRXmod
                 {
                     Stopped?.Invoke();
                 }
+            }
+            catch (Exception ex)
+            {
+                Log($"OnStopped ERROR: {ex.GetType().Name}: {ex.Message}");
             }
             finally
             {
@@ -295,7 +311,39 @@ namespace _5CRXmod
             }
         }
 
-        private void Log(string msg)
+        public void PollMetadata()
+		{
+			try
+			{
+				if (_mediaPlayer == null || _currentMedia == null || !_mediaPlayer.IsPlaying)
+				{
+					return;
+				}
+				string? title = _currentMedia.Meta(MetadataType.Title);
+				string? artist = _currentMedia.Meta(MetadataType.Artist);
+				bool changed = false;
+				if (!string.IsNullOrEmpty(title) && title != CurrentTitle)
+				{
+					CurrentTitle = title;
+					changed = true;
+				}
+				if (!string.IsNullOrEmpty(artist) && artist != CurrentArtist)
+				{
+					CurrentArtist = artist;
+					changed = true;
+				}
+				if (changed)
+				{
+					MediaChanged?.Invoke();
+				}
+			}
+			catch (Exception ex)
+			{
+				Log($"PollMetadata ERROR: {ex.Message}");
+			}
+		}
+
+		private void Log(string msg)
         {
             try
             {

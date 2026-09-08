@@ -29,6 +29,9 @@
     <Compile Update="_5CRXmod\Form1.Learning.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="_5CRXmod\Form1.Lighthouse.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="_5CRXmod\Form1.Player.cs">
       <SubType>Form</SubType>
     </Compile>

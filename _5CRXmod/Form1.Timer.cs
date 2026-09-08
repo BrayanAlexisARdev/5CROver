@@ -11,7 +11,7 @@ partial class Form1
 
 	private bool _timerRunning;
 
-	private Timer countdownTimer;
+	private Timer countdownTimer = null!;
 
 	private int _manualHours;
 
@@ -21,7 +21,7 @@ partial class Form1
 
 	private int _presetBlockGen;
 
-	private async void ShowPresetBlockMessage()
+	private async Task ShowPresetBlockMessage()
 	{
 		int gen = ++_presetBlockGen;
 		_presetBlockMsg = true;
@@ -143,7 +143,7 @@ partial class Form1
 		btnP.Text = "▶";
 		btnS.Text = "⏹";
 		SetLighthouseState(2);
-		PlayAlarmSound();
+		_ = PlayAlarmSound();
 		_timeRemaining = TimeSpan.Zero;
 		UpdateTimerDisplay();
 		ResetNodeProgress();

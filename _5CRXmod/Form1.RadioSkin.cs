@@ -23,8 +23,6 @@ partial class Form1
 		tasksListPanel.Paint += SectionBodyPaint;
 		btnP.Paint += KnobButtonPaint;
 		btnS.Paint += KnobButtonPaint;
-		btnPrevM3u.Paint += CassetteNavPaint;
-		btnNextM3u.Paint += CassetteNavPaint;
 		btnCloseApp.Paint += ClosePlatePaint;
 		pnlProgressBg.Paint += ScaleSlotPaint;
 
@@ -35,8 +33,6 @@ partial class Form1
 		tasksListPanel.Invalidate();
 		btnP.Invalidate();
 		btnS.Invalidate();
-		btnPrevM3u.Invalidate();
-		btnNextM3u.Invalidate();
 		btnCloseApp.Invalidate();
 		pnlProgressBg.Invalidate();
 	}
@@ -54,6 +50,11 @@ partial class Form1
 		{
 			using var tint = new SolidBrush(Color.FromArgb(102, _appColor));
 			g.FillRectangle(tint, r);
+		}
+		if (ReferenceEquals(sender, tasksListPanel))
+		{
+			using var wash = new SolidBrush(TimerWash);
+			g.FillRectangle(wash, r);
 		}
 	}
 

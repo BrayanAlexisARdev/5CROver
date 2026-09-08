@@ -198,6 +198,7 @@ partial class Form1
 
 	private void UpdateTaskProgress()
 	{
+		if (_nodeIntensities.Length == 0) return;
 		double progress = _activeTaskPanel == null ? 0
 			: (_activeTaskTotalSeconds - _timeRemaining.TotalSeconds) / _activeTaskTotalSeconds;
 
@@ -220,6 +221,7 @@ partial class Form1
 
 	private void ResetTaskProgress(Panel taskPanel)
 	{
+		if (_nodeIntensities.Length == 0) return;
 		for (int i = 0; i < _nodeCount; i++)
 			_nodeIntensities[i] = 0;
 		pnlProgressFill.Invalidate();
@@ -267,7 +269,7 @@ partial class Form1
 		{
 			Height = 60,
 			Width = base.Width / 2,
-			BackColor = Color.FromArgb(40, Color.Black),
+			BackColor = Color.Transparent,
 			BorderStyle = BorderStyle.None,
 			Margin = new Padding(0),
 			Name = "pnlAddSlot"

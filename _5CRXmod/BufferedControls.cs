@@ -23,4 +23,15 @@ namespace _5CRXmod
             DoubleBuffered = true;
         }
     }
+
+    public class BufferedFlowLayoutPanel : FlowLayoutPanel
+    {
+        public BufferedFlowLayoutPanel()
+        {
+            SetStyle(ControlStyles.SupportsTransparentBackColor
+                | ControlStyles.OptimizedDoubleBuffer
+                | ControlStyles.AllPaintingInWmPaint, true);
+            DoubleBuffered = true;
+        }
+    }
 }

@@ -29,20 +29,36 @@ partial class Form1
 
 	private string _currentM3uName = "";
 	private string _lastTitle = "";
+	private string _lastArtist = "";
 
 	private List<string> _m3uFiles = new List<string>();
 
 	private int _currentM3uIndex;
 
+	private void SafeSetUi(Action action)
+	{
+		try
+		{
+			if (IsHandleCreated && InvokeRequired)
+				BeginInvoke(action);
+			else
+				action();
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Form1.SafeSetUi", ex);
+		}
+	}
+
 	private void InitPlayer()
 	{
 		try
 		{
-			Type type = Type.GetTypeFromProgID("WMPlayer.OCX.7");
+			Type? type = Type.GetTypeFromProgID("WMPlayer.OCX.7");
 			if (type != null)
 			{
 				_wmp = Activator.CreateInstance(type);
-				_wmp.settings.autoStart = true;
+				_wmp!.settings.autoStart = true;
 				_m3u8WatchTimer = new Timer
 				{
 					Interval = 3000
@@ -66,27 +82,27 @@ partial class Form1
 					}
 					catch (Exception ex) { Logger.Error("Form1._m3u8WatchTimer", ex); }
 				};
-				_metaTimer = new Timer
-				{
-					Interval = 2000
-				};
-				_metaTimer.Tick += delegate
-				{
-					UpdateMetadata();
-				};
 			}
 		}
 		catch (Exception ex)
 		{
 			Logger.Error("Form1.InitPlayer.WMP", ex);
 		}
+		_metaTimer = new Timer
+		{
+			Interval = 2000
+		};
+		_metaTimer.Tick += delegate
+		{
+			UpdateMetadata();
+		};
 		try
 		{
-			Type alarmType = Type.GetTypeFromProgID("WMPlayer.OCX.7");
+			Type? alarmType = Type.GetTypeFromProgID("WMPlayer.OCX.7");
 			if (alarmType != null)
 			{
 				_wmpAlarm = Activator.CreateInstance(alarmType);
-				_wmpAlarm.settings.autoStart = false;
+				_wmpAlarm!.settings.autoStart = false;
 			}
 		}
 		catch (Exception ex)
@@ -99,22 +115,34 @@ partial class Form1
 			_hlsPlayer.MediaChanged += () =>
 			{
 				if (!_isHlsStream || _hlsPlayer == null) return;
-				string? title = _hlsPlayer.CurrentTitle;
-				if (!string.IsNullOrEmpty(title) && title != _lastTitle)
+				SafeSetUi(() =>
 				{
-					_lastTitle = title;
-					if (string.IsNullOrEmpty(_currentCassetteTitle))
-						lblM3uTitle.Text = Path.GetFileNameWithoutExtension(_lastHlsUrl ?? "").ToUpper();
-					else
-						lblM3uTitle.Text = _currentCassetteTitle;
-					lblMetadata.Text = title.ToUpper();
+					string? title = _hlsPlayer!.CurrentTitle;
 					string? artist = _hlsPlayer.CurrentArtist;
-					lblExtraMetadata.Text = string.IsNullOrEmpty(artist) ? "" : artist.ToUpper();
-				}
+					if (!string.IsNullOrEmpty(title) && title != _lastTitle)
+					{
+						_lastTitle = title;
+						_lastArtist = artist ?? "";
+						if (string.IsNullOrEmpty(_currentCassetteTitle))
+							lblM3uTitle.Text = Path.GetFileNameWithoutExtension(_lastHlsUrl ?? "").ToUpper();
+						else
+							lblM3uTitle.Text = _currentCassetteTitle;
+						lblMetadata.Text = title.ToUpper();
+						lblExtraMetadata.Text = string.IsNullOrEmpty(artist) ? "" : artist.ToUpper();
+					}
+					else if (title == _lastTitle && !string.IsNullOrEmpty(artist) && artist != _lastArtist)
+					{
+						_lastArtist = artist;
+						lblExtraMetadata.Text = artist.ToUpper();
+					}
+				});
 			};
 			_hlsPlayer.Error += msg =>
 			{
-				try { lblExtraMetadata.Text = msg.ToUpper(); } catch (Exception innerEx) { Logger.Error("Form1.HlsPlayer.Error", innerEx); }
+				SafeSetUi(() =>
+				{
+					try { lblExtraMetadata.Text = msg.ToUpper(); } catch (Exception innerEx) { Logger.Error("Form1.HlsPlayer.Error", innerEx); }
+				});
 			};
 		}
 		catch (Exception ex)
@@ -125,6 +153,18 @@ partial class Form1
 
 	private void UpdateMetadata()
 	{
+		try
+		{
+			if (_isHlsStream)
+			{
+				_hlsPlayer?.PollMetadata();
+				return;
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Form1.UpdateMetadata.Hls", ex);
+		}
 		if (_wmp == null)
 		{
 			return;
@@ -162,7 +202,7 @@ partial class Form1
 			if (!string.IsNullOrEmpty(title) && title != _lastTitle)
 			{
 				_lastTitle = title;
-				lblM3uTitle.Text = _currentCassetteTitle;
+				lblM3uTitle.Text = string.IsNullOrEmpty(_currentCassetteTitle) ? _currentM3uName : _currentCassetteTitle;
 				lblMetadata.Text = title.ToUpper();
 				string line2 = ((!string.IsNullOrEmpty(artist)) ? artist : genre);
 				if (!string.IsNullOrEmpty(album))
@@ -194,6 +234,7 @@ partial class Form1
 			_lastHlsUrl = path;
 			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
 			_lastTitle = "";
+			_lastArtist = "";
 			if (string.IsNullOrEmpty(_currentCassetteTitle))
 				lblM3uTitle.Text = _currentM3uName;
 			lblMetadata.Text = "";
@@ -203,6 +244,7 @@ partial class Form1
 			lblExtraMetadata.Visible = true;
 			_isPlaying = true;
 			SetVolumePreset(3);
+			_metaTimer?.Start();
 			return;
 		}
 		_hlsPlayer?.Stop();
@@ -218,6 +260,7 @@ partial class Form1
 			_wmp.controls.play();
 			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
 			_lastTitle = "";
+			_lastArtist = "";
 			if (string.IsNullOrEmpty(_currentCassetteTitle))
 				lblM3uTitle.Text = _currentM3uName;
 			lblMetadata.Text = "";
@@ -244,7 +287,7 @@ partial class Form1
 		int state;
 		try
 		{
-			state = (int)_wmp.playState;
+			state = (int)_wmp!.playState;
 		}
 		catch (Exception ex)
 		{
@@ -261,6 +304,7 @@ partial class Form1
 		_isHlsStream = true;
 		_lastHlsUrl = url;
 		_lastTitle = "";
+		_lastArtist = "";
 		try
 		{
 			lblMetadata.Text = "";
@@ -275,6 +319,7 @@ partial class Form1
 		if (gen != _playGen) return;
 		_isPlaying = true;
 		SetVolumePreset(3);
+		_metaTimer?.Start();
 	}
 
 	private void SetVolumePreset(int percent)
@@ -347,6 +392,7 @@ partial class Form1
 			Logger.Error("Form1.StopM3u", ex);
 		}
 		_lastTitle = "";
+		_lastArtist = "";
 		lblMetadata.Text = "";
 		lblExtraMetadata.Text = "";
 		_isPlaying = false;
@@ -367,7 +413,7 @@ partial class Form1
 		}
 	}
 
-	private async void PlayAlarmSound()
+	private async Task PlayAlarmSound()
 	{
 		if (_wmpAlarm == null) return;
 

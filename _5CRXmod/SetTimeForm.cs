@@ -7,19 +7,19 @@ namespace _5CRXmod;
 
 public class SetTimeForm : Form
 {
-	private IContainer components;
+	private IContainer components = null!;
 
-	private Label label1;
+	private Label label1 = null!;
 
-	private Label label2;
+	private Label label2 = null!;
 
-	private NumericUpDown numericUpDownHours;
+	private NumericUpDown numericUpDownHours = null!;
 
-	private NumericUpDown numericUpDownMinutes;
+	private NumericUpDown numericUpDownMinutes = null!;
 
-	private Button btnSet;
+	private Button btnSet = null!;
 
-	private Button btnStart;
+	private Button btnStart = null!;
 
 	public int SelectedHours { get; private set; }
 
@@ -51,7 +51,7 @@ public class SetTimeForm : Form
 		FontHelper.ApplyFont(this, 10f);
 	}
 
-	private void btnSet_Click(object sender, EventArgs e)
+	private void btnSet_Click(object? sender, EventArgs e)
 	{
 		SaveValues();
 		StartImmediately = false;
@@ -59,7 +59,7 @@ public class SetTimeForm : Form
 		Close();
 	}
 
-	private void btnStart_Click(object sender, EventArgs e)
+	private void btnStart_Click(object? sender, EventArgs e)
 	{
 		SaveValues();
 		StartImmediately = true;

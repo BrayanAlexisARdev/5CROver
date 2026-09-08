@@ -69,6 +69,7 @@ partial class Form1
 		{
 			if (File.Exists(fav.TemaTV))
 			{
+				if (timerPanel.BackgroundImage != null) timerPanel.BackgroundImage.Dispose();
 				timerPanel.BackgroundImage = PathHelper.LoadImage(fav.TemaTV);
 				timerPanel.Height = timerPanel.BackgroundImage.Height - 4;
 			}

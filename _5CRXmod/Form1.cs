@@ -44,79 +44,81 @@ public partial class Form1 : Form
 		}
 	}
 
-	private IContainer components;
+	private IContainer components = null!;
 
-	private BufferedPanel timerPanel;
+	private static readonly Color TimerWash = Color.FromArgb(128, Color.Black);
 
-	private BufferedLabel lblHours;
+	private BufferedPanel timerPanel = null!;
 
-	private BufferedLabel lblMinutes;
+	private BufferedLabel lblHours = null!;
 
-	private BufferedLabel lblSeconds;
+	private BufferedLabel lblMinutes = null!;
 
-	private BufferedPanel pnlTopButtons;
+	private BufferedLabel lblSeconds = null!;
 
-	private Button btnP;
+	private BufferedPanel pnlTopButtons = null!;
 
-	private Button btnS;
+	private Button btnP = null!;
 
-	private Panel pnlTimerControls;
+	private Button btnS = null!;
 
-	private Button btnTheme;
+	private Panel pnlTimerControls = null!;
 
-	private Button btnImage;
+	private Button btnTheme = null!;
 
-	private Button btnColor;
+	private Button btnImage = null!;
 
-	private Button btnStyle;
+	private Button btnColor = null!;
 
-	private BufferedPanel cassettesHeaderPanel;
+	private Button btnStyle = null!;
 
-	private Label lblCassettes;
-	private TextBox txtCassetteNum;
-	private Label lblCassetteTotal;
-	private Button btnCassetteList;
-	private Button btnFavList;
-	private Button btnAddFav;
-	private Button btnLearn;
-	private Button btnInfo;
-	private Panel pnlFullListRow;
+	private BufferedPanel cassettesHeaderPanel = null!;
 
-	private BufferedPanel tasksHeaderPanel;
+	private Label lblCassettes = null!;
+	private TextBox txtCassetteNum = null!;
+	private Label lblCassetteTotal = null!;
+	private Button btnCassetteList = null!;
+	private Button btnFavList = null!;
+	private Button btnAddFav = null!;
+	private Button btnLearn = null!;
+	private Button btnInfo = null!;
+	private Panel pnlFullListRow = null!;
 
-	private Label lblTasks;
+	private BufferedPanel tasksHeaderPanel = null!;
 
-	private BufferedPanel toolsHeaderPanel;
+	private Label lblTasks = null!;
 
-	private Label lblTools;
+	private BufferedPanel toolsHeaderPanel = null!;
 
-	private Panel toolsRow;
+	private Label lblTools = null!;
 
-	private BufferedPanel playerFooterPanel;
+	private Panel toolsRow = null!;
 
-	private Label lblM3uTitle;
+	private BufferedPanel playerFooterPanel = null!;
 
-	private Label lblMetadata;
+	private Label lblM3uTitle = null!;
 
-	private Label lblExtraMetadata;
+	private Label lblMetadata = null!;
 
-	private PictureBox picPlayer;
+	private Label lblExtraMetadata = null!;
 
-	private PictureBox picPlayerNext;
+	private PictureBox picPlayer = null!;
 
-	private BufferedPanel pnlCassetteContainer;
+	private PictureBox picPlayerNext = null!;
 
-	private BufferedPanel pnlEqualizer;
+	private BufferedPanel pnlCassetteContainer = null!;
 
-	private PictureBox picMainDisplay;
+	private BufferedPanel pnlEqualizer = null!;
 
-	private FlowLayoutPanel tasksListPanel;
+	private PictureBox picMainDisplay = null!;
 
-	private Label lblTaskInfo;
+	private FlowLayoutPanel tasksListPanel = null!;
 
-	private Label lblTaskRemaining;
+	private Label lblTaskInfo = null!;
 
-	private Label lblTimeSelector;
+	private Label lblTaskRemaining = null!;
+
+	private Label lblTimeSelector = null!;
 
 	private bool _presetBlockMsg;
 
@@ -124,38 +126,34 @@ public partial class Form1 : Form
 
 	private Button? _minPresetBtn;
 
-	private Panel pnlProgressBg;
+	private Panel pnlProgressBg = null!;
 
-	private Panel pnlProgressFill;
+	private Panel pnlProgressFill = null!;
 
-	private PictureBox picOverlay;
+	private PictureBox picOverlay = null!;
 
-	private Button btnNextM3u;
+	private Button btnPlayPlayer = null!;
 
-	private Button btnPrevM3u;
+	private Button btnStopPlayer = null!;
 
-	private Button btnPlayPlayer;
+	private Panel pnlVolume = null!;
 
-	private Button btnStopPlayer;
+	private Panel pnlVolumeLine = null!;
 
-	private Panel pnlVolume;
+	private Panel pnlVolumeThumb = null!;
 
-	private Panel pnlVolumeLine;
+	private Button btnVolLow = null!;
+	private Button btnVolMid = null!;
+	private Button btnVolMax = null!;
 
-	private Panel pnlVolumeThumb;
+	private BufferedPanel pnlGrip = null!;
 
-	private Button btnVolLow;
-	private Button btnVolMid;
-	private Button btnVolMax;
+	private Button btnCloseApp = null!;
+	private PictureBox picCincross = null!;
 
-	private BufferedPanel pnlGrip;
-
-	private Button btnCloseApp;
-	private PictureBox picCincross;
-
-	private double[] _nodeIntensities;
-	private int[] _nodeBaseSizes;
-	private float[] _nodeCenterX;
+	private double[] _nodeIntensities = Array.Empty<double>();
+	private int[] _nodeBaseSizes = Array.Empty<int>();
+	private float[] _nodeCenterX = Array.Empty<float>();
 	private int _nodeCount;
 
 	[DllImport("Gdi32.dll")]
@@ -166,8 +164,14 @@ public partial class Form1 : Form
 		InitializeComponent();
 		DoubleBuffered = true;
 		SetupLighthouse();
+		tasksListPanel.HorizontalScroll.Enabled = false;
 		base.FormBorderStyle = FormBorderStyle.None;
 		base.Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, base.Width, base.Height, 12, 12));
+		tasksListPanel.Paint += delegate(object? s, PaintEventArgs e)
+		{
+			using Brush wash = new SolidBrush(TimerWash);
+			e.Graphics.FillRectangle(wash, e.ClipRectangle);
+		};
 		playerFooterPanel.Paint += delegate(object? s, PaintEventArgs e)
 		{
 			DrawFooterSkin(e.Graphics);
@@ -189,19 +193,11 @@ public partial class Form1 : Form
 		};
 		btnImage.Click += delegate
 		{
-			CycleAni();
+			_ = CycleAni();
 		};
 		btnTheme.Click += delegate
 		{
 			CycleThemeImage();
-		};
-		btnPrevM3u.Click += delegate
-		{
-			ChangeCassette(-1);
-		};
-		btnNextM3u.Click += delegate
-		{
-			ChangeCassette(1);
 		};
 		txtCassetteNum.KeyDown += txtCassetteNum_KeyDown;
 		txtCassetteNum.Leave += txtCassetteNum_Leave;
@@ -299,22 +295,6 @@ public partial class Form1 : Form
 		btnTheme.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnP.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnS.BackColor = Color.FromArgb(0, 0, 0, 0);
-		btnPrevM3u.BackColor = Color.FromArgb(0, 0, 0, 0);
-		btnNextM3u.BackColor = Color.FromArgb(0, 0, 0, 0);
-		btnPrevM3u.FlatAppearance.MouseOverBackColor = Color.Transparent;
-		btnPrevM3u.FlatAppearance.MouseDownBackColor = Color.Transparent;
-		btnNextM3u.FlatAppearance.MouseOverBackColor = Color.Transparent;
-		btnNextM3u.FlatAppearance.MouseDownBackColor = Color.Transparent;
-		btnPrevM3u.Cursor = Cursors.Hand;
-		btnNextM3u.Cursor = Cursors.Hand;
-		btnPrevM3u.MouseEnter += (_, _) => { _cassetteNavHover[0] = true; btnPrevM3u.Invalidate(); };
-		btnPrevM3u.MouseLeave += (_, _) => { _cassetteNavHover[0] = false; _cassetteNavPress[0] = false; btnPrevM3u.Invalidate(); };
-		btnPrevM3u.MouseDown += (_, _) => { _cassetteNavPress[0] = true; btnPrevM3u.Invalidate(); };
-		btnPrevM3u.MouseUp += (_, _) => { _cassetteNavPress[0] = false; btnPrevM3u.Invalidate(); };
-		btnNextM3u.MouseEnter += (_, _) => { _cassetteNavHover[1] = true; btnNextM3u.Invalidate(); };
-		btnNextM3u.MouseLeave += (_, _) => { _cassetteNavHover[1] = false; _cassetteNavPress[1] = false; btnNextM3u.Invalidate(); };
-		btnNextM3u.MouseDown += (_, _) => { _cassetteNavPress[1] = true; btnNextM3u.Invalidate(); };
-		btnNextM3u.MouseUp += (_, _) => { _cassetteNavPress[1] = false; btnNextM3u.Invalidate(); };
 		btnVolLow.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnVolMid.BackColor = Color.FromArgb(0, 0, 0, 0);
 		btnVolMax.BackColor = Color.FromArgb(0, 0, 0, 0);
@@ -397,18 +377,18 @@ public partial class Form1 : Form
 	private void pnlGrip_Paint(object? sender, PaintEventArgs e)
 	{
 		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-		using (var brush = MetalBrush(new RectangleF(0, 0, pnlGrip.Width, pnlGrip.Height)))
+		using (var brush = new LinearGradientBrush(new RectangleF(0, 0, pnlGrip.Width, pnlGrip.Height),
+			Color.FromArgb(34, 34, 38), Color.FromArgb(12, 12, 14), LinearGradientMode.Vertical))
 			e.Graphics.FillRectangle(brush, pnlGrip.ClientRectangle);
-		DrawBrushed(e.Graphics, pnlGrip.ClientRectangle);
-		using (var top = new Pen(Color.FromArgb(90, 255, 255, 255), 1f))
+		using (var top = new Pen(Color.FromArgb(50, 255, 255, 255), 1f))
 			e.Graphics.DrawLine(top, 0, 0, pnlGrip.Width, 0);
-		using (var groove = new SolidBrush(Color.FromArgb(70, 8, 8, 10)))
+		using (var groove = new SolidBrush(Color.FromArgb(60, 5, 5, 7)))
 			e.Graphics.FillRectangle(groove, 0, pnlGrip.Height / 2 - 5, pnlGrip.Width, 10);
 		int lineHeight = 2;
 		int lineSpacing = 4;
 		int totalHeight = 3 * lineHeight + 2 * lineSpacing;
 		int startY = (pnlGrip.Height - totalHeight) / 2;
-		using Pen linePen = new Pen(Color.FromArgb(120, 120, 120), lineHeight);
+		using Pen linePen = new Pen(Color.FromArgb(90, 90, 94), lineHeight);
 		linePen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
 		linePen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
 		int margin = 80;
@@ -479,7 +459,7 @@ public partial class Form1 : Form
 	private void Form1_Load(object? sender, EventArgs e)
 	{
 		base.StartPosition = FormStartPosition.Manual;
-		Screen screen = Screen.PrimaryScreen;
+		Screen? screen = Screen.PrimaryScreen;
 		int screenWidth = screen?.WorkingArea.Width ?? 1920;
 		base.Location = new Point(screenWidth - base.Width, 150);
 		lblCassettes.Text = "CASSETTES";
@@ -491,7 +471,7 @@ public partial class Form1 : Form
 
 	private void LoadAllData()
 	{
-		Screen screen = Screen.PrimaryScreen;
+		Screen? screen = Screen.PrimaryScreen;
 		LoadCassetteMaster();
 		lblCassettes.Text = "CASSETTES";
 		txtCassetteNum.Text = "0";
@@ -781,7 +761,7 @@ public partial class Form1 : Form
 			{
 				if (_timerRunning)
 				{
-					ShowPresetBlockMessage();
+					_ = ShowPresetBlockMessage();
 					return;
 				}
 				_presetBlockMsg = false;
@@ -820,7 +800,7 @@ public partial class Form1 : Form
 			{
 				if (_timerRunning)
 				{
-					ShowPresetBlockMessage();
+					_ = ShowPresetBlockMessage();
 					return;
 				}
 				_presetBlockMsg = false;
@@ -860,7 +840,7 @@ public partial class Form1 : Form
 			Location = new Point(0, 0),
 			FlatStyle = FlatStyle.Flat,
 			FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Transparent, MouseDownBackColor = Color.Transparent },
-			BackColor = Color.Black,
+			BackColor = Color.Transparent,
 			ForeColor = Color.White,
 			Font = new Font("Segoe UI", 8f, FontStyle.Bold),
 			UseVisualStyleBackColor = false,
@@ -872,7 +852,6 @@ public partial class Form1 : Form
 			if (s is not Button b) return;
 			e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 			e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
-			e.Graphics.Clear(Color.Black);
 			using (var border = new Pen(GetAccentColor(), 1.5f))
 				e.Graphics.DrawRectangle(border, 0, 0, b.Width - 1, b.Height - 1);
 			using var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
@@ -897,7 +876,7 @@ public partial class Form1 : Form
 			Location = new Point(startStopW + btnGap2, 0),
 			FlatStyle = FlatStyle.Flat,
 			FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Transparent, MouseDownBackColor = Color.Transparent },
-			BackColor = Color.Black,
+			BackColor = Color.Transparent,
 			ForeColor = GetAccentColor(),
 			Font = new Font("Segoe UI", 8f, FontStyle.Bold),
 			UseVisualStyleBackColor = false,
@@ -909,7 +888,6 @@ public partial class Form1 : Form
 			if (s is not Button b) return;
 			e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 			e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
-			e.Graphics.Clear(Color.Black);
 			using var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
 			using (var textBrush = new SolidBrush(GetAccentColor()))
 				e.Graphics.DrawString(b.Text, b.Font, textBrush, new RectangleF(0, 0, b.Width, b.Height), fmt);
@@ -1032,25 +1010,25 @@ public partial class Form1 : Form
 
 		Label lblVolSpeaker = new Label
 		{
-			Location = new Point(2, 33),
-			Size = new Size(80, 80),
+			Location = new Point(0, 24),
+			Size = new Size(46, 46),
 			AutoSize = false,
 			BackColor = Color.Transparent
 		};
 		lblVolSpeaker.Paint += SpeakerCirclePaint;
 		pnlVolume.Controls.Add(lblVolSpeaker);
 
-		playerFooterPanel.Height = 336;
-		pnlVolume.Location = new Point(5, 206);
-		pnlVolume.Size = new Size(250, 125);
-		btnVolLow.Location = new Point(88, 49);
-		btnVolLow.Size = new Size(48, 48);
+		playerFooterPanel.Height = 374;
+		pnlVolume.Location = new Point(5, 250);
+		pnlVolume.Size = new Size(250, 84);
+		btnVolLow.Location = new Point(50, 28);
+		btnVolLow.Size = new Size(42, 42);
 		btnVolLow.Font = new Font("Segoe UI", 7f, FontStyle.Bold);
-		btnVolMid.Location = new Point(138, 49);
-		btnVolMid.Size = new Size(48, 48);
+		btnVolMid.Location = new Point(94, 28);
+		btnVolMid.Size = new Size(42, 42);
 		btnVolMid.Font = new Font("Segoe UI", 7f, FontStyle.Bold);
-		btnVolMax.Location = new Point(188, 49);
-		btnVolMax.Size = new Size(48, 48);
+		btnVolMax.Location = new Point(138, 28);
+		btnVolMax.Size = new Size(42, 42);
 		btnVolMax.Font = new Font("Segoe UI", 7f, FontStyle.Bold);
 		foreach (Button volBtn in new[] { btnVolLow, btnVolMid, btnVolMax })
 		{
@@ -1075,6 +1053,84 @@ public partial class Form1 : Form
 		pnlVolume.Controls.Add(txtCassetteNum);
 		pnlVolume.Controls.Add(lblCassetteTotal);
 		pnlVolume.Controls.Add(btnCassetteList);
+
+		// === Cassette: imagen a todo el ancho (proporción real) + transporte ⏮ ▶ ⏹ ⏭ en su propia fila ===
+		pnlCassetteContainer.Location = new Point(0, 0);
+		pnlCassetteContainer.Size = new Size(ContentWidth, 163);
+		picPlayer.Location = new Point((ContentWidth - 233) / 2, 8);
+		picPlayer.Size = new Size(233, 147);
+		picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
+		picPlayerNext.Visible = false;
+
+		int transpY = 164;
+		int transpH = 36;
+		int transpGap = 4;
+		int transpCount = 4;
+		int transpW = (ContentWidth - transpGap * (transpCount - 1)) / transpCount;
+		int transpX = (ContentWidth - (transpW * transpCount + transpGap * (transpCount - 1))) / 2;
+		string[] transpGlyphs = ["\u23EE\uFE0F", "\u25B6\uFE0F", "\u23F9\uFE0F", "\u23ED\uFE0F"];
+		string[] transpNames = ["btnCassPrev", "btnCassPlay", "btnCassStop", "btnCassNext"];
+		for (int i = 0; i < transpCount; i++)
+		{
+			Button btnTransp = new Button
+			{
+				Name = transpNames[i],
+				Text = transpGlyphs[i],
+				Left = transpX + i * (transpW + transpGap),
+				Top = transpY,
+				Width = transpW,
+				Height = transpH,
+				FlatStyle = FlatStyle.Flat,
+				FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Transparent, MouseDownBackColor = Color.Transparent },
+				BackColor = Color.Transparent,
+				ForeColor = Color.White,
+				Font = new Font("Segoe UI Emoji", 13f, FontStyle.Regular),
+				UseVisualStyleBackColor = false,
+				TextAlign = ContentAlignment.MiddleCenter,
+				Cursor = Cursors.Hand
+			};
+			switch (i)
+			{
+				case 0: btnTransp.Click += (_, _) => ChangeCassette(-1); break;
+				case 1:
+					btnTransp.Click += async (_, _) =>
+					{
+						if (_isHlsStream && _hlsPlayer != null)
+						{
+							if (!_hlsPlayer.IsPlaying && _lastHlsUrl != null)
+								await _hlsPlayer.PlayAsync(_lastHlsUrl);
+						}
+						else
+						{
+							_wmp?.controls.play();
+						}
+						_isPlaying = true;
+					};
+					break;
+				case 2:
+					btnTransp.Click += (_, _) =>
+					{
+						StopM3u();
+						_isPlaying = false;
+					};
+					break;
+				case 3: btnTransp.Click += (_, _) => ChangeCassette(1); break;
+			}
+			playerFooterPanel.Controls.Add(btnTransp);
+		}
+
+		pnlEqualizer.Location = new Point(0, 204);
+		pnlEqualizer.Size = new Size(ContentWidth, 24);
+		lblM3uTitle.Location = new Point(-500, -500);
+		lblM3uTitle.Visible = true;
+		lblM3uTitle.TextChanged += (_, _) => pnlEqualizer?.Invalidate();
+		lblMetadata.Location = new Point(0, 251);
+		lblMetadata.Size = new Size(ContentWidth, 16);
+		lblMetadata.TextAlign = ContentAlignment.MiddleCenter;
+		lblExtraMetadata.Location = new Point(0, 269);
+		lblExtraMetadata.Size = new Size(ContentWidth, 15);
+		lblExtraMetadata.TextAlign = ContentAlignment.MiddleCenter;
+		pnlVolume.Location = new Point(5, 286);
 
 		Button btnLive = new Button
 		{
@@ -1356,6 +1412,13 @@ public partial class Form1 : Form
 			_m3u8WatchTimer?.Dispose();
 			_pfc?.Dispose();
 			_currentThemeImage?.Dispose();
+			if (_nextCassetteImage != null && !ReferenceEquals(_nextCassetteImage, _playerImage))
+			{
+				_nextCassetteImage.Dispose();
+			}
+			_nextCassetteImage = null;
+			_playerImage?.Dispose();
+			_playerImage = null;
 			foreach (var img in _themeImages) img.Dispose();
 			_themeImages.Clear();
 			foreach (var img in _cassetteImages) img.Dispose();
@@ -1414,15 +1477,13 @@ public partial class Form1 : Form
 		this.btnVolLow = new System.Windows.Forms.Button();
 		this.btnVolMid = new System.Windows.Forms.Button();
 		this.btnVolMax = new System.Windows.Forms.Button();
-		this.btnNextM3u = new System.Windows.Forms.Button();
-		this.btnPrevM3u = new System.Windows.Forms.Button();
 		this.pnlCassetteContainer = new BufferedPanel();
 		this.picPlayer = new System.Windows.Forms.PictureBox();
 		this.picPlayerNext = new System.Windows.Forms.PictureBox();
 		this.lblM3uTitle = new System.Windows.Forms.Label();
 		this.lblMetadata = new System.Windows.Forms.Label();
 		this.lblExtraMetadata = new System.Windows.Forms.Label();
-		this.tasksListPanel = new System.Windows.Forms.FlowLayoutPanel();
+		this.tasksListPanel = new BufferedFlowLayoutPanel();
 		this.pnlGrip = new BufferedPanel();
 		this.btnCloseApp = new System.Windows.Forms.Button();
 		this.picCincross = new System.Windows.Forms.PictureBox();
@@ -1724,8 +1785,6 @@ public partial class Form1 : Form
 		this.playerFooterPanel.BackColor = System.Drawing.Color.Transparent;
 		this.playerFooterPanel.Controls.Add(this.pnlEqualizer);
 		this.playerFooterPanel.Controls.Add(this.pnlVolume);
-		this.playerFooterPanel.Controls.Add(this.btnNextM3u);
-		this.playerFooterPanel.Controls.Add(this.btnPrevM3u);
 		this.playerFooterPanel.Controls.Add(this.pnlCassetteContainer);
 		this.playerFooterPanel.Controls.Add(this.lblM3uTitle);
 		this.playerFooterPanel.Controls.Add(this.lblMetadata);
@@ -1810,26 +1869,6 @@ public partial class Form1 : Form
 		this.pnlVolumeThumb.Name = "pnlVolumeThumb";
 		this.pnlVolumeThumb.Size = new System.Drawing.Size(12, 12);
 		this.pnlVolumeThumb.TabIndex = 0;
-		this.btnNextM3u.FlatAppearance.BorderSize = 0;
-		this.btnNextM3u.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-		this.btnNextM3u.Font = new System.Drawing.Font("Segoe UI", 16f, System.Drawing.FontStyle.Bold);
-		this.btnNextM3u.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
-		this.btnNextM3u.Location = new System.Drawing.Point(215, 0);
-		this.btnNextM3u.Name = "btnNextM3u";
-		this.btnNextM3u.Size = new System.Drawing.Size(30, 90);
-		this.btnNextM3u.TabIndex = 3;
-		this.btnNextM3u.Text = "\u25B6";
-		this.btnNextM3u.UseVisualStyleBackColor = true;
-		this.btnPrevM3u.FlatAppearance.BorderSize = 0;
-		this.btnPrevM3u.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-		this.btnPrevM3u.Font = new System.Drawing.Font("Segoe UI", 16f, System.Drawing.FontStyle.Bold);
-		this.btnPrevM3u.BackColor = System.Drawing.Color.FromArgb(0, 0, 0, 0);
-		this.btnPrevM3u.Location = new System.Drawing.Point(12, 0);
-		this.btnPrevM3u.Name = "btnPrevM3u";
-		this.btnPrevM3u.Size = new System.Drawing.Size(30, 90);
-		this.btnPrevM3u.TabIndex = 2;
-		this.btnPrevM3u.Text = "\u25C0";
-		this.btnPrevM3u.UseVisualStyleBackColor = true;
 		this.pnlCassetteContainer.BackColor = System.Drawing.Color.Transparent;
 		this.pnlCassetteContainer.Controls.Add(this.picPlayer);
 		this.pnlCassetteContainer.Controls.Add(this.picPlayerNext);
@@ -1871,7 +1910,7 @@ public partial class Form1 : Form
 		this.lblExtraMetadata.Text = "ARTIST - ALBUM";
 		this.lblExtraMetadata.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 		this.tasksListPanel.AutoScroll = true;
-		this.tasksListPanel.BackColor = System.Drawing.Color.Transparent;
+		this.tasksListPanel.BackColor = System.Drawing.Color.FromArgb(255, 12, 12, 15);
 		this.tasksListPanel.Dock = System.Windows.Forms.DockStyle.Fill;
 		this.tasksListPanel.Location = new System.Drawing.Point(0, 410);
 		this.tasksListPanel.Name = "tasksListPanel";
@@ -1880,7 +1919,7 @@ public partial class Form1 : Form
 
 		base.AutoScaleDimensions = new System.Drawing.SizeF(10f, 25f);
 		base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-		base.ClientSize = new System.Drawing.Size(280, 860);
+		base.ClientSize = new System.Drawing.Size(280, 898);
 		base.Controls.Add(this.cassettesHeaderPanel);
 		base.Controls.Add(this.pnlFullListRow);
 		base.Controls.Add(this.playerFooterPanel);

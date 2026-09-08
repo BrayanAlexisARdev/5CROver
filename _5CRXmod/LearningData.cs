@@ -99,7 +99,7 @@ public class LearningData
         try
         {
             string path = GetFilePath();
-            string dir = Path.GetDirectoryName(path);
+            string? dir = Path.GetDirectoryName(path);
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
             string json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });

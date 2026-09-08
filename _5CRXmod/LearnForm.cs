@@ -51,8 +51,6 @@ public class LearnForm : Form
 
     private int _avatarChoice; // 0=boy, 1=girl
 
-    public event Action<string, int>? StartRequested;
-
     // Customization indices (0 = Ninguno)
     private int _fullOutfitIdx;
     private int _petIdx;
@@ -172,8 +170,11 @@ public class LearnForm : Form
     private static int IndexOfFile(string?[] files, string prefix)
     {
         for (int i = 0; i < files.Length; i++)
-            if (files[i] != null && files[i].StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            string? file = files[i];
+            if (file != null && file.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 return i;
+        }
         return 0;
     }
 
@@ -1654,6 +1655,7 @@ public class LearnForm : Form
         _correctionIndex = index;
         var rec = _quizAnswers[index];
         var q = rec.Question;
+        if (q == null) return;
 
         _lblQuizHeader.Text = $"Corrección {index + 1}/{_quizAnswers.Count}";
         _lblQuizProgress.Text = rec.IsCorrect ? "✅ Correcta" : "❌ Incorrecta";
