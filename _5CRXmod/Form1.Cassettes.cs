@@ -29,8 +29,8 @@ partial class Form1
 		}
 		picPlayer.Image = newImage;
 		picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
-		picPlayer.Size = new Size(233, 147);
-		picPlayer.Location = new Point((ContentWidth - 233) / 2, 8);
+		picPlayer.Size = new Size(198, 125);
+		picPlayer.Location = new Point(4, 19);
 	}
 
 	private Image? GetCassetteImageFromM3u(string m3uPath, int indexFallback)

@@ -141,11 +141,17 @@ public partial class Form1 : Form
 	private Panel pnlVolumeLine = null!;
 
 	private Panel pnlVolumeThumb = null!;
+private Button btnVolLow = null!;
 
-	private Button btnVolLow = null!;
 	private Button btnVolMid = null!;
+
 	private Button btnVolMax = null!;
 
+	private Button btnAbcA = null!;
+
+	private Button btnAbcB = null!;
+
+	private Button btnAbcC = null!;
 	private BufferedPanel pnlGrip = null!;
 
 	private Button btnCloseApp = null!;
@@ -1004,50 +1010,28 @@ public partial class Form1 : Form
 		// === Reorganize pnlVolume (after theme applied) ===
 		pnlVolume.Controls.Remove(btnPlayPlayer);
 		pnlVolume.Controls.Remove(btnStopPlayer);
-
 		pnlVolume.Controls.Remove(pnlVolumeLine);
 		pnlVolumeLine.Controls.Remove(pnlVolumeThumb);
+		pnlVolume.Controls.Remove(btnVolLow);
+		pnlVolume.Controls.Remove(btnVolMid);
+		pnlVolume.Controls.Remove(btnVolMax);
 
-		Label lblVolSpeaker = new Label
-		{
-			Location = new Point(0, 24),
-			Size = new Size(46, 46),
-			AutoSize = false,
-			BackColor = Color.Transparent
-		};
-		lblVolSpeaker.Paint += SpeakerCirclePaint;
-		pnlVolume.Controls.Add(lblVolSpeaker);
-
-		playerFooterPanel.Height = 374;
-		pnlVolume.Location = new Point(5, 250);
-		pnlVolume.Size = new Size(250, 84);
-		btnVolLow.Location = new Point(50, 28);
-		btnVolLow.Size = new Size(42, 42);
-		btnVolLow.Font = new Font("Segoe UI", 7f, FontStyle.Bold);
-		btnVolMid.Location = new Point(94, 28);
-		btnVolMid.Size = new Size(42, 42);
-		btnVolMid.Font = new Font("Segoe UI", 7f, FontStyle.Bold);
-		btnVolMax.Location = new Point(138, 28);
-		btnVolMax.Size = new Size(42, 42);
-		btnVolMax.Font = new Font("Segoe UI", 7f, FontStyle.Bold);
-		foreach (Button volBtn in new[] { btnVolLow, btnVolMid, btnVolMax })
-		{
-			volBtn.BackColor = Color.Transparent;
-			volBtn.FlatAppearance.BorderSize = 0;
-			volBtn.FlatAppearance.BorderColor = Color.FromArgb(0, 0, 0, 0);
-			volBtn.FlatAppearance.MouseOverBackColor = Color.Transparent;
-			volBtn.FlatAppearance.MouseDownBackColor = Color.Transparent;
-			volBtn.UseVisualStyleBackColor = false;
-		}
+		playerFooterPanel.Height = 256;
+		pnlVolume.Location = new Point(0, 232);
+		pnlVolume.Size = new Size(ContentWidth, 24);
 
 		base.Controls.Remove(pnlFullListRow);
 		pnlFullListRow.Controls.Remove(btnFavList);
 		pnlFullListRow.Controls.Remove(btnCassetteList);
 		cassettesHeaderPanel.Controls.Remove(txtCassetteNum);
 		cassettesHeaderPanel.Controls.Remove(lblCassetteTotal);
-		btnCassetteList.Text = "LIST";
+		btnCassetteList.Text = "\u25A4";
+		btnCassetteList.Font = new Font("Segoe UI Symbol", 10f, FontStyle.Bold);
+		btnCassetteList.Tag = true;
 		btnCassetteList.Location = new Point(159, 3);
 		btnCassetteList.Size = new Size(72, 22);
+		ApplyRoundedRegion(btnCassetteList);
+		btnCassetteList.Paint += PresetButtonPaint;
 		txtCassetteNum.Location = new Point(70, 3);
 		lblCassetteTotal.Location = new Point(70 + txtCassetteNum.Width + 2, 6);
 		pnlVolume.Controls.Add(txtCassetteNum);
@@ -1057,10 +1041,49 @@ public partial class Form1 : Form
 		// === Cassette: imagen a todo el ancho (proporción real) + transporte ⏮ ▶ ⏹ ⏭ en su propia fila ===
 		pnlCassetteContainer.Location = new Point(0, 0);
 		pnlCassetteContainer.Size = new Size(ContentWidth, 163);
-		picPlayer.Location = new Point((ContentWidth - 233) / 2, 8);
-		picPlayer.Size = new Size(233, 147);
+		picPlayer.Location = new Point(4, 19);
+		picPlayer.Size = new Size(198, 125);
 		picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
 		picPlayerNext.Visible = false;
+
+		// === Perilla ABC (manejador de volumen vertical) al costado del cassette ===
+		int abcX = ContentWidth - 53;
+		int abcY = 19;
+		int abcW = 49;
+		int abcH = 39;
+		int abcGap = 4;
+		string[] abcNames = ["btnAbcA", "btnAbcB", "btnAbcC"];
+		string[] abcLabels = ["\u273A", "\u2738", "\u2736"];
+		int[] abcPresets = [15, 9, 3];
+		pnlCassetteContainer.Paint += (_, e) => AbcGrooveBackPaint(e.Graphics, abcX, abcY, abcW, abcH, abcGap);
+		for (int i = 0; i < 3; i++)
+		{
+			Button abc = new Button
+			{
+				Name = abcNames[i],
+				Text = abcLabels[i],
+				Left = abcX,
+				Top = abcY + i * (abcH + abcGap),
+				Width = abcW,
+				Height = abcH,
+				FlatStyle = FlatStyle.Flat,
+				FlatAppearance = { BorderSize = 0 },
+				BackColor = Color.Transparent,
+				ForeColor = Color.White,
+				Font = new Font("Segoe UI Emoji", 12f, FontStyle.Bold),
+				UseVisualStyleBackColor = false,
+				TextAlign = ContentAlignment.MiddleCenter,
+				Cursor = Cursors.Hand,
+				Tag = i == 2
+			};
+			abc.Paint += AbcGroovePaint;
+			if (i == 0) btnAbcA = abc;
+			else if (i == 1) btnAbcB = abc;
+			else btnAbcC = abc;
+			int preset = abcPresets[i];
+			abc.Click += (_, _) => SetVolumePreset(preset);
+			pnlCassetteContainer.Controls.Add(abc);
+		}
 
 		int transpY = 164;
 		int transpH = 36;
@@ -1068,27 +1091,17 @@ public partial class Form1 : Form
 		int transpCount = 4;
 		int transpW = (ContentWidth - transpGap * (transpCount - 1)) / transpCount;
 		int transpX = (ContentWidth - (transpW * transpCount + transpGap * (transpCount - 1))) / 2;
-		string[] transpGlyphs = ["\u23EE\uFE0F", "\u25B6\uFE0F", "\u23F9\uFE0F", "\u23ED\uFE0F"];
+		string[] transpGlyphs = ["\uE892", "\uE768", "\uE71A", "\uE893"];
 		string[] transpNames = ["btnCassPrev", "btnCassPlay", "btnCassStop", "btnCassNext"];
 		for (int i = 0; i < transpCount; i++)
 		{
-			Button btnTransp = new Button
-			{
-				Name = transpNames[i],
-				Text = transpGlyphs[i],
-				Left = transpX + i * (transpW + transpGap),
-				Top = transpY,
-				Width = transpW,
-				Height = transpH,
-				FlatStyle = FlatStyle.Flat,
-				FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Transparent, MouseDownBackColor = Color.Transparent },
-				BackColor = Color.Transparent,
-				ForeColor = Color.White,
-				Font = new Font("Segoe UI Emoji", 13f, FontStyle.Regular),
-				UseVisualStyleBackColor = false,
-				TextAlign = ContentAlignment.MiddleCenter,
-				Cursor = Cursors.Hand
-			};
+			Button btnTransp = MakeRoundedBtn(transpGlyphs[i]);
+			btnTransp.Name = transpNames[i];
+			btnTransp.Size = new Size(transpW, transpH);
+			btnTransp.Font = new Font("Segoe MDL2 Assets", 11f, FontStyle.Bold);
+			btnTransp.Tag = true;
+			btnTransp.Location = new Point(transpX + i * (transpW + transpGap), transpY);
+			ApplyRoundedRegion(btnTransp);
 			switch (i)
 			{
 				case 0: btnTransp.Click += (_, _) => ChangeCassette(-1); break;
@@ -1124,52 +1137,24 @@ public partial class Form1 : Form
 		lblM3uTitle.Location = new Point(-500, -500);
 		lblM3uTitle.Visible = true;
 		lblM3uTitle.TextChanged += (_, _) => pnlEqualizer?.Invalidate();
-		lblMetadata.Location = new Point(0, 251);
-		lblMetadata.Size = new Size(ContentWidth, 16);
-		lblMetadata.TextAlign = ContentAlignment.MiddleCenter;
-		lblExtraMetadata.Location = new Point(0, 269);
-		lblExtraMetadata.Size = new Size(ContentWidth, 15);
-		lblExtraMetadata.TextAlign = ContentAlignment.MiddleCenter;
-		pnlVolume.Location = new Point(5, 286);
+		lblMetadata.Location = new Point(-500, -500);
+		lblExtraMetadata.Location = new Point(-500, -500);
+		pnlVolume.Location = new Point(5, 230);
 
-		Button btnLive = new Button
+		Label lblNro = new Label
 		{
-			Name = "btnLive",
-			Text = "●LIVE",
-			Location = new Point(5, 2),
-			Size = new Size(58, 24),
-			FlatStyle = FlatStyle.Flat,
-			Font = new Font("Segoe UI", 5.5f, FontStyle.Bold),
-			ForeColor = Color.Red,
+			Name = "lblNro",
+			Text = "NRO",
+			Location = new Point(5, 1),
+			Size = new Size(46, 20),
+			AutoSize = false,
 			BackColor = Color.Black,
-			FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Black, MouseDownBackColor = Color.Black },
-			UseVisualStyleBackColor = false,
+			ForeColor = Color.White,
+			Font = new Font("Segoe UI", 8f, FontStyle.Bold),
 			TextAlign = ContentAlignment.MiddleCenter
 		};
-		btnLive.Click += async delegate
-		{
-			if (_isPlaying)
-			{
-				StopM3u();
-			}
-			else
-			{
-				if (_isHlsStream && _hlsPlayer != null)
-				{
-					if (!_hlsPlayer.IsPlaying && _lastHlsUrl != null)
-						await _hlsPlayer.PlayAsync(_lastHlsUrl);
-				}
-				else
-				{
-					_wmp?.controls.play();
-				}
-				_isPlaying = true;
-			}
-			btnLive.ForeColor = _isPlaying ? Color.Red : Color.LightGray;
-		};
-		pnlVolume.Controls.Add(btnLive);
-		btnLive.Paint += LiveButtonPaint;
-		btnLive.BringToFront();
+		lblNro.BringToFront();
+		pnlVolume.Controls.Add(lblNro);
 
 		btnVolLow.Paint += VolumeKnobPaint;
 		btnVolMid.Paint += VolumeKnobPaint;
@@ -1203,6 +1188,11 @@ public partial class Form1 : Form
 
 		picPlayer.Paint += CassetteGlassPaint;
 		picPlayerNext.Paint += CassetteGlassPaint;
+
+		// === Fila inferior: X CLOSE (cerrar) ===
+		btnCloseApp.Height = 60;
+		btnCloseApp.Dock = DockStyle.Bottom;
+
 		ApplyRadioSkin();
 	}
 
@@ -1226,7 +1216,7 @@ public partial class Form1 : Form
 		return btn;
 	}
 
-	private Button MakeRoundedBtn(string text, Color? fixedAccent = null)
+	private Button MakeRoundedBtn(string text)
 	{
 		Button btn = new Button
 		{
@@ -1244,70 +1234,72 @@ public partial class Form1 : Form
 			Tag = false
 		};
 		ApplyRoundedRegion(btn);
-		btn.Paint += (s, e) =>
+		btn.Paint += PresetButtonPaint;
+		return btn;
+	}
+
+	private void PresetButtonPaint(object? s, PaintEventArgs e)
+	{
+		if (s is Button b)
 		{
-			if (s is Button b)
+			e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+			e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
+			bool selected = b.Tag is bool sel && sel;
+			RectangleF rect = new RectangleF(1f, 1f, b.Width - 2f, b.Height - 2f);
+			float radius = 6f;
+			using (var path = RoundedPath(rect, radius))
 			{
-				e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-				e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
-				bool selected = b.Tag is bool sel && sel;
-				RectangleF rect = new RectangleF(1f, 1f, b.Width - 2f, b.Height - 2f);
-				float radius = 6f;
-				using (var path = RoundedPath(rect, radius))
+				if (selected)
 				{
-					if (selected)
+					Color accent = GetAccentColor();
+					Color top = ControlPaint.Light(accent, 0.45f);
+					Color bottom = ControlPaint.Dark(accent, 0.3f);
+					using (var fill = new LinearGradientBrush(rect, top, bottom, LinearGradientMode.Vertical))
+						e.Graphics.FillPath(fill, path);
+					using (var halo = new Pen(Color.FromArgb(120, accent), 2.5f))
+						e.Graphics.DrawPath(halo, path);
+					RectangleF innerRect = new RectangleF(3.5f, 3.5f, b.Width - 7f, b.Height - 7f);
+					using (var innerPath = RoundedPath(innerRect, radius - 1.5f))
 					{
-						Color accent = fixedAccent ?? GetAccentColor();
-						Color top = ControlPaint.Light(accent, 0.45f);
-						Color bottom = ControlPaint.Dark(accent, 0.3f);
-						using (var fill = new LinearGradientBrush(rect, top, bottom, LinearGradientMode.Vertical))
-							e.Graphics.FillPath(fill, path);
-						using (var halo = new Pen(Color.FromArgb(120, accent), 2.5f))
-							e.Graphics.DrawPath(halo, path);
-						RectangleF innerRect = new RectangleF(3.5f, 3.5f, b.Width - 7f, b.Height - 7f);
-						using (var innerPath = RoundedPath(innerRect, radius - 1.5f))
-						{
-							using (var glow = new LinearGradientBrush(innerRect,
-								Color.FromArgb(170, ControlPaint.Light(accent)),
-								Color.FromArgb(50, accent), LinearGradientMode.Vertical))
-								e.Graphics.FillPath(glow, innerPath);
-							using (var ring = new Pen(Color.FromArgb(200, Color.White), 1f))
-								e.Graphics.DrawPath(ring, innerPath);
-						}
-					}
-					else
-					{
-						using (var fill = new LinearGradientBrush(rect,
-							Color.FromArgb(82, 82, 86), Color.FromArgb(36, 36, 40), LinearGradientMode.Vertical))
-							e.Graphics.FillPath(fill, path);
-						using (var sheen = new LinearGradientBrush(rect,
-							Color.FromArgb(60, Color.White), Color.FromArgb(0, Color.White), LinearGradientMode.Vertical))
-							e.Graphics.FillPath(sheen, path);
-						using (var edge = new Pen(Color.FromArgb(70, 255, 255, 255), 1f))
-							e.Graphics.DrawPath(edge, path);
-						using (var border = new Pen(Color.FromArgb(120, 0, 0, 0), 1f))
-							e.Graphics.DrawPath(border, path);
+						using (var glow = new LinearGradientBrush(innerRect,
+							Color.FromArgb(170, ControlPaint.Light(accent)),
+							Color.FromArgb(50, accent), LinearGradientMode.Vertical))
+							e.Graphics.FillPath(glow, innerPath);
+						using (var ring = new Pen(Color.FromArgb(200, Color.White), 1f))
+							e.Graphics.DrawPath(ring, innerPath);
 					}
 				}
-				Color fg = selected ? Color.White : Color.FromArgb(205, 205, 205);
-				using (var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+				else
 				{
-					if (selected)
-					{
-						Color accent = fixedAccent ?? GetAccentColor();
-						for (int i = 1; i <= 2; i++)
-						{
-							using var glowBrush = new SolidBrush(Color.FromArgb(70 / i, accent));
-							e.Graphics.DrawString(b.Text, b.Font, glowBrush, new RectangleF(i, i, b.Width - 2, b.Height - 2), fmt);
-							e.Graphics.DrawString(b.Text, b.Font, glowBrush, new RectangleF(-i, -i, b.Width - 2, b.Height - 2), fmt);
-						}
-					}
-					using (var textBrush = new SolidBrush(fg))
-						e.Graphics.DrawString(b.Text, b.Font, textBrush, new RectangleF(1, 1, b.Width - 2, b.Height - 2), fmt);
+					using (var fill = new LinearGradientBrush(rect,
+						Color.FromArgb(82, 82, 86), Color.FromArgb(36, 36, 40), LinearGradientMode.Vertical))
+						e.Graphics.FillPath(fill, path);
+					using (var sheen = new LinearGradientBrush(rect,
+						Color.FromArgb(60, Color.White), Color.FromArgb(0, Color.White), LinearGradientMode.Vertical))
+						e.Graphics.FillPath(sheen, path);
+					using (var edge = new Pen(Color.FromArgb(70, 255, 255, 255), 1f))
+						e.Graphics.DrawPath(edge, path);
+					using (var border = new Pen(Color.FromArgb(120, 0, 0, 0), 1f))
+						e.Graphics.DrawPath(border, path);
 				}
 			}
-		};
-		return btn;
+			Color fg = selected ? Color.White : Color.FromArgb(205, 205, 205);
+			using (var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+			{
+				if (selected)
+				{
+					Color accent = GetAccentColor();
+					for (int i = 1; i <= 2; i++)
+					{
+						using var glowBrush = new SolidBrush(Color.FromArgb(70 / i, accent));
+						e.Graphics.DrawString(b.Text, b.Font, glowBrush, new RectangleF(i, i, b.Width - 2, b.Height - 2), fmt);
+						e.Graphics.DrawString(b.Text, b.Font, glowBrush, new RectangleF(-i, -i, b.Width - 2, b.Height - 2), fmt);
+					}
+				}
+				using (var textBrush = new SolidBrush(fg))
+					e.Graphics.DrawString(b.Text, b.Font, textBrush, new RectangleF(1, 1, b.Width - 2, b.Height - 2), fmt);
+			}
+		}
 	}
 
 	private void SetPresetSelected(Button b, bool selected)
@@ -1919,7 +1911,7 @@ public partial class Form1 : Form
 
 		base.AutoScaleDimensions = new System.Drawing.SizeF(10f, 25f);
 		base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-		base.ClientSize = new System.Drawing.Size(280, 898);
+		base.ClientSize = new System.Drawing.Size(280, 780);
 		base.Controls.Add(this.cassettesHeaderPanel);
 		base.Controls.Add(this.pnlFullListRow);
 		base.Controls.Add(this.playerFooterPanel);

@@ -35,6 +35,8 @@ partial class Form1
 
 	private int _currentM3uIndex;
 
+	private int _currentVolume = 3;
+
 	private void SafeSetUi(Action action)
 	{
 		try
@@ -243,7 +245,7 @@ partial class Form1
 			lblMetadata.Visible = true;
 			lblExtraMetadata.Visible = true;
 			_isPlaying = true;
-			SetVolumePreset(3);
+			SetVolumePreset(_currentVolume);
 			_metaTimer?.Start();
 			return;
 		}
@@ -270,7 +272,7 @@ partial class Form1
 			lblExtraMetadata.Visible = true;
 			_metaTimer?.Start();
 			_isPlaying = true;
-			SetVolumePreset(3);
+			SetVolumePreset(_currentVolume);
 			_ = WatchWmpThenFallbackAsync(path, gen);
 		}
 		catch
@@ -318,20 +320,28 @@ partial class Form1
 			await _hlsPlayer.PlayAsync(url);
 		if (gen != _playGen) return;
 		_isPlaying = true;
-		SetVolumePreset(3);
+		SetVolumePreset(_currentVolume);
 		_metaTimer?.Start();
 	}
 
 	private void SetVolumePreset(int percent)
 	{
+		_currentVolume = percent;
+		int vol = percent * 100 / 15;
 		if (_isHlsStream)
 		{
-			if (_hlsPlayer != null) _hlsPlayer.Volume = percent * 100 / 15;
+			if (_hlsPlayer != null) _hlsPlayer.Volume = vol;
 		}
 		else
 		{
-			if (_wmp != null) _wmp.settings.volume = percent;
+			if (_wmp != null) _wmp.settings.volume = vol;
 		}
+		UpdateVolumePresetMarks(percent);
+		UpdateVolumeVisual(percent);
+	}
+
+	private void UpdateVolumePresetMarks(int percent)
+	{
 		btnVolLow.Tag = percent == 3;
 		btnVolMid.Tag = percent == 9;
 		btnVolMax.Tag = percent == 15;
@@ -341,7 +351,15 @@ partial class Form1
 		btnVolLow.Invalidate();
 		btnVolMid.Invalidate();
 		btnVolMax.Invalidate();
-		UpdateVolumeVisual(percent);
+		if (btnAbcA != null)
+		{
+			btnAbcA.Tag = percent == 15;
+			btnAbcB.Tag = percent == 9;
+			btnAbcC.Tag = percent == 3;
+			btnAbcA.Invalidate();
+			btnAbcB.Invalidate();
+			btnAbcC.Invalidate();
+		}
 	}
 
 	private void UpdateVolumeFromMouse(int mouseX)
@@ -351,14 +369,17 @@ partial class Form1
 		pnlVolumeThumb.Left = x - thumbCenter;
 		double raw = (double)x / (double)pnlVolumeLine.Width;
 		int volume = (int)(Math.Max(0.03, Math.Min(0.15, raw)) * 100.0);
+		_currentVolume = volume;
+		int vol = volume * 100 / 15;
 		if (_isHlsStream)
 		{
-			if (_hlsPlayer != null) _hlsPlayer.Volume = volume * 100 / 15;
+			if (_hlsPlayer != null) _hlsPlayer.Volume = vol;
 		}
 		else
 		{
-			if (_wmp != null) _wmp.settings.volume = volume;
+			if (_wmp != null) _wmp.settings.volume = vol;
 		}
+		UpdateVolumePresetMarks(volume);
 	}
 
 	private void UpdateVolumeVisual(int volumePercent)

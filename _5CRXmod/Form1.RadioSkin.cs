@@ -295,6 +295,76 @@ partial class Form1
 			e.Graphics.DrawString(b.Text, b.Font, brush, new RectangleF(0, 0, b.Width, b.Height), fmt);
 	}
 
+	private void AbcGrooveBackPaint(Graphics g, int x, int y, int w, int h, int gap)
+	{
+		g.SmoothingMode = SmoothingMode.AntiAlias;
+		RectangleF slot = new RectangleF(x - 8, y - 5, w + 10, h * 3 + gap * 2 + 10);
+		using (var path = RoundedPath(slot, 12f))
+		{
+			using (var recess = new SolidBrush(_radioRecess))
+				g.FillPath(recess, path);
+			using (var brass = new Pen(Color.FromArgb(140, _radioBrassDark), 1.3f))
+				g.DrawPath(brass, path);
+			using (var shadow = new Pen(Color.FromArgb(70, 0, 0, 0), 1.2f))
+				g.DrawLine(shadow, slot.X + 1.5f, slot.Y + 2, slot.X + 1.5f, slot.Bottom - 2);
+			using (var hi = new Pen(Color.FromArgb(55, 255, 255, 255), 1f))
+				g.DrawLine(hi, slot.X + 4.5f, slot.Y + 4, slot.X + 4.5f, slot.Bottom - 4);
+		}
+		using (var tick = new Pen(Color.FromArgb(170, _radioBrassLight), 1.3f))
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				float my = y + i * (h + gap) + h / 2f;
+				g.DrawLine(tick, slot.X - 3, my - 5, slot.X + 7, my - 5);
+				g.DrawLine(tick, slot.X - 3, my + 5, slot.X + 7, my + 5);
+			}
+		}
+	}
+
+	private void AbcGroovePaint(object? sender, PaintEventArgs e)
+	{
+		if (sender is not Button b)
+		{
+			return;
+		}
+		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+		e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+		bool selected = b.Tag is bool sel && sel;
+		RectangleF rect = new RectangleF(
+			selected ? 5 : 6,
+			selected ? 5 : 4,
+			b.Width - (selected ? 10 : 12),
+			b.Height - (selected ? 10 : 8));
+		using (var path = RoundedPath(rect, 7f))
+		{
+			using (var brush = MetalBrush(rect))
+				e.Graphics.FillPath(brush, path);
+			DrawBrushed(e.Graphics, Rectangle.Truncate(rect));
+			using (var brass = new Pen(selected ? Color.FromArgb(235, 228, 205, 150) : Color.FromArgb(155, _radioBrassDark), selected ? 1.6f : 1.1f))
+				e.Graphics.DrawPath(brass, path);
+			if (selected)
+			{
+				using (var hi = new Pen(Color.FromArgb(130, 255, 255, 255), 1.2f))
+					e.Graphics.DrawLine(hi, rect.X + 3, rect.Y + 1, rect.Right - 3, rect.Y + 1);
+			}
+		}
+		using (var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+		{
+			using (var outline = new SolidBrush(Color.FromArgb(190, 0, 0, 0)))
+			{
+				e.Graphics.DrawString(b.Text, b.Font, outline, new RectangleF(rect.X + 0.8f, rect.Y + 1f, rect.Width, rect.Height), fmt);
+				e.Graphics.DrawString(b.Text, b.Font, outline, new RectangleF(rect.X - 0.8f, rect.Y - 1f, rect.Width, rect.Height), fmt);
+			}
+			using (var ink = new SolidBrush(selected ? Color.White : Color.FromArgb(185, 205, 205, 210)))
+				e.Graphics.DrawString(b.Text, b.Font, ink, rect, fmt);
+		}
+		if (selected)
+		{
+			using (var needle = new Pen(Color.FromArgb(235, 228, 205, 150), 2f))
+				e.Graphics.DrawLine(needle, rect.X - 6, rect.Y + rect.Height / 2f, rect.X - 1, rect.Y + rect.Height / 2f);
+		}
+	}
+
 	private static void DrawKnobDots(Graphics g, float cx, float cy, float rr, bool selected)
 	{
 		int count = Math.Max(16, (int)Math.Round(rr * 2f));

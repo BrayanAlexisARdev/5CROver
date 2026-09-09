@@ -7,7 +7,7 @@ namespace _5CRXmod;
 
 partial class Form1
 {
-	private const int LighthouseWidth = 20;
+	private const int LighthouseWidth = 36;
 
 	private BufferedPanel? lighthouseBar;
 	private Timer? _lighthouseTimer;
