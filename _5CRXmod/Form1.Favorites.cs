@@ -48,15 +48,10 @@ partial class Form1
 
 	private void ApplyFavorite(FavoriteData fav)
 	{
-		_pendingFavOverride = fav;
 		if (fav.CassetteIndex == _currentCassetteIndex)
 			_currentCassetteIndex = -1;
 		GoToCassette(fav.CassetteIndex);
-		if (_slideTimer == null || !_slideTimer.Enabled)
-		{
-			ApplyFavOverride(fav);
-			_pendingFavOverride = null;
-		}
+		ApplyFavOverride(fav);
 	}
 
 	private void ApplyFavOverride(FavoriteData fav)
@@ -67,11 +62,11 @@ partial class Form1
 		}
 		if (!string.IsNullOrEmpty(fav.TemaTV))
 		{
-			if (File.Exists(fav.TemaTV))
+			Image? tvImg = GetCachedImage(fav.TemaTV);
+			if (tvImg != null)
 			{
-				if (timerPanel.BackgroundImage != null) timerPanel.BackgroundImage.Dispose();
-				timerPanel.BackgroundImage = PathHelper.LoadImage(fav.TemaTV);
-				timerPanel.Height = timerPanel.BackgroundImage.Height - 4;
+				SetTimerBackground(tvImg, true);
+				timerPanel.Height = tvImg.Height - 4;
 			}
 		}
 	}

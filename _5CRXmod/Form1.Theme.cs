@@ -175,8 +175,7 @@ partial class Form1
 		var theme = _themesList[_currentCustomThemeIndex];
 
 		Image tvImg = PathHelper.LoadImage(theme.TvPath);
-		if (timerPanel.BackgroundImage != null) timerPanel.BackgroundImage.Dispose();
-		timerPanel.BackgroundImage = tvImg;
+		SetTimerBackground(tvImg, false);
 		timerPanel.Height = tvImg.Height - 4;
 		timerPanel.BackColor = Color.Transparent;
 		_currentTvPath = theme.TvPath;
@@ -212,8 +211,7 @@ partial class Form1
 			if (File.Exists(tvPath))
 			{
 			Image img = PathHelper.LoadImage(tvPath);
-			if (timerPanel.BackgroundImage != null) timerPanel.BackgroundImage.Dispose();
-			timerPanel.BackgroundImage = img;
+			SetTimerBackground(img, false);
 				timerPanel.Height = img.Height - 4;
 			}
 		}

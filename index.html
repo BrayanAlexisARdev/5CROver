@@ -594,11 +594,12 @@
         curadas, todo integrado en un escritorio con estética retro de radio y TV.
       </p>
       <div class="chips">
-        <span class="chip"><b>TIMER</b> Pomodoro</span>
+        <span class="chip"><b>TIMER</b> Pomodoro + alarma</span>
         <span class="chip"><b>CASSETTES</b> Radio online</span>
         <span class="chip"><b>TOOLS</b> Temas y skins</span>
         <span class="chip"><b>LEARN</b> Gamificación</span>
         <span class="chip"><b>HLS</b> Streaming</span>
+        <span class="chip"><b>PDF / YT</b> Visualizadores</span>
       </div>
     </div>
 
@@ -634,17 +635,19 @@
           <div class="icon">TM</div>
           <div>
             <h3>Cronómetro Pomodoro</h3>
-            <small>Cuenta atrás con presets y suma de tiempo</small>
+            <small>Presets, alarma y bloqueo</small>
           </div>
         </div>
         <div class="card-body">
-          <p>Selección de horas y minutos con presets, controles
-            <b>START / STOP</b>, botones <b>◀ ▶</b> y un bloqueo de presets para
-            evitar toques accidentales mientras corre el tiempo.</p>
+          <p>Selección de tiempo con presets de horas
+            (<b>1H · 2H · 3H · 4H</b>) y minutos (<b>5M · 10M · 15M · 30M</b>),
+            controles <b>START / STOP</b> con borde de acento y bloqueo de
+            presets para evitar toques accidentales mientras corre el tiempo.</p>
           <ul>
             <li>Presets de hora y minuto con selección visual</li>
-            <li>Selector de tiempo con horas y minutos (START / STOP)</li>
-            <li>Alarma al terminar el tiempo</li>
+            <li>Selector directo de horas y minutos (START / STOP)</li>
+            <li>Alarma sonora al terminar (canal separado)</li>
+            <li>Selector de tiempo con horas y minutos (SET TIME)</li>
           </ul>
           <div class="tags">
             <span class="tag">Pomodoro</span><span class="tag">Alarma</span><span class="tag">Presets</span>
@@ -657,17 +660,17 @@
           <div class="icon">ND</div>
           <div>
             <h3>Nodos de progreso</h3>
-            <small>Indicador luminoso paso a paso</small>
+            <small>16 lámparas paso a paso</small>
           </div>
         </div>
         <div class="card-body">
-          <p>Una secuencia de 10 nodos se enciende de forma progresiva mientras
-            avanza el tiempo, con picos de luz que recorren el panel (estilo
-            "lighthouse").</p>
+          <p>Una secuencia de <b>16 nodos</b> se enciende de forma progresiva
+            mientras avanza el tiempo, con picos de luz que recorren el panel
+            (estilo "lighthouse").</p>
           <ul>
-            <li>10 nodos con intensidad y color dinámicos</li>
-            <li>Barra lateral de faro con destellos de acento</li>
-            <li>Sincronizado con el modo de tarea</li>
+            <li>16 nodos con intensidad, tamaño y color dinámicos</li>
+            <li>Barra lateral de faro a la izquierda, con destellos de acento</li>
+            <li>Sincronizado con el modo de tarea y tiempo restante</li>
           </ul>
           <div class="tags"><span class="tag">Lighthouse</span><span class="tag">Progreso</span></div>
         </div>
@@ -683,12 +686,13 @@
         </div>
         <div class="card-body">
           <p>El panel del temporizador luce un marco de TV (los temas viejos,
-            acero o consola) y en su interior se proyecta el tiempo en fuente
-            digital.</p>
+            acero, tarjeta o consola) y en su interior se proyecta el tiempo en
+            fuente digital.</p>
           <ul>
-            <li>Reloj digital con fuente "Digital Clock"</li>
-            <li>Marcos de TV animados según el tema de cassette</li>
+            <li>Reloj digital con fuente "Digital Clock" y glow</li>
+            <li>Marcos de TV animados según el tema de cassette o THEME</li>
             <li>Altura del panel adaptada al marco seleccionado</li>
+            <li>Botones THEME / IMAGE / COLOR sobre el panel</li>
           </ul>
           <div class="tags"><span class="tag">DC font</span><span class="tag">TV themes</span></div>
         </div>
@@ -710,11 +714,12 @@
                onerror="this.style.display='none'"
                alt="Cinta de cassette">
         </div>
-        <div class="label">CASS-001<span>radio online</span></div>
+        <div class="label">CASS-001<span>cambios con fundido</span></div>
         <div class="btnrow" style="justify-content:center;margin-top:12px">
-          <span class="key">◀</span>
+          <span class="key">⏮</span>
           <span class="key">PLAY</span>
-          <span class="key">▶</span>
+          <span class="key">⏹</span>
+          <span class="key">⏭</span>
         </div>
       </div>
 
@@ -722,7 +727,9 @@
         <h4>RADIO / PLAYLISTS (.m3u)</h4>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px">
           Cada cassette guarda su imagen, color de interfaz, GIF de pantalla,
-          marco de TV y el listado de emisoras o canciones a reproducir.
+          marco de TV y el listado de emisoras o canciones a reproducir. Al
+          cambiar, la música y el color se aplican al instante mientras la
+          carátula hace un fundido.
         </p>
         <div class="m3u-list">
           <div class="row">
@@ -739,7 +746,9 @@
           </div>
         </div>
         <div class="btnrow">
+          <span class="key">NRO</span>
           <span class="key">LIST</span>
+          <span class="key">A B C</span>
           <span class="key">FAV LIST</span>
           <span class="key">ADD FAV</span>
           <span class="key">LEARN</span>
@@ -758,8 +767,9 @@
           <p>Una librería de cassettes definidos en un archivo maestro. Cada uno
             puede cambiar el color de toda la interfaz al reproducirse.</p>
           <ul>
-            <li>Navegación ◀ ▶ y salto directo (escribí el número)</li>
-            <li>Lista de cassettes con vista previa (CASSETTE LIST)</li>
+            <li>Transporte ⏮ ▶ ⏹ ⏭ y salto directo por NRO</li>
+            <li>Lista rápida de cassettes (CASSETTE LIST)</li>
+            <li>Cambio aplicado al instante con fundido de carátula</li>
             <li>Créditos por cassette: imagen + GIF + color + tema TV</li>
           </ul>
         </div>
@@ -783,14 +793,14 @@
       <div class="card">
         <div class="card-top">
           <div class="icon">EQ</div>
-          <div><h3>Ecualizador animado</h3><small>Estética radio</small></div>
+          <div><h3>Ecualizador animado</h3><small>30 estilos de radio</small></div>
         </div>
         <div class="card-body">
-          <p>El reproductor dibuja un ecualizador y una piel de radio con
-            perillas, parlantes, parlante grillé y tornillos.</p>
+          <p>El reproductor dibuja un ecualizador con título de emisora y una
+            piel de radio con perillas, parlantes grillé y tornillos.</p>
           <ul>
-            <li>Perillas de volumen dibujadas a medida</li>
-            <li>Grilla de parlante y dispensador metálico</li>
+            <li>30 estilos: olas, corazón, radar, lluvia digital, serpiente…</li>
+            <li>Perillas ABC de volumen (✺ MAX / ✸ MED / ✶ LOW)</li>
             <li>Transiciones con fundido entre cassettes</li>
           </ul>
         </div>
@@ -808,11 +818,13 @@
       <div class="card">
         <div class="card-top">
           <div class="icon">CO</div>
-          <div><h3>Color de la app</h3><small>Color picker</small></div>
+          <div><h3>Color de la app</h3><small>Paleta completa</small></div>
         </div>
         <div class="card-body">
           <p>Elegí un color base y toda la interfaz se recalcula a partir de él:
-            fondo oscurecido, paneles y listas con contraste automático.</p>
+            fondo oscurecido, paneles y listas con contraste automático. Menú
+            con blancos, negros, primarios, secundarios y tonos especiales
+            (cyan, magenta, coral, teal, rosa, dorado).</p>
           <div class="tags"><span class="tag">Acento</span><span class="tag">Contraste</span></div>
         </div>
       </div>
@@ -824,10 +836,11 @@
         </div>
         <div class="card-body">
           <p>Cambiá el marco del aparato y el fondo del panel con fondos de TV
-            animados (clásicos, acero, consola).</p>
+            animados (clásicos, acero, tarjeta, consola).</p>
           <ul>
             <li>THEME: recorre los fondos de TV definidos en THEME.txt</li>
-            <li>IMAGE: cicla imágenes de pantalla / GIF</li>
+            <li>IMAGE: cicla imágenes de pantalla / GIF con ruido</li>
+            <li>Botones sobre el panel del TV, al costado del sprite</li>
             <li>Mantiene el color de acento elegido</li>
           </ul>
         </div>
@@ -840,10 +853,12 @@
         </div>
         <div class="card-body">
           <p>La interfaz se pinta a mano: tornillos, remaches, placas de
-            cabecera, perillas y rejillas metálicas con relieve.</p>
+            cabecera, perillas, jacks de colores y rejillas metálicas con
+            relieve.</p>
           <ul>
             <li>Header plates con tornillos en las esquinas</li>
-            <li>Botones metálicos y perillas de volumen</li>
+            <li>Slider de volumen (línea + pulgar) y presets LOW/MED/MAX</li>
+            <li>6 jacks de colores decorativos</li>
             <li>Contenido de las secciones a medida (SECTION BODY)</li>
           </ul>
         </div>
@@ -852,15 +867,16 @@
       <div class="card">
         <div class="card-top">
           <div class="icon">TC</div>
-          <div><h3>Tareas con música</h3><small>AddTask / EditTask</small></div>
+          <div><h3>Tareas con tiempo</h3><small>AddTask / EditTask</small></div>
         </div>
         <div class="card-body">
-          <p>Las tareas tienen nombre, tiempo, ícono y playlist asociada:
-            al completarlas empieza la música o se reproduce el m3u elegido.</p>
+          <p>Las tareas tienen nombre, tiempo e ícono, se inician tocándolas
+            y comparten la barra de nodos del temporizador.</p>
           <ul>
             <li>Íconos tipo tarjeta (libro, código, música, deporte…)</li>
-            <li>Slots AUTOMÁTICOS y tareas fijas</li>
+            <li>Edición con clic derecho (EDITAR)</li>
             <li>Barra de progreso y tiempo restante</li>
+            <li>Acceso rápido PDF / YT / LEARN en una fila</li>
           </ul>
         </div>
       </div>
@@ -885,8 +901,8 @@
             descarga por segmentos y reproducción continua.</p>
           <ul>
             <li>Detección automática de .m3u8/.m3u (HLS)</li>
-            <li>Fallback a stream directo si falla la lista</li>
-            <li>Metadatos de título y artista en vivo</li>
+            <li>Fallback a HLS si WMP no arranca (10 s de espera)</li>
+            <li>Metadatos de título y artista en vivo (SONG TITLE)</li>
           </ul>
           <div class="tags"><span class="tag">HLS</span><span class="tag">LibVLC</span><span class="tag">Streaming</span></div>
         </div>
@@ -895,14 +911,15 @@
       <div class="card">
         <div class="card-top">
           <div class="icon">VO</div>
-          <div><h3>Volumen por perilla</h3><small>Slider custom</small></div>
+          <div><h3>Volumen por perilla</h3><small>Slider custom + ABC</small></div>
         </div>
         <div class="card-body">
-          <p>Control de volumen con línea y pulgar deslizantes, actualizado
-            también desde el reproductor de fondo.</p>
+          <p>Control de volumen con línea y pulgar deslizantes, más tres
+            perillas de presets: <b>A</b> máximo, <b>B</b> medio, <b>C</b> bajo.</p>
           <ul>
             <li>Drag con el mouse sobre la pista</li>
-            <li>Liveles bajo / medio / máximo</li>
+            <li>Presets LOW / MED / MAX y perillas ABC</li>
+            <li>Actualizado también desde el reproductor de fondo</li>
           </ul>
         </div>
       </div>
@@ -935,17 +952,18 @@
         <h5>LEARNING</h5>
         <p>Estudio gamificado: materias (Matemáticas, SQL, Programación, Inglés)
           con XP, niveles, rachas y meta diaria. Paneles de PROGRESO, BOOSTERS,
-          PASSWORD y OPCIONES con tienda de potenciadores.</p>
+          PASSWORD y OPCIONES, más PERSONALIZAR con editor de personaje
+          (tienda de potenciadores próximamente).</p>
       </div>
       <div class="app">
         <h5>YOUTUBE VIEWER</h5>
         <p>Ventana integrada con WebView2 para abrir y navegar videos de YouTube
-          desde la app, con barra de URL y botón GO.</p>
+          desde la app, con barra de URL y botón GO (experimental).</p>
       </div>
       <div class="app">
         <h5>PDF MANUAL</h5>
         <p>Visor de PDF (PdfiumViewer) para abrir el manual de usuario dentro de
-          la aplicación, con marcadores y barra de herramientas.</p>
+          la aplicación, con marcadores y barra de herramientas (experimental).</p>
       </div>
       <div class="app">
         <h5>SET TIME</h5>
@@ -953,9 +971,19 @@
           configurar el temporizador de forma rápida.</p>
       </div>
       <div class="app">
+        <h5>CASSETTE LIST</h5>
+        <p>Vista rápida de todos los cassettes cargados desde CASS_master.txt
+          para saltar directo al que quieras.</p>
+      </div>
+      <div class="app">
         <h5>FAVORITES</h5>
         <p>Lista de accesos directos para volver a tu cassette favorito con su
-          tema, color y música.</p>
+          tema, color y música en un toque (FAV LIST).</p>
+      </div>
+      <div class="app">
+        <h5>ALARMA</h5>
+        <p>Alarma sonora al terminar el temporizador, reproducida en un canal
+          separado sin cortar la música.</p>
       </div>
       <div class="app">
         <h5>INFORMACIÓN</h5>

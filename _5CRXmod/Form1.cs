@@ -479,6 +479,7 @@ private Button btnVolLow = null!;
 	{
 		Screen? screen = Screen.PrimaryScreen;
 		LoadCassetteMaster();
+		_ = Task.Run(WarmCassetteCache);
 		lblCassettes.Text = "CASSETTES";
 		txtCassetteNum.Text = "0";
 		lblCassetteTotal.Text = $"/{_cassettes.Count}";
@@ -576,10 +577,10 @@ private Button btnVolLow = null!;
 				if (File.Exists(tvPath))
 				{
 				Image tvImg = PathHelper.LoadImage(tvPath);
+				SetTimerBackground(tvImg, false);
+				timerPanel.BackgroundImageLayout = ImageLayout.None;
 				base.Width = tvImg.Width + LighthouseWidth;
 				timerPanel.Height = tvImg.Height - 4;
-				timerPanel.BackgroundImage = tvImg;
-				timerPanel.BackgroundImageLayout = ImageLayout.None;
 				timerPanel.BackColor = Color.Transparent;
 				pnlTopButtons.BackColor = Color.Transparent;
 				pnlTimerControls.BackColor = Color.Transparent;
@@ -1415,6 +1416,15 @@ private Button btnVolLow = null!;
 			_themeImages.Clear();
 			foreach (var img in _cassetteImages) img.Dispose();
 			_cassetteImages.Clear();
+			lock (_imageCacheLock)
+			{
+				foreach (var img in _imageCache.Values) img.Dispose();
+				_imageCache.Clear();
+			}
+			ClearFrameList(_fadeOutFrames);
+			ClearFrameList(_fadeInFrames);
+			if (!_timerBackgroundCached && timerPanel.BackgroundImage != null)
+				timerPanel.BackgroundImage.Dispose();
 			foreach (var bmp in _spriteFrames) bmp.Dispose();
 			_spriteFrames.Clear();
 			if (_wmp != null)

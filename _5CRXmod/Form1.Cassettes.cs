@@ -20,13 +20,39 @@ partial class Form1
 
 	private Color _cassetteColor = Color.FromArgb(40, 40, 40);
 
+	private readonly Dictionary<string, Image> _imageCache = new Dictionary<string, Image>(StringComparer.OrdinalIgnoreCase);
+
+	private readonly object _imageCacheLock = new object();
+
+	private static Image? LoadFromDisk(string path)
+	{
+		try
+		{
+			return PathHelper.LoadImage(path);
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Form1.LoadFromDisk", ex);
+			return null;
+		}
+	}
+
+	private Image? GetCachedImage(string path)
+	{
+		if (string.IsNullOrEmpty(path) || !File.Exists(path)) return null;
+		lock (_imageCacheLock)
+		{
+			if (_imageCache.TryGetValue(path, out Image? img)) return img;
+			Image? loaded = LoadFromDisk(path);
+			if (loaded != null) _imageCache[path] = loaded;
+			return loaded;
+		}
+	}
+
 	private void ReplacePlayerImage(Image newImage)
 	{
-		if (!ReferenceEquals(newImage, _playerImage))
-		{
-			_playerImage?.Dispose();
-			_playerImage = newImage;
-		}
+		if (ReferenceEquals(newImage, _playerImage)) return;
+		_playerImage = newImage;
 		picPlayer.Image = newImage;
 		picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
 		picPlayer.Size = new Size(198, 125);
@@ -46,9 +72,10 @@ partial class Form1
 					{
 						string imgName = line.Substring("#CASSETTE:".Length).Trim();
 						string fullPath = Path.Combine(Path.GetDirectoryName(m3uPath) ?? "", imgName);
-						if (File.Exists(fullPath))
+						Image? cached = GetCachedImage(fullPath);
+						if (cached != null)
 						{
-							return PathHelper.LoadImage(fullPath);
+							return cached;
 						}
 					}
 				}
@@ -60,7 +87,7 @@ partial class Form1
 		}
 		if (_cassetteImages.Count > 0)
 		{
-			return new Bitmap(_cassetteImages[indexFallback % _cassetteImages.Count]);
+			return _cassetteImages[indexFallback % _cassetteImages.Count];
 		}
 		return null;
 	}
@@ -150,24 +177,29 @@ partial class Form1
 
 	private static string ResolveImgPath(string fileName) => PathHelper.ResolveImg(fileName);
 
-	private static Image? LoadCassetteImage(string imgName)
+	private Image? LoadCassetteImage(string imgName)
 	{
-		try
-		{
-			string imgPath = ResolveImgPath(imgName);
-			if (File.Exists(imgPath))
-			{
-				return PathHelper.LoadImage(imgPath);
-			}
-		}
-		catch (Exception ex)
-		{
-			Logger.Error("Form1.LoadCassetteImage", ex);
-		}
-		return null;
+		if (string.IsNullOrEmpty(imgName)) return null;
+		return GetCachedImage(ResolveImgPath(imgName));
 	}
 
 	private void ApplyCassette(int index)
+	{
+		if (index < 0 || index >= _cassettes.Count) return;
+		ApplyCassetteFunctional(index);
+		if (_slideTimer is { Enabled: true }) return;
+		CassetteData cass = _cassettes[index];
+		if (!string.IsNullOrEmpty(cass.Imagen))
+		{
+			Image? img = GetCachedImage(ResolveImgPath(cass.Imagen));
+			if (img != null)
+			{
+				ReplacePlayerImage(img);
+			}
+		}
+	}
+
+	private void ApplyCassetteFunctional(int index)
 	{
 		if (index < 0 || index >= _cassettes.Count) return;
 		CassetteData cass = _cassettes[index];
@@ -192,15 +224,6 @@ partial class Form1
 			}
 			catch (Exception ex) { Logger.Error("Form1.ApplyCassette.Color", ex); }
 		}
-		
-		if (!string.IsNullOrEmpty(cass.Imagen) && _nextCassetteImage == null)
-		{
-			Image? newImg = LoadCassetteImage(cass.Imagen);
-			if (newImg != null)
-			{
-				ReplacePlayerImage(newImg);
-			}
-		}
 
 		if (!string.IsNullOrEmpty(cass.PantallaGif))
 		{
@@ -215,11 +238,10 @@ partial class Form1
 		if (!string.IsNullOrEmpty(cass.TemaTV))
 		{
 			string tvPath = ResolveImgPath(cass.TemaTV);
-			if (File.Exists(tvPath))
+			Image? tvImg = GetCachedImage(tvPath);
+			if (tvImg != null)
 			{
-				Image tvImg = PathHelper.LoadImage(tvPath);
-				if (timerPanel.BackgroundImage != null) timerPanel.BackgroundImage.Dispose();
-				timerPanel.BackgroundImage = tvImg;
+				SetTimerBackground(tvImg, true);
 				timerPanel.BackgroundImageLayout = ImageLayout.None;
 				timerPanel.Height = tvImg.Height - 4;
 				_currentTvPath = tvPath;
@@ -236,27 +258,22 @@ partial class Form1
 	private void ChangeCassette(int direction)
 	{
 		if (_cassettes.Count == 0) return;
-		Timer? slideTimer = _slideTimer;
-		if (slideTimer == null || !slideTimer.Enabled)
+		if (_slideTimer is { Enabled: true }) return;
+
+		int newIndex = (_currentCassetteIndex + direction + _cassettes.Count) % _cassettes.Count;
+		CassetteData nextCass = _cassettes[newIndex];
+
+		ApplyCassetteFunctional(newIndex);
+
+		Image? nextImg = null;
+		if (!string.IsNullOrEmpty(nextCass.Imagen))
 		{
-			int newIndex = (_currentCassetteIndex + direction + _cassettes.Count) % _cassettes.Count;
-			CassetteData nextCass = _cassettes[newIndex];
+			nextImg = GetCachedImage(ResolveImgPath(nextCass.Imagen));
+		}
 
-			Image? nextImg = null;
-			if (!string.IsNullOrEmpty(nextCass.Imagen))
-			{
-				nextImg = LoadCassetteImage(nextCass.Imagen);
-			}
-
-			if (nextImg != null)
-			{
-				_pendingCassetteIndex = newIndex;
-				StartFade(nextImg);
-			}
-			else
-			{
-				ApplyCassette(newIndex);
-			}
+		if (nextImg != null)
+		{
+			StartFade(nextImg);
 		}
 	}
 
@@ -264,24 +281,20 @@ partial class Form1
 	{
 		if (index < 0 || index >= _cassettes.Count) return;
 		if (index == _currentCassetteIndex) return;
-		Timer? slideTimer = _slideTimer;
-		if (slideTimer != null && slideTimer.Enabled) return;
+		if (_slideTimer is { Enabled: true }) return;
 
 		CassetteData cass = _cassettes[index];
+		ApplyCassetteFunctional(index);
+
 		Image? nextImg = null;
 		if (!string.IsNullOrEmpty(cass.Imagen))
 		{
-			nextImg = LoadCassetteImage(cass.Imagen);
+			nextImg = GetCachedImage(ResolveImgPath(cass.Imagen));
 		}
 
 		if (nextImg != null)
 		{
-			_pendingCassetteIndex = index;
 			StartFade(nextImg);
-		}
-		else
-		{
-			ApplyCassette(index);
 		}
 	}
 
@@ -318,6 +331,32 @@ partial class Form1
 		form.Location = new Point(Left - form.Width, Top);
 		if (form.ShowDialog(this) == DialogResult.OK && form.SelectedIndex >= 0)
 			GoToCassette(form.SelectedIndex);
+	}
+
+	private void WarmCassetteCache()
+	{
+		try
+		{
+			for (int i = 0; i < _cassettes.Count; i++)
+			{
+				CassetteData c = _cassettes[i];
+				if (!string.IsNullOrEmpty(c.Imagen)) LoadCassetteImage(c.Imagen);
+				if (!string.IsNullOrEmpty(c.TemaTV)) _ = GetCachedImage(ResolveImgPath(c.TemaTV));
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Form1.WarmCassetteCache", ex);
+		}
+		try
+		{
+			for (int i = 0; i < _m3uFiles.Count; i++)
+				GetCassetteImageFromM3u(_m3uFiles[i], i);
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Form1.WarmCassetteCache.M3u", ex);
+		}
 	}
 
 	private void LayoutCassetteHeader()

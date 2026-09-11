@@ -37,8 +37,7 @@ partial class Form1
 	private int _fadePhase;
 	private int _fadeFrameIndex;
 	private Image? _nextCassetteImage;
-	private int _pendingCassetteIndex = -1;
-	private FavoriteData? _pendingFavOverride;
+	private bool _timerBackgroundCached;
 
 	private const int PictureBoxWidth = 154;
 
@@ -784,6 +783,16 @@ partial class Form1
 		g.DrawLines(pen, pts);
 	}
 
+	private void SetTimerBackground(Image img, bool fromCache)
+	{
+		if (!_timerBackgroundCached && timerPanel.BackgroundImage != null)
+		{
+			timerPanel.BackgroundImage.Dispose();
+		}
+		_timerBackgroundCached = fromCache;
+		timerPanel.BackgroundImage = img;
+	}
+
 	private void _fadeTimer_Tick(object? sender, EventArgs e)
 	{
 		var frames = _fadePhase == 0 ? _fadeOutFrames : _fadeInFrames;
@@ -791,18 +800,6 @@ partial class Form1
 		{
 			if (_fadePhase == 0)
 			{
-				if (_pendingCassetteIndex >= 0)
-				{
-					int idx = _pendingCassetteIndex;
-					_pendingCassetteIndex = -1;
-					ApplyCassette(idx);
-					if (_pendingFavOverride != null)
-					{
-						var ov = _pendingFavOverride;
-						_pendingFavOverride = null;
-						ApplyFavOverride(ov);
-					}
-				}
 				_fadePhase = 1;
 				_fadeFrameIndex = 0;
 				frames = _fadeInFrames!;
@@ -846,7 +843,7 @@ partial class Form1
 		_nextCassetteImage = newImage;
 		Image oldImg = picPlayer.Image;
 
-		int steps = 7;
+		int steps = 5;
 		_fadePhase = 0;
 		_fadeFrameIndex = 0;
 		_fadeOutFrames = new List<Bitmap>(steps + 1);
@@ -875,7 +872,7 @@ partial class Form1
 
 		if (_slideTimer != null)
 		{
-			_slideTimer.Interval = 28;
+			_slideTimer.Interval = 24;
 			_slideTimer.Start();
 		}
 	}
