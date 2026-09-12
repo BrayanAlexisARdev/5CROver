@@ -51,7 +51,6 @@ partial class Form1
 
 	private void ReplacePlayerImage(Image newImage)
 	{
-		if (ReferenceEquals(newImage, _playerImage)) return;
 		_playerImage = newImage;
 		picPlayer.Image = newImage;
 		picPlayer.SizeMode = PictureBoxSizeMode.Zoom;

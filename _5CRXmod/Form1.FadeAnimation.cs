@@ -38,6 +38,7 @@ partial class Form1
 	private int _fadeFrameIndex;
 	private Image? _nextCassetteImage;
 	private bool _timerBackgroundCached;
+	private string? _preFadeDisplayImageLocation;
 
 	private const int PictureBoxWidth = 154;
 
@@ -804,18 +805,19 @@ partial class Form1
 				_fadeFrameIndex = 0;
 				frames = _fadeInFrames!;
 			}
-			else
-			{
-				if (_nextCassetteImage != null)
+else
 				{
-					ReplacePlayerImage(_nextCassetteImage);
-					_nextCassetteImage = null;
+					if (_nextCassetteImage != null)
+					{
+						ReplacePlayerImage(_nextCassetteImage);
+						_nextCassetteImage = null;
+					}
+					ClearFrameList(_fadeOutFrames);
+					ClearFrameList(_fadeInFrames);
+					RestoreMainDisplayAfterFade();
+					_slideTimer?.Stop();
+					return;
 				}
-				ClearFrameList(_fadeOutFrames);
-				ClearFrameList(_fadeInFrames);
-				_slideTimer?.Stop();
-				return;
-			}
 		}
 
 		picPlayer.Image = frames[_fadeFrameIndex++];
@@ -863,17 +865,31 @@ partial class Form1
 			ClearFrameList(_fadeOutFrames);
 			ClearFrameList(_fadeInFrames);
 			_nextCassetteImage = null;
+			RestoreMainDisplayAfterFade();
 			ReplacePlayerImage(newImage);
 			return;
 		}
 
 		if (!string.IsNullOrEmpty(_noiseFile))
+		{
+			_preFadeDisplayImageLocation = picMainDisplay.ImageLocation;
 			picMainDisplay.ImageLocation = _noiseFile;
+		}
 
 		if (_slideTimer != null)
 		{
 			_slideTimer.Interval = 24;
 			_slideTimer.Start();
+		}
+	}
+
+	private void RestoreMainDisplayAfterFade()
+	{
+		string? restore = _preFadeDisplayImageLocation;
+		_preFadeDisplayImageLocation = null;
+		if (!string.IsNullOrEmpty(restore))
+		{
+			picMainDisplay.ImageLocation = restore;
 		}
 	}
 
@@ -948,12 +964,16 @@ partial class Form1
 		{
 			using Bitmap fullSheet = new Bitmap(path);
 			_spriteFrames.Clear();
+			int cols = Math.Max(1, fullSheet.Width / frameWidth);
 			for (int i = 0; i < frameCount; i++)
 			{
-				Rectangle section = new Rectangle(i * frameWidth, 0, frameWidth, frameHeight);
-				if (section.Right > fullSheet.Width)
+				int row = i / cols;
+				int col = i % cols;
+				Rectangle section = new Rectangle(col * frameWidth, row * frameHeight, frameWidth, frameHeight);
+				if (section.Bottom > fullSheet.Height || section.Right > fullSheet.Width)
 				{
-					section = new Rectangle(0, i * frameHeight, frameWidth, frameHeight);
+					_spriteFrames.Clear();
+					return;
 				}
 				Bitmap frame = fullSheet.Clone(section, fullSheet.PixelFormat);
 				_spriteFrames.Add(frame);

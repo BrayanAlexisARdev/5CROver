@@ -407,7 +407,19 @@ private Button btnVolLow = null!;
 
 	private void btnCloseApp_Click(object? sender, EventArgs e)
 	{
+		ShutdownEngine();
 		Application.Exit();
+	}
+
+	private void ShutdownEngine()
+	{
+		try { _slideTimer?.Stop(); } catch { }
+		try { _eqTimer?.Stop(); } catch { }
+		try { _spriteTimer?.Stop(); } catch { }
+		try { _metaTimer?.Stop(); } catch { }
+		try { _m3u8WatchTimer?.Stop(); } catch { }
+		try { _hlsPlayer?.Dispose(); } catch (Exception ex) { Logger.Error("Form1.ShutdownEngine.Hls", ex); }
+		_hlsPlayer = null;
 	}
 
 	private void ShowColorMenu()
@@ -1396,37 +1408,64 @@ private Button btnVolLow = null!;
 	{
 		if (disposing)
 		{
-			_learningData?.Save();
-			_hlsPlayer?.Dispose();
-			_slideTimer?.Dispose();
-			_eqTimer?.Dispose();
-			_spriteTimer?.Dispose();
-			_metaTimer?.Dispose();
-			_m3u8WatchTimer?.Dispose();
-			_pfc?.Dispose();
-			_currentThemeImage?.Dispose();
-			if (_nextCassetteImage != null && !ReferenceEquals(_nextCassetteImage, _playerImage))
+			try { _learningData?.Save(); } catch (Exception ex) { Logger.Error("Form1.Dispose.Learning", ex); }
+			try { _hlsPlayer?.Dispose(); } catch (Exception ex) { Logger.Error("Form1.Dispose.Hls", ex); }
+			_hlsPlayer = null;
+			try
 			{
-				_nextCassetteImage.Dispose();
+				_slideTimer?.Stop();
+				_eqTimer?.Stop();
+				_spriteTimer?.Stop();
+				_metaTimer?.Stop();
+				_m3u8WatchTimer?.Stop();
 			}
-			_nextCassetteImage = null;
-			_playerImage?.Dispose();
-			_playerImage = null;
-			foreach (var img in _themeImages) img.Dispose();
-			_themeImages.Clear();
-			foreach (var img in _cassetteImages) img.Dispose();
-			_cassetteImages.Clear();
-			lock (_imageCacheLock)
+			catch (Exception ex) { Logger.Error("Form1.Dispose.StopTimers", ex); }
+			try
 			{
-				foreach (var img in _imageCache.Values) img.Dispose();
-				_imageCache.Clear();
+				picMainDisplay.ImageLocation = null;
+				picOverlay.Image = null;
+				picPlayer.Image = null;
+				picMainDisplay.Image = null;
+				timerPanel.BackgroundImage = null;
 			}
-			ClearFrameList(_fadeOutFrames);
-			ClearFrameList(_fadeInFrames);
-			if (!_timerBackgroundCached && timerPanel.BackgroundImage != null)
-				timerPanel.BackgroundImage.Dispose();
-			foreach (var bmp in _spriteFrames) bmp.Dispose();
-			_spriteFrames.Clear();
+			catch (Exception ex) { Logger.Error("Form1.Dispose.DetachImages", ex); }
+			try
+			{
+				_slideTimer?.Dispose();
+				_eqTimer?.Dispose();
+				_spriteTimer?.Dispose();
+				_metaTimer?.Dispose();
+				_m3u8WatchTimer?.Dispose();
+				_pfc?.Dispose();
+			}
+			catch (Exception ex) { Logger.Error("Form1.Dispose.Timers", ex); }
+			try
+			{
+				_currentThemeImage?.Dispose();
+				if (_nextCassetteImage != null && !ReferenceEquals(_nextCassetteImage, _playerImage))
+				{
+					_nextCassetteImage.Dispose();
+				}
+				_nextCassetteImage = null;
+				_playerImage?.Dispose();
+				_playerImage = null;
+				foreach (var img in _themeImages) img.Dispose();
+				_themeImages.Clear();
+				foreach (var img in _cassetteImages) img.Dispose();
+				_cassetteImages.Clear();
+				lock (_imageCacheLock)
+				{
+					foreach (var img in _imageCache.Values) img.Dispose();
+					_imageCache.Clear();
+				}
+				ClearFrameList(_fadeOutFrames);
+				ClearFrameList(_fadeInFrames);
+				if (!_timerBackgroundCached && timerPanel.BackgroundImage != null)
+					timerPanel.BackgroundImage.Dispose();
+				foreach (var bmp in _spriteFrames) bmp.Dispose();
+				_spriteFrames.Clear();
+			}
+			catch (Exception ex) { Logger.Error("Form1.Dispose.Images", ex); }
 			if (_wmp != null)
 			{
 				try { System.Runtime.InteropServices.Marshal.ReleaseComObject(_wmp); }
@@ -1439,7 +1478,7 @@ private Button btnVolLow = null!;
 				catch (Exception ex) { Logger.Error("Form1.Dispose.WmpAlarm", ex); }
 				_wmpAlarm = null;
 			}
-			components?.Dispose();
+			try { components?.Dispose(); } catch (Exception ex) { Logger.Error("Form1.Dispose.Components", ex); }
 		}
 		base.Dispose(disposing);
 	}
