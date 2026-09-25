@@ -205,12 +205,12 @@ partial class Form1
 		_currentCassetteIndex = index;
 		AdvanceEqStyle();
 
-		lblCassettes.Text = "CASSETTES";
 		txtCassetteNum.Text = (index + 1).ToString();
 		lblCassetteTotal.Text = $"/{_cassettes.Count}";
 
 		lblM3uTitle.Text = cass.Titulo.ToUpper();
 		_currentCassetteTitle = cass.Titulo.ToUpper();
+		UpdateCassetteHeaderText();
 		lblMetadata.Text = "";
 		lblExtraMetadata.Text = "";
 
@@ -364,5 +364,70 @@ partial class Form1
 		txtCassetteNum.Width = TextRenderer.MeasureText("888", txtCassetteNum.Font).Width;
 		txtCassetteNum.Location = new Point(70, 3);
 		lblCassetteTotal.Location = new Point(70 + txtCassetteNum.Width + 2, 6);
+	}
+
+	private void UpdateCassetteHeaderText()
+	{
+		lblCassettes.Text = "CASSETTES";
+		lblCassetteCount.Text = GetCassetteNumberText();
+		LayoutCassetteCount();
+	}
+
+	private string GetCassetteNumberText()
+	{
+		int total = _cassettes.Count;
+		int num = total > 0 ? _currentCassetteIndex + 1 : 0;
+		return $"{num}/{total}";
+	}
+
+	private void LayoutCassetteCount()
+	{
+		if (lblCassetteCount == null) return;
+		lblCassettes.AutoSize = true;
+		lblCassetteCount.AutoSize = true;
+		int panelW = cassettesHeaderPanel.Width;
+		int gap = 5;
+		int rightPad = 2;
+		int countW = lblCassetteCount.PreferredWidth;
+		int maxTitleW = panelW - countW - gap - rightPad;
+		if (lblCassettes.PreferredWidth > maxTitleW)
+		{
+			lblCassettes.Text = TruncateText(lblCassettes.Text, maxTitleW, lblCassettes.Font);
+		}
+		lblCassettes.AutoSize = true;
+		lblCassetteCount.AutoSize = true;
+		int titleW = lblCassettes.PreferredWidth;
+		countW = lblCassetteCount.PreferredWidth;
+		int groupW = titleW + gap + countW;
+		int groupX = (panelW - groupW) / 2;
+		int y = (cassettesHeaderPanel.Height - Math.Max(lblCassettes.PreferredHeight, lblCassetteCount.PreferredHeight)) / 2;
+		lblCassettes.Location = new Point(groupX, y);
+		lblCassetteCount.Location = new Point(groupX + titleW + gap, y);
+		lblCassettes.Padding = Padding.Empty;
+		lblCassetteCount.Padding = Padding.Empty;
+	}
+
+	private static string TruncateText(string text, int maxWidth, Font font)
+	{
+		if (string.IsNullOrEmpty(text) || TextRenderer.MeasureText(text, font).Width <= maxWidth)
+			return text;
+		string ellipsis = "\u2026";
+		int lo = 0, hi = text.Length;
+		string result = "";
+		while (lo < hi)
+		{
+			int mid = (lo + hi + 1) / 2;
+			string candidate = text.Substring(0, mid) + ellipsis;
+			if (TextRenderer.MeasureText(candidate, font).Width <= maxWidth)
+			{
+				result = candidate;
+				lo = mid;
+			}
+			else
+			{
+				hi = mid - 1;
+			}
+		}
+		return result;
 	}
 }

@@ -75,6 +75,7 @@ public partial class Form1 : Form
 	private BufferedPanel cassettesHeaderPanel = null!;
 
 	private Label lblCassettes = null!;
+	private Label lblCassetteCount = null!;
 	private TextBox txtCassetteNum = null!;
 	private Label lblCassetteTotal = null!;
 	private Button btnCassetteList = null!;
@@ -161,6 +162,13 @@ private Button btnVolLow = null!;
 	private int[] _nodeBaseSizes = Array.Empty<int>();
 	private float[] _nodeCenterX = Array.Empty<float>();
 	private int _nodeCount;
+
+	private BufferedPanel? pnlMarquee;
+	private Timer? _marqueeTimer;
+	private float _marqueeOffset;
+	private float _marqueeTextWidth;
+	private string _marqueeText = "";
+	private Font? _marqueeFont;
 
 	[DllImport("Gdi32.dll")]
 	private static extern nint CreateRoundRectRgn(int nLeftRect, int nTopRect, int RightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
@@ -418,6 +426,7 @@ private Button btnVolLow = null!;
 		try { _spriteTimer?.Stop(); } catch { }
 		try { _metaTimer?.Stop(); } catch { }
 		try { _m3u8WatchTimer?.Stop(); } catch { }
+		try { _marqueeTimer?.Stop(); } catch { }
 		try { _hlsPlayer?.Dispose(); } catch (Exception ex) { Logger.Error("Form1.ShutdownEngine.Hls", ex); }
 		_hlsPlayer = null;
 	}
@@ -492,7 +501,7 @@ private Button btnVolLow = null!;
 		Screen? screen = Screen.PrimaryScreen;
 		LoadCassetteMaster();
 		_ = Task.Run(WarmCassetteCache);
-		lblCassettes.Text = "CASSETTES";
+		UpdateCassetteHeaderText();
 		txtCassetteNum.Text = "0";
 		lblCassetteTotal.Text = $"/{_cassettes.Count}";
 		InitPlayer();
@@ -1029,8 +1038,8 @@ private Button btnVolLow = null!;
 		pnlVolume.Controls.Remove(btnVolMid);
 		pnlVolume.Controls.Remove(btnVolMax);
 
-		playerFooterPanel.Height = 256;
-		pnlVolume.Location = new Point(0, 232);
+		playerFooterPanel.Height = 306;
+		pnlVolume.Location = new Point(0, 304);
 		pnlVolume.Size = new Size(ContentWidth, 24);
 
 		base.Controls.Remove(pnlFullListRow);
@@ -1051,8 +1060,58 @@ private Button btnVolLow = null!;
 		pnlVolume.Controls.Add(lblCassetteTotal);
 		pnlVolume.Controls.Add(btnCassetteList);
 
+		// === Cassette: fila FULL LIST ❤ M3U arriba del cassette ===
+		int numRowY = 0;
+		int numRowH = 36;
+		int numGap = 4;
+		int numCount = 4;
+		int numW = (ContentWidth - numGap * (numCount - 1)) / numCount;
+		int numStartX = (ContentWidth - (numW * numCount + numGap * (numCount - 1))) / 2;
+		string[] cassLabels = ["FULL LIST", "\u2764", "M3U"];
+		int[] cassWidths = [numW * 2 + numGap, numW, numW];
+		string[] cassNames = ["btnCassFullList", "btnCassHeart", "btnCassM3u"];
+		int xAcc2 = numStartX;
+		for (int i = 0; i < cassLabels.Length; i++)
+		{
+			Button btnNum = MakeRoundedBtn(cassLabels[i]);
+			btnNum.Name = cassNames[i];
+			btnNum.Size = new Size(cassWidths[i], numRowH);
+			btnNum.Font = new Font(i == 1 ? "Segoe UI Emoji" : "Segoe UI", i == 1 ? 14f : 9f, FontStyle.Bold);
+			btnNum.Tag = true;
+			btnNum.Location = new Point(xAcc2, numRowY);
+			xAcc2 += cassWidths[i] + numGap;
+			ApplyRoundedRegion(btnNum);
+			playerFooterPanel.Controls.Add(btnNum);
+		}
+
+		// === Marquee: letrero desplazante debajo de la fila 1-4 (fondo negro, texto blanco, 88px) ===
+		pnlMarquee = new BufferedPanel
+		{
+			Name = "pnlMarquee",
+			Location = new Point(0, 38),
+			Size = new Size(ContentWidth, 37),
+			BackColor = Color.Black
+		};
+		pnlMarquee.Paint += MarqueePanel_Paint;
+		pnlMarquee.Resize += (_, _) => pnlMarquee.Invalidate();
+		lblM3uTitle.TextChanged += (_, _) => BuildMarqueeText();
+		playerFooterPanel.Controls.Add(pnlMarquee);
+		_marqueeTimer = new Timer { Interval = 40 };
+		_marqueeTimer.Tick += (_, _) =>
+		{
+			_marqueeOffset -= 1f;
+			if (_marqueeTextWidth > 0f && _marqueeOffset <= -_marqueeTextWidth)
+			{
+				_marqueeOffset = pnlMarquee.Width;
+			}
+			pnlMarquee?.Invalidate();
+		};
+		_marqueeTimer.Start();
+		_marqueeOffset = pnlMarquee.Width;
+		BuildMarqueeText();
+
 		// === Cassette: imagen a todo el ancho (proporción real) + transporte ⏮ ▶ ⏹ ⏭ en su propia fila ===
-		pnlCassetteContainer.Location = new Point(0, 0);
+		pnlCassetteContainer.Location = new Point(0, 76);
 		pnlCassetteContainer.Size = new Size(ContentWidth, 163);
 		picPlayer.Location = new Point(4, 19);
 		picPlayer.Size = new Size(198, 125);
@@ -1098,7 +1157,7 @@ private Button btnVolLow = null!;
 			pnlCassetteContainer.Controls.Add(abc);
 		}
 
-		int transpY = 164;
+		int transpY = 240;
 		int transpH = 36;
 		int transpGap = 4;
 		int transpCount = 4;
@@ -1145,14 +1204,15 @@ private Button btnVolLow = null!;
 			playerFooterPanel.Controls.Add(btnTransp);
 		}
 
-		pnlEqualizer.Location = new Point(0, 204);
+		pnlEqualizer.Location = new Point(0, 278);
 		pnlEqualizer.Size = new Size(ContentWidth, 24);
 		lblM3uTitle.Location = new Point(-500, -500);
 		lblM3uTitle.Visible = true;
 		lblM3uTitle.TextChanged += (_, _) => pnlEqualizer?.Invalidate();
 		lblMetadata.Location = new Point(-500, -500);
 		lblExtraMetadata.Location = new Point(-500, -500);
-		pnlVolume.Location = new Point(5, 230);
+		pnlVolume.Location = new Point(5, 304);
+		pnlVolume.Visible = false;
 
 		Label lblNro = new Label
 		{
@@ -1205,6 +1265,10 @@ private Button btnVolLow = null!;
 		// === Fila inferior: X CLOSE (cerrar) ===
 		btnCloseApp.Height = 60;
 		btnCloseApp.Dock = DockStyle.Bottom;
+
+		// === Agrandar la app para alojar la marquesina debajo de la fila 1-4 ===
+		base.ClientSize = new Size(base.Width, base.ClientSize.Height + 36);
+		base.Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, base.Width, base.Height, 12, 12));
 
 		ApplyRadioSkin();
 	}
@@ -1392,6 +1456,78 @@ private Button btnVolLow = null!;
 		}
 	}
 
+	private void BuildMarqueeText()
+	{
+		string title = lblM3uTitle.Text;
+		if (string.IsNullOrWhiteSpace(title) || title == "M3U TITLE")
+		{
+			title = _currentCassetteTitle;
+		}
+		if (string.IsNullOrWhiteSpace(title)) title = "RADIO";
+		_marqueeText = $"++   WE ARE LISTENING {title}   --";
+		_marqueeTextWidth = 0f;
+		try
+		{
+			_marqueeFont?.Dispose();
+			_marqueeFont = FontHelper.CreateDdiscoFont(18f, FontStyle.Bold);
+		}
+		catch
+		{
+			_marqueeFont = null;
+		}
+		pnlMarquee?.Invalidate();
+	}
+
+	private void MarqueePanel_Paint(object? sender, PaintEventArgs e)
+	{
+		if (pnlMarquee == null) return;
+		Graphics g = e.Graphics;
+		g.SmoothingMode = SmoothingMode.AntiAlias;
+		g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+		using (var bg = new SolidBrush(Color.Black))
+			g.FillRectangle(bg, pnlMarquee.ClientRectangle);
+		if (string.IsNullOrEmpty(_marqueeText) || _marqueeFont == null) return;
+		float textW = g.MeasureString(_marqueeText, _marqueeFont).Width;
+		if (textW <= 0f) return;
+		_marqueeTextWidth = textW;
+		float y = pnlMarquee.Height / 2f;
+		using (var fmt = new StringFormat { LineAlignment = StringAlignment.Center })
+		{
+			using (var outer = new SolidBrush(Color.FromArgb(38, 255, 255, 255)))
+			{
+				for (int i = 2; i <= 3; i++)
+				{
+					g.DrawString(_marqueeText, _marqueeFont, outer, _marqueeOffset - i, y, fmt);
+					g.DrawString(_marqueeText, _marqueeFont, outer, _marqueeOffset + i, y, fmt);
+					g.DrawString(_marqueeText, _marqueeFont, outer, _marqueeOffset, y - i, fmt);
+					g.DrawString(_marqueeText, _marqueeFont, outer, _marqueeOffset, y + i, fmt);
+				}
+			}
+			using (var inner = new SolidBrush(Color.FromArgb(85, 255, 255, 255)))
+			{
+				g.DrawString(_marqueeText, _marqueeFont, inner, _marqueeOffset - 1, y, fmt);
+				g.DrawString(_marqueeText, _marqueeFont, inner, _marqueeOffset + 1, y, fmt);
+				g.DrawString(_marqueeText, _marqueeFont, inner, _marqueeOffset, y - 1, fmt);
+				g.DrawString(_marqueeText, _marqueeFont, inner, _marqueeOffset, y + 1, fmt);
+			}
+			g.DrawString(_marqueeText, _marqueeFont, Brushes.White, _marqueeOffset, y, fmt);
+		}
+		using (var scan = new SolidBrush(Color.FromArgb(22, 0, 0, 0)))
+		{
+			for (int sy = 0; sy < pnlMarquee.Height; sy += 3)
+				g.FillRectangle(scan, 0, sy, pnlMarquee.Width, 1);
+		}
+		int fadeW = Math.Max(40, pnlMarquee.Width / 4);
+		using (var leftFade = new LinearGradientBrush(
+			new Rectangle(0, 0, fadeW + 2, pnlMarquee.Height),
+			Color.Black, Color.FromArgb(0, Color.Black), LinearGradientMode.Horizontal))
+			g.FillRectangle(leftFade, 0, 0, fadeW, pnlMarquee.Height);
+		using (var rightFade = new LinearGradientBrush(
+			new Rectangle(pnlMarquee.Width - fadeW - 2, 0, fadeW + 2, pnlMarquee.Height),
+			Color.FromArgb(0, Color.Black), Color.Black, LinearGradientMode.Horizontal))
+			g.FillRectangle(rightFade, pnlMarquee.Width - fadeW, 0, fadeW, pnlMarquee.Height);
+	}
+
 	private void ApplyRoundedRegion(Control c)
 	{
 		using var path = new System.Drawing.Drawing2D.GraphicsPath();
@@ -1418,6 +1554,7 @@ private Button btnVolLow = null!;
 				_spriteTimer?.Stop();
 				_metaTimer?.Stop();
 				_m3u8WatchTimer?.Stop();
+				_marqueeTimer?.Stop();
 			}
 			catch (Exception ex) { Logger.Error("Form1.Dispose.StopTimers", ex); }
 			try
@@ -1436,7 +1573,10 @@ private Button btnVolLow = null!;
 				_spriteTimer?.Dispose();
 				_metaTimer?.Dispose();
 				_m3u8WatchTimer?.Dispose();
+				_marqueeTimer?.Dispose();
 				_pfc?.Dispose();
+				_marqueeFont?.Dispose();
+				_marqueeFont = null;
 			}
 			catch (Exception ex) { Logger.Error("Form1.Dispose.Timers", ex); }
 			try
@@ -1508,6 +1648,7 @@ private Button btnVolLow = null!;
 		this.toolsRow = new System.Windows.Forms.Panel();
 		this.cassettesHeaderPanel = new BufferedPanel();
 		this.lblCassettes = new System.Windows.Forms.Label();
+		this.lblCassetteCount = new System.Windows.Forms.Label();
 		this.playerFooterPanel = new BufferedPanel();
 		this.pnlEqualizer = new BufferedPanel();
 		this.pnlVolume = new System.Windows.Forms.Panel();
@@ -1760,12 +1901,21 @@ private Button btnVolLow = null!;
 		this.cassettesHeaderPanel.Size = new System.Drawing.Size(260, 25);
 		this.cassettesHeaderPanel.TabIndex = 4;
 
-		this.lblCassettes.Dock = System.Windows.Forms.DockStyle.Fill;
+		this.lblCassettes.AutoSize = true;
 		this.lblCassettes.Font = new System.Drawing.Font("Segoe UI", 9f, System.Drawing.FontStyle.Bold);
 		this.lblCassettes.Name = "lblCassettes";
 		this.lblCassettes.Size = new System.Drawing.Size(260, 25);
 		this.lblCassettes.Text = "CASSETTES";
 		this.lblCassettes.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+		this.lblCassettes.BackColor = System.Drawing.Color.Transparent;
+
+		this.lblCassetteCount.AutoSize = true;
+		this.lblCassetteCount.Font = new System.Drawing.Font("Segoe UI", 8f, System.Drawing.FontStyle.Bold);
+		this.lblCassetteCount.Name = "lblCassetteCount";
+		this.lblCassetteCount.Text = "0/0";
+		this.lblCassetteCount.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+		this.lblCassetteCount.BackColor = System.Drawing.Color.Transparent;
+		this.lblCassetteCount.Padding = new System.Windows.Forms.Padding(2, 0, 2, 0);
 
 		this.txtCassetteNum = new TextBox();
 		this.txtCassetteNum.BackColor = System.Drawing.Color.FromArgb(235, 235, 235);
@@ -1813,6 +1963,7 @@ private Button btnVolLow = null!;
 		this.btnFavList.UseVisualStyleBackColor = false;
 		this.btnFavList.Click += new EventHandler(this.btnFavList_Click);
 
+		this.cassettesHeaderPanel.Controls.Add(this.lblCassetteCount);
 		this.cassettesHeaderPanel.Controls.Add(this.lblCassettes);
 
 		this.pnlFullListRow = new Panel();

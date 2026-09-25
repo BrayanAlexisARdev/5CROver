@@ -372,9 +372,9 @@ PANTALLA_GIF: waters_ANI.gif
 TEMA_TV: vocca_TV.gif
 
 [CASSETTE 46]
-TITULO: Rock Nacional ARG
+TITULO: SOLO ROCK NACIONAL
 IMAGEN: cass023.png
-CONTENIDO: https://ec3.yesstreaming.net:4505/stream
+CONTENIDO: https://stream-280.surfernetwork.com/g9purm3158quv
 COLOR: #31c1e8
 PANTALLA_GIF: girl14_ANI.gif
 TEMA_TV: voldoff_TV.gif
@@ -403,3 +403,26 @@ COLOR: #305889
 PANTALLA_GIF: tropical_ANI.gif
 TEMA_TV: voldoff_TV.gif
 
+[CASSETTE 50]
+TITULO: RADIO ONE
+IMAGEN: cass022.png
+CONTENIDO: https://one.stweb.tv/one/live/playlist.m3u8
+COLOR: #305889
+PANTALLA_GIF: tropical_ANI.gif
+TEMA_TV: voldoff_TV.gif
+
+[CASSETTE 51]
+TITULO: 24/7 CHIPTUNE RADIO
+IMAGEN: cass022.png
+CONTENIDO: https://radio.zelerk.com/listen/chiptune/stream.mp3
+COLOR: #305889
+PANTALLA_GIF: tropical_ANI.gif
+TEMA_TV: voldoff_TV.gif
+
+[CASSETTE 52]
+TITULO: 24/7 Vapor Funk Radio
+IMAGEN: cass022.png
+CONTENIDO: https://radio.zelerk.com/listen/vapor/stream.mp3
+COLOR: #305889
+PANTALLA_GIF: tropical_ANI.gif
+TEMA_TV: voldoff_TV.gif

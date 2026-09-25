@@ -63,6 +63,7 @@ partial class Form1
 			lblTasks.Font = new Font(FontHelper.CustomFontFamily, 9f, FontStyle.Bold);
 			lblTools.Font = new Font(FontHelper.CustomFontFamily, 9f, FontStyle.Bold);
 			lblCassettes.Font = new Font(FontHelper.CustomFontFamily, 9f, FontStyle.Bold);
+			lblCassetteCount.Font = new Font(FontHelper.CustomFontFamily, 8f, FontStyle.Bold);
 			txtCassetteNum.Font = new Font(FontHelper.CustomFontFamily, 9f, FontStyle.Bold);
 			lblCassetteTotal.Font = new Font(FontHelper.CustomFontFamily, 8f, FontStyle.Bold);
 			lblM3uTitle.Font = new Font(FontHelper.CustomFontFamily, 8f, FontStyle.Bold);
