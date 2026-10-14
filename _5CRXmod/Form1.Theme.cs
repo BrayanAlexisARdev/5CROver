@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Text;
 using System.IO;
-using System.Linq;
 using System.Windows.Forms;
 
 namespace _5CRXmod;
@@ -12,15 +11,13 @@ partial class Form1
 {
 	private PrivateFontCollection _pfc = new PrivateFontCollection();
 
-	private List<Image> _themeImages = new List<Image>();
-
 	private List<string> _themeFilePaths = new List<string>();
 
 	private int _currentThemeImageIndex;
 
 	private Image? _currentThemeImage;
 
-	private int _currentThemeIndex;
+	private readonly int _currentThemeIndex = 0;
 
 	private readonly (Color timer, Color header, Color list, Color footer)[] _themes = new(Color, Color, Color, Color)[8]
 	{
@@ -71,7 +68,6 @@ partial class Form1
 			lblExtraMetadata.Font = new Font(FontHelper.CustomFontFamily, 6f, FontStyle.Regular);
 			Font miniFont = new Font(FontHelper.CustomFontFamily, 6f, FontStyle.Regular);
 			btnColor.Font = miniFont;
-			btnStyle.Font = miniFont;
 			btnImage.Font = miniFont;
 			btnTheme.Font = miniFont;
 			btnLearn.Font = miniFont;
@@ -134,12 +130,6 @@ partial class Form1
 		lblMinutes.Invalidate();
 		lblSeconds.Invalidate();
 		InvalidatePresetButtons();
-	}
-
-	private void CycleTheme()
-	{
-		_currentThemeIndex = (_currentThemeIndex + 1) % _themes.Length;
-		ApplyCurrentTheme();
 	}
 
 	private void LoadThemesFile()
@@ -304,10 +294,5 @@ partial class Form1
 				UpdateControlContrast(c, bg);
 			}
 		}
-	}
-
-	private Color GetContrastColor(Color bg)
-	{
-		return Color.White;
 	}
 }

@@ -33,7 +33,7 @@ partial class Form1
 
 	private List<string> _m3uFiles = new List<string>();
 
-	private int _currentM3uIndex;
+	private readonly int _currentM3uIndex = 0;
 
 	private int _currentVolume = 3;
 

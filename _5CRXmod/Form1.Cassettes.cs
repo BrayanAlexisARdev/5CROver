@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace _5CRXmod;
@@ -17,8 +16,6 @@ partial class Form1
 
 	private int _currentCassetteIndex;
 	private string _currentCassetteTitle = "";
-
-	private Color _cassetteColor = Color.FromArgb(40, 40, 40);
 
 	private readonly Dictionary<string, Image> _imageCache = new Dictionary<string, Image>(StringComparer.OrdinalIgnoreCase);
 
@@ -89,31 +86,6 @@ partial class Form1
 			return _cassetteImages[indexFallback % _cassetteImages.Count];
 		}
 		return null;
-	}
-
-	private void ChangeM3u(int direction)
-	{
-		if (_m3uFiles.Count == 0)
-		{
-			return;
-		}
-		Timer? slideTimer = _slideTimer;
-		if (slideTimer == null || !slideTimer.Enabled)
-		{
-			_currentM3uIndex = (_currentM3uIndex + direction + _m3uFiles.Count) % _m3uFiles.Count;
-			ResetCassetteTitle();
-			AdvanceEqStyle();
-			string path = _m3uFiles[_currentM3uIndex];
-			_ = PlayM3uAsync(path);
-			_currentM3uName = Path.GetFileNameWithoutExtension(path).ToUpper();
-			lblM3uTitle.Text = _currentM3uName;
-			lblMetadata.Text = "";
-			Image? nextImg = GetCassetteImageFromM3u(path, _currentM3uIndex);
-			if (nextImg != null)
-			{
-				StartFade(nextImg);
-			}
-		}
 	}
 
 	private void LoadCurrentM3u()
@@ -295,11 +267,6 @@ partial class Form1
 		{
 			StartFade(nextImg);
 		}
-	}
-
-	private void ResetCassetteTitle()
-	{
-		_currentCassetteTitle = "";
 	}
 
 	private void txtCassetteNum_KeyDown(object? sender, KeyEventArgs e)

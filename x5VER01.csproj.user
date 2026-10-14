@@ -20,6 +20,9 @@
     <Compile Update="_5CRXmod\Form1.Cassettes.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="_5CRXmod\Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="_5CRXmod\Form1.FadeAnimation.cs">
       <SubType>Form</SubType>
     </Compile>

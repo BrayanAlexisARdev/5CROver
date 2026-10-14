@@ -1,35 +1,15 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace _5CRXmod;
-
-public class CassetteData
-{
-	public string Titulo { get; set; } = "";
-	public string Imagen { get; set; } = "";
-	public string Contenido { get; set; } = "";
-	public string Color { get; set; } = "";
-	public string PantallaGif { get; set; } = "";
-	public string TemaTV { get; set; } = "";
-}
-
-public class FavoriteData
-{
-	public int CassetteIndex { get; set; }
-	public string CassetteTitle { get; set; } = "";
-	public string ColorHex { get; set; } = "";
-	public string TemaTV { get; set; } = "";
-}
 
 public partial class Form1 : Form
 {
@@ -69,8 +49,6 @@ public partial class Form1 : Form
 	private Button btnImage = null!;
 
 	private Button btnColor = null!;
-
-	private Button btnStyle = null!;
 
 	private BufferedPanel cassettesHeaderPanel = null!;
 
@@ -131,6 +109,12 @@ public partial class Form1 : Form
 
 	private Panel pnlProgressFill = null!;
 
+	private const int NodeStandardSize = 5;
+
+	private const double NodeMaxScale = 2.5;
+
+	private const int NodeMaxBaseSize = (int)(NodeStandardSize * NodeMaxScale);
+
 	private PictureBox picOverlay = null!;
 
 	private Button btnPlayPlayer = null!;
@@ -163,15 +147,17 @@ private Button btnVolLow = null!;
 	private float[] _nodeCenterX = Array.Empty<float>();
 	private int _nodeCount;
 
-	private BufferedPanel? pnlMarquee;
-	private Timer? _marqueeTimer;
-	private float _marqueeOffset;
-	private float _marqueeTextWidth;
-	private string _marqueeText = "";
-	private Font? _marqueeFont;
+	private BufferedPanel? pnlStationTitle;
 
 	[DllImport("Gdi32.dll")]
 	private static extern nint CreateRoundRectRgn(int nLeftRect, int nTopRect, int RightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
+
+	private const int FormCornerRadius = 12;
+
+	private void ApplyRoundedFormRegion()
+	{
+		Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, base.Width, base.Height, FormCornerRadius, FormCornerRadius));
+	}
 
 	public Form1()
 	{
@@ -180,59 +166,95 @@ private Button btnVolLow = null!;
 		SetupLighthouse();
 		tasksListPanel.HorizontalScroll.Enabled = false;
 		base.FormBorderStyle = FormBorderStyle.None;
-		base.Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, base.Width, base.Height, 12, 12));
-		tasksListPanel.Paint += delegate(object? s, PaintEventArgs e)
-		{
-			using Brush wash = new SolidBrush(TimerWash);
-			e.Graphics.FillRectangle(wash, e.ClipRectangle);
-		};
-		playerFooterPanel.Paint += delegate(object? s, PaintEventArgs e)
-		{
-			DrawFooterSkin(e.Graphics);
-			if (_appColor != Color.Transparent)
-			{
-				Color overlay = Color.FromArgb(102, _appColor);
-				using Brush brush = new SolidBrush(overlay);
-				e.Graphics.FillRectangle(brush, 0, 0, playerFooterPanel.Width, playerFooterPanel.Height);
-			}
-		};
+		ApplyRoundedFormRegion();
+		WireSurfacePaint();
 		LoadCustomFont();
 		base.Load += Form1_Load;
+		WireHeaderButtons();
+		WireTransportButtons();
+		WireVolumeInteraction();
+		WireAnimationTimers();
+		ApplyInitialBackColors();
+		WireTimerLabels();
+		WireFormDrag();
+		lblM3uTitle.Visible = true;
+		lblMetadata.Visible = true;
+		lblExtraMetadata.Visible = true;
+		pnlGrip.Height = 20;
+		timerPanel.Paint += TimerPanelOverlayPaint;
+		UpdateTimerDisplay();
+	}
+
+	private void TimerPanelOverlayPaint(object? s, PaintEventArgs e)
+	{
+		PaintAppColorOverlay(e.Graphics, timerPanel.Width, timerPanel.Height);
+	}
+
+	private void PaintAppColorOverlay(Graphics g, int width, int height)
+	{
+		if (_appColor == Color.Transparent) return;
+		using Brush brush = new SolidBrush(Color.FromArgb(102, _appColor));
+		g.FillRectangle(brush, 0, 0, width, height);
+	}
+
+	private void TasksListPanelPaint(object? s, PaintEventArgs e)
+	{
+		using Brush wash = new SolidBrush(TimerWash);
+		e.Graphics.FillRectangle(wash, e.ClipRectangle);
+	}
+
+	private void PlayerFooterPanelPaint(object? s, PaintEventArgs e)
+	{
+		DrawFooterSkin(e.Graphics);
+		PaintAppColorOverlay(e.Graphics, playerFooterPanel.Width, playerFooterPanel.Height);
+	}
+
+	private void WireSurfacePaint()
+	{
+		tasksListPanel.Paint += TasksListPanelPaint;
+		playerFooterPanel.Paint += PlayerFooterPanelPaint;
+	}
+
+	private void WireHeaderButtons()
+	{
 		btnS.Click += btnS_Click;
 		btnP.Click += btnP_Click;
 		btnLearn.Click += btnLearn_Click;
-		btnColor.Click += delegate
-		{
-			ShowColorMenu();
-		};
-		btnImage.Click += delegate
-		{
-			_ = CycleAni();
-		};
-		btnTheme.Click += delegate
-		{
-			CycleThemeImage();
-		};
+		btnColor.Click += delegate { ShowColorMenu(); };
+		btnImage.Click += delegate { _ = CycleAni(); };
+		btnTheme.Click += delegate { CycleThemeImage(); };
 		txtCassetteNum.KeyDown += txtCassetteNum_KeyDown;
 		txtCassetteNum.Leave += txtCassetteNum_Leave;
-		btnPlayPlayer.Click += async delegate
+	}
+
+	private void WireTransportButtons()
+	{
+		btnPlayPlayer.Click += async delegate { await ResumePlaybackAsync(); };
+		btnStopPlayer.Click += delegate { StopPlayback(); };
+	}
+
+	private async Task ResumePlaybackAsync()
+	{
+		if (_isHlsStream && _hlsPlayer != null)
 		{
-			if (_isHlsStream && _hlsPlayer != null)
-			{
-				if (!_hlsPlayer.IsPlaying && _lastHlsUrl != null)
-					await _hlsPlayer.PlayAsync(_lastHlsUrl);
-			}
-			else
-			{
-				_wmp?.controls.play();
-			}
-			_isPlaying = true;
-		};
-		btnStopPlayer.Click += delegate
+			if (!_hlsPlayer.IsPlaying && _lastHlsUrl != null)
+				await _hlsPlayer.PlayAsync(_lastHlsUrl);
+		}
+		else
 		{
-			StopM3u();
-			_isPlaying = false;
-		};
+			_wmp?.controls.play();
+		}
+		_isPlaying = true;
+	}
+
+	private void StopPlayback()
+	{
+		StopM3u();
+		_isPlaying = false;
+	}
+
+	private void WireVolumeInteraction()
+	{
 		pnlVolume.MouseDown += delegate(object? s, MouseEventArgs e)
 		{
 			_isDraggingVolume = true;
@@ -245,14 +267,8 @@ private Button btnVolLow = null!;
 				UpdateVolumeFromMouse(e.X);
 			}
 		};
-		pnlVolume.MouseUp += delegate
-		{
-			_isDraggingVolume = false;
-		};
-		pnlVolumeThumb.MouseDown += delegate
-		{
-			_isDraggingVolume = true;
-		};
+		pnlVolume.MouseUp += delegate { _isDraggingVolume = false; };
+		pnlVolumeThumb.MouseDown += delegate { _isDraggingVolume = true; };
 		pnlVolumeThumb.MouseMove += delegate(object? s, MouseEventArgs e)
 		{
 			if (_isDraggingVolume)
@@ -260,10 +276,7 @@ private Button btnVolLow = null!;
 				UpdateVolumeFromMouse(pnlVolumeThumb.Left + e.X + pnlVolumeLine.Left);
 			}
 		};
-		pnlVolumeThumb.MouseUp += delegate
-		{
-			_isDraggingVolume = false;
-		};
+		pnlVolumeThumb.MouseUp += delegate { _isDraggingVolume = false; };
 		pnlVolumeThumb.Paint += delegate(object? s, PaintEventArgs e)
 		{
 			using Brush brush = new SolidBrush(Color.White);
@@ -280,6 +293,10 @@ private Button btnVolLow = null!;
 		btnVolLow.Click += delegate { SetVolumePreset(3); };
 		btnVolMid.Click += delegate { SetVolumePreset(9); };
 		btnVolMax.Click += delegate { SetVolumePreset(15); };
+	}
+
+	private void WireAnimationTimers()
+	{
 		_slideTimer = new Timer
 		{
 			Interval = 125
@@ -304,14 +321,19 @@ private Button btnVolLow = null!;
 			pnlEqualizer.Invalidate();
 		};
 		pnlEqualizer.Paint += pnlEqualizer_Paint;
-		btnColor.BackColor = Color.FromArgb(0, 0, 0, 0);
-		btnImage.BackColor = Color.FromArgb(0, 0, 0, 0);
-		btnTheme.BackColor = Color.FromArgb(0, 0, 0, 0);
-		btnP.BackColor = Color.FromArgb(0, 0, 0, 0);
-		btnS.BackColor = Color.FromArgb(0, 0, 0, 0);
-		btnVolLow.BackColor = Color.FromArgb(0, 0, 0, 0);
-		btnVolMid.BackColor = Color.FromArgb(0, 0, 0, 0);
-		btnVolMax.BackColor = Color.FromArgb(0, 0, 0, 0);
+	}
+
+	private void ApplyInitialBackColors()
+	{
+		Color clear = Color.FromArgb(0, 0, 0, 0);
+		btnColor.BackColor = clear;
+		btnImage.BackColor = clear;
+		btnTheme.BackColor = clear;
+		btnP.BackColor = clear;
+		btnS.BackColor = clear;
+		btnVolLow.BackColor = clear;
+		btnVolMid.BackColor = clear;
+		btnVolMax.BackColor = clear;
 		picPlayer.BackColor = Color.Transparent;
 		picPlayerNext.BackColor = Color.Transparent;
 		lblHours.BackColor = Color.Transparent;
@@ -323,69 +345,65 @@ private Button btnVolLow = null!;
 		picPlayer.Top = 1;
 		picPlayerNext.SizeMode = PictureBoxSizeMode.Zoom;
 		picPlayerNext.Size = new Size(154, 97);
-		lblTasks.Click += delegate(object? s, EventArgs e)
+	}
+
+	private void WireTimerLabels()
+	{
+		lblTasks.Click += delegate(object? s, EventArgs e) { btnAddTask_Click(s, e); };
+		lblHours.Click += delegate(object? s, EventArgs e) { btnAddTime_Click(s, e); };
+		lblMinutes.Click += delegate(object? s, EventArgs e) { btnAddTime_Click(s, e); };
+		lblSeconds.Click += delegate(object? s, EventArgs e) { btnAddTime_Click(s, e); };
+		lblHours.Paint += DrawGlow;
+		lblMinutes.Paint += DrawGlow;
+		lblSeconds.Paint += DrawGlow;
+	}
+
+	private void WireFormDrag()
+	{
+		if (lighthouseBar != null)
 		{
-			btnAddTask_Click(s, e);
-		};
-		lblHours.Click += delegate(object? s, EventArgs e)
+			WireDragRecursive(lighthouseBar);
+		}
+	}
+
+	private void WireDragRecursive(Control control)
+	{
+		control.MouseDown -= DragTargetMouseDown;
+		control.MouseMove -= DragTargetMouseMove;
+		control.MouseUp -= DragTargetMouseUp;
+		control.MouseDown += DragTargetMouseDown;
+		control.MouseMove += DragTargetMouseMove;
+		control.MouseUp += DragTargetMouseUp;
+		foreach (Control child in control.Controls)
 		{
-			btnAddTime_Click(s, e);
-		};
-		lblMinutes.Click += delegate(object? s, EventArgs e)
+			WireDragRecursive(child);
+		}
+	}
+
+	private void DragTargetMouseDown(object? sender, MouseEventArgs e)
+	{
+		if (e.Button == MouseButtons.Left)
 		{
-			btnAddTime_Click(s, e);
-		};
-		lblSeconds.Click += delegate(object? s, EventArgs e)
+			_isDraggingForm = true;
+			_dragStartOffset = new Point(base.Location.X - Cursor.Position.X, base.Location.Y - Cursor.Position.Y);
+		}
+	}
+
+	private void DragTargetMouseMove(object? sender, MouseEventArgs e)
+	{
+		if (sender is Control c)
 		{
-			btnAddTime_Click(s, e);
-		};
-		lblHours.Paint += delegate(object? s, PaintEventArgs e)
+			c.Cursor = Cursors.SizeAll;
+		}
+		if (_isDraggingForm)
 		{
-			DrawGlow(s, e);
-		};
-		lblMinutes.Paint += delegate(object? s, PaintEventArgs e)
-		{
-			DrawGlow(s, e);
-		};
-		lblSeconds.Paint += delegate(object? s, PaintEventArgs e)
-		{
-			DrawGlow(s, e);
-		};
-		pnlGrip.MouseDown += delegate(object? s, MouseEventArgs e)
-		{
-			if (e.Button == MouseButtons.Left)
-			{
-				_isDraggingForm = true;
-				_dragStartOffset = e.Location;
-			}
-		};
-		pnlGrip.MouseMove += delegate(object? s, MouseEventArgs e)
-		{
-			pnlGrip.Cursor = Cursors.SizeAll;
-			if (_isDraggingForm)
-			{
-				Point point = PointToScreen(e.Location);
-				base.Location = new Point(point.X - _dragStartOffset.X, point.Y - _dragStartOffset.Y);
-			}
-		};
-		pnlGrip.MouseUp += delegate
-		{
-			_isDraggingForm = false;
-		};
-		lblM3uTitle.Visible = true;
-		lblMetadata.Visible = true;
-		lblExtraMetadata.Visible = true;
-		pnlGrip.Height = 20;
-		timerPanel.Paint += delegate(object? s, PaintEventArgs e)
-		{
-			if (_appColor != Color.Transparent)
-			{
-				Color overlay = Color.FromArgb(102, _appColor);
-				using Brush brush = new SolidBrush(overlay);
-				e.Graphics.FillRectangle(brush, 0, 0, timerPanel.Width, timerPanel.Height);
-			}
-		};
-		UpdateTimerDisplay();
+			base.Location = new Point(Cursor.Position.X + _dragStartOffset.X, Cursor.Position.Y + _dragStartOffset.Y);
+		}
+	}
+
+	private void DragTargetMouseUp(object? sender, MouseEventArgs e)
+	{
+		_isDraggingForm = false;
 	}
 
 	private void pnlGrip_Paint(object? sender, PaintEventArgs e)
@@ -426,7 +444,6 @@ private Button btnVolLow = null!;
 		try { _spriteTimer?.Stop(); } catch { }
 		try { _metaTimer?.Stop(); } catch { }
 		try { _m3u8WatchTimer?.Stop(); } catch { }
-		try { _marqueeTimer?.Stop(); } catch { }
 		try { _hlsPlayer?.Dispose(); } catch (Exception ex) { Logger.Error("Form1.ShutdownEngine.Hls", ex); }
 		_hlsPlayer = null;
 	}
@@ -498,7 +515,6 @@ private Button btnVolLow = null!;
 
 	private void LoadAllData()
 	{
-		Screen? screen = Screen.PrimaryScreen;
 		LoadCassetteMaster();
 		_ = Task.Run(WarmCassetteCache);
 		UpdateCassetteHeaderText();
@@ -506,121 +522,172 @@ private Button btnVolLow = null!;
 		lblCassetteTotal.Text = $"/{_cassettes.Count}";
 		InitPlayer();
 		LayoutCassetteHeader();
+		LoadImageAssets();
+
+		BuildProgressIndicator();
+		Panel row1 = BuildTimeSelectorRow();
+		Panel row2 = BuildPresetRow(HourPresetLabels, PresetUnit.Hours, 2);
+		Panel row3 = BuildPresetRow(MinutePresetLabels, PresetUnit.Minutes, 3);
+		Panel row4 = BuildStartStopRow();
+		BuildToolsRow();
+		ApplyCustomFontTo(row1, row2, row3, row4);
+
+		ApplyLearningData();
+		ApplyCurrentTheme();
+		LoadThemesFile();
+		if (_cassettes.Count > 0)
+		{
+			ApplyCassette(0);
+		}
+		else if (_m3uFiles.Count > 0)
+		{
+			LoadCurrentM3u();
+		}
+		SetVolumePreset(3);
+
+		ReorganizeVolumePanel();
+		BuildCassetteShortcutRow();
+		LayoutCassetteStage();
+		BuildAbcPresetKnobs();
+		BuildTransportRow();
+		BuildJackPanel();
+		FinalizeFooterLayout();
+	}
+
+	private void LoadImageAssets()
+	{
+		Screen? screen = Screen.PrimaryScreen;
 		try
 		{
 			string imgDir = PathHelper.GetImgDir();
-			if (Directory.Exists(imgDir))
-			{
-				for (int j = 1; j <= 5; j++)
-				{
-					string pPath = Path.Combine(imgDir, $"cass00{j}.png");
-					if (File.Exists(pPath))
-					{
-						try
-						{
-							_cassetteImages.Add(PathHelper.LoadImage(pPath));
-						}
-						catch (Exception ex)
-						{
-							Logger.Error("Form1.LoadAllData.CassetteImage", ex);
-						}
-					}
-				}
-				string[] files = Directory.GetFiles(imgDir, "*_ANI.gif");
-				foreach (string file in files)
-				{
-					if (file.EndsWith("noise_ANI.gif", StringComparison.OrdinalIgnoreCase) || file.EndsWith("noise_ANIgif.gif", StringComparison.OrdinalIgnoreCase))
-					{
-						_noiseFile = file;
-					}
-					else
-					{
-						_aniFiles.Add(file);
-					}
-				}
-				if (_aniFiles.Count > 0)
-				{
-					int defaultIndex = _aniFiles.FindIndex((string f) => f.EndsWith("cat_ANI.gif", StringComparison.OrdinalIgnoreCase));
-					if (defaultIndex != -1)
-					{
-						_currentAniIndex = defaultIndex;
-					}
-					picMainDisplay.ImageLocation = _aniFiles[_currentAniIndex];
-					picMainDisplay.SizeMode = PictureBoxSizeMode.Zoom;
-					picMainDisplay.BackColor = Color.Transparent;
-				}
-				files = Directory.GetFiles(imgDir, "*_TH.*");
-				foreach (string file2 in files)
-				{
-					try
-					{
-						_themeFilePaths.Add(file2);
-						if (file2.EndsWith("05_TH.gif", StringComparison.OrdinalIgnoreCase))
-						{
-							_currentThemeImageIndex = _themeFilePaths.Count - 1;
-							_currentThemeImage = PathHelper.LoadImage(file2);
-							BackgroundImage = null;
-						}
-					}
-					catch (Exception ex)
-					{
-						Logger.Error("Form1.LoadAllData.ThemeImage", ex);
-					}
-				}
-				if (_currentThemeImage != null)
-				{
-					UpdateTVFrame(_themeFilePaths[_currentThemeImageIndex]);
-				}
-				string spritePath = Path.Combine(imgDir, "sprite_s.png");
-				if (File.Exists(spritePath))
-				{
-					LoadSpriteSheet(spritePath, 160, 160, 15);
-					picOverlay.Parent = picMainDisplay;
-					picOverlay.Location = new Point(0, 0);
-					picOverlay.Size = picMainDisplay.Size;
-					picOverlay.SizeMode = PictureBoxSizeMode.Zoom;
-					picOverlay.BackColor = Color.Transparent;
-					_spriteTimer = new Timer
-					{
-						Interval = 150
-					};
-					_spriteTimer.Tick += delegate
-					{
-						if (_spriteFrames.Count != 0)
-						{
-							_currentSpriteFrame = (_currentSpriteFrame + 1) % _spriteFrames.Count;
-							picOverlay.Image = _spriteFrames[_currentSpriteFrame];
-						}
-					};
-					_spriteTimer.Start();
-				}
-				string tvPath = Path.Combine(imgDir, "old_TV.gif");
-				if (File.Exists(tvPath))
-				{
-				Image tvImg = PathHelper.LoadImage(tvPath);
-				SetTimerBackground(tvImg, false);
-				timerPanel.BackgroundImageLayout = ImageLayout.None;
-				base.Width = tvImg.Width + LighthouseWidth;
-				timerPanel.Height = tvImg.Height - 4;
-				timerPanel.BackColor = Color.Transparent;
-				pnlTopButtons.BackColor = Color.Transparent;
-				pnlTimerControls.BackColor = Color.Transparent;
-				picMainDisplay.BackColor = Color.Transparent;
-					pnlTimerControls.BackColor = Color.Transparent;
-					btnP.BackColor = Color.Transparent;
-					btnS.BackColor = Color.Transparent;
-					base.Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, base.Width, base.Height, 12, 12));
-					if (screen != null)
-					{
-						base.Location = new Point(screen.WorkingArea.Width - base.Width, 150);
-					}
-				}
-			}
+			if (!Directory.Exists(imgDir)) return;
+			LoadCassetteCoverImages(imgDir);
+			LoadAnimationImages(imgDir);
+			LoadThemeImages(imgDir);
+			SetupSpriteOverlay(imgDir);
+			ApplyDefaultTvFrame(imgDir, screen);
 		}
 		catch (Exception ex)
 		{
 			Logger.Error("Form1.LoadAllData", ex);
 		}
+	}
+
+	private void LoadCassetteCoverImages(string imgDir)
+	{
+		for (int j = 1; j <= 5; j++)
+		{
+			string pPath = Path.Combine(imgDir, $"cass00{j}.png");
+			if (!File.Exists(pPath)) continue;
+			try
+			{
+				_cassetteImages.Add(PathHelper.LoadImage(pPath));
+			}
+			catch (Exception ex)
+			{
+				Logger.Error("Form1.LoadAllData.CassetteImage", ex);
+			}
+		}
+	}
+
+	private void LoadAnimationImages(string imgDir)
+	{
+		foreach (string file in Directory.GetFiles(imgDir, "*_ANI.gif"))
+		{
+			if (file.EndsWith("noise_ANI.gif", StringComparison.OrdinalIgnoreCase) || file.EndsWith("noise_ANIgif.gif", StringComparison.OrdinalIgnoreCase))
+			{
+				_noiseFile = file;
+			}
+			else
+			{
+				_aniFiles.Add(file);
+			}
+		}
+		if (_aniFiles.Count == 0) return;
+		int defaultIndex = _aniFiles.FindIndex(f => f.EndsWith("cat_ANI.gif", StringComparison.OrdinalIgnoreCase));
+		if (defaultIndex != -1)
+		{
+			_currentAniIndex = defaultIndex;
+		}
+		picMainDisplay.ImageLocation = _aniFiles[_currentAniIndex];
+		picMainDisplay.SizeMode = PictureBoxSizeMode.Zoom;
+		picMainDisplay.BackColor = Color.Transparent;
+	}
+
+	private void LoadThemeImages(string imgDir)
+	{
+		foreach (string file in Directory.GetFiles(imgDir, "*_TH.*"))
+		{
+			try
+			{
+				_themeFilePaths.Add(file);
+				if (file.EndsWith("05_TH.gif", StringComparison.OrdinalIgnoreCase))
+				{
+					_currentThemeImageIndex = _themeFilePaths.Count - 1;
+					_currentThemeImage = PathHelper.LoadImage(file);
+					BackgroundImage = null;
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error("Form1.LoadAllData.ThemeImage", ex);
+			}
+		}
+		if (_currentThemeImage != null)
+		{
+			UpdateTVFrame(_themeFilePaths[_currentThemeImageIndex]);
+		}
+	}
+
+	private void SetupSpriteOverlay(string imgDir)
+	{
+		string spritePath = Path.Combine(imgDir, "sprite_s.png");
+		if (!File.Exists(spritePath)) return;
+		LoadSpriteSheet(spritePath, 160, 160, 15);
+		picOverlay.Parent = picMainDisplay;
+		picOverlay.Location = new Point(0, 0);
+		picOverlay.Size = picMainDisplay.Size;
+		picOverlay.SizeMode = PictureBoxSizeMode.Zoom;
+		picOverlay.BackColor = Color.Transparent;
+		_spriteTimer = new Timer
+		{
+			Interval = 150
+		};
+		_spriteTimer.Tick += delegate
+		{
+			if (_spriteFrames.Count != 0)
+			{
+				_currentSpriteFrame = (_currentSpriteFrame + 1) % _spriteFrames.Count;
+				picOverlay.Image = _spriteFrames[_currentSpriteFrame];
+			}
+		};
+		_spriteTimer.Start();
+	}
+
+	private void ApplyDefaultTvFrame(string imgDir, Screen? screen)
+	{
+		string tvPath = Path.Combine(imgDir, "old_TV.gif");
+		if (!File.Exists(tvPath)) return;
+		Image tvImg = PathHelper.LoadImage(tvPath);
+		SetTimerBackground(tvImg, false);
+		timerPanel.BackgroundImageLayout = ImageLayout.None;
+		base.Width = tvImg.Width + LighthouseWidth;
+		timerPanel.Height = tvImg.Height - 4;
+		timerPanel.BackColor = Color.Transparent;
+		pnlTopButtons.BackColor = Color.Transparent;
+		pnlTimerControls.BackColor = Color.Transparent;
+		picMainDisplay.BackColor = Color.Transparent;
+		btnP.BackColor = Color.Transparent;
+		btnS.BackColor = Color.Transparent;
+		ApplyRoundedFormRegion();
+		if (screen != null)
+		{
+			base.Location = new Point(screen.WorkingArea.Width - base.Width, 150);
+		}
+	}
+
+	private void BuildProgressIndicator()
+	{
 		Panel pnlTaskInfo = new Panel
 		{
 			Width = ContentWidth,
@@ -629,8 +696,6 @@ private Button btnVolLow = null!;
 			Margin = new Padding(0),
 			Name = "pnlTaskInfo"
 		};
-		FontFamily? dcFamily = null;
-		try { if (_pfc.Families.Length > 0) dcFamily = _pfc.Families[0]; } catch { }
 		lblTaskInfo = new Label
 		{
 			Text = "---",
@@ -638,7 +703,13 @@ private Button btnVolLow = null!;
 			Dock = DockStyle.Fill,
 			BackColor = Color.Transparent,
 			ForeColor = Color.Gray,
-			Font = dcFamily != null ? new Font(dcFamily, 8f, FontStyle.Bold) : new Font("Segoe UI", 8f, FontStyle.Bold)
+			Font = BuildNodeLabelFont()
+		};
+		lblTaskRemaining = new Label
+		{
+			Text = "",
+			BackColor = Color.Transparent,
+			ForeColor = Color.Gray
 		};
 		pnlProgressBg = new Panel
 		{
@@ -647,7 +718,6 @@ private Button btnVolLow = null!;
 			Name = "pnlProgressBg",
 			Dock = DockStyle.Bottom
 		};
-
 		pnlProgressFill = new BufferedPanel
 		{
 			Height = 20,
@@ -655,79 +725,12 @@ private Button btnVolLow = null!;
 			Name = "pnlProgressFill",
 			Dock = DockStyle.Fill
 		};
-
-		_nodeCount = 16;
-		int standardSize = 5;
-		double maxScale = 2.5;
-		int maxBaseSize = (int)(standardSize * maxScale);
-		int panelExtra = 8;
-		int panelSize = maxBaseSize + panelExtra;
-		int gap = 5;
-
-		_nodeBaseSizes = new int[_nodeCount];
-		int[] xPos = new int[_nodeCount];
-		int xAcc = 0;
-		for (int i = 0; i < _nodeCount; i++)
-		{
-			double pos = (double)i / (_nodeCount - 1);
-			double baseScale = 1.0 + (maxScale - 1.0) * Math.Min(pos * 2, 1.0);
-			_nodeBaseSizes[i] = (int)(standardSize * baseScale);
-			xPos[i] = xAcc;
-			xAcc += _nodeBaseSizes[i] + gap;
-		}
-		int shift = panelExtra / 2;
-		int totalW = xPos[_nodeCount - 1] + panelSize;
-		int startX = Math.Max(2, (pnlTaskInfo.Width - totalW) / 2);
-		float cy = pnlProgressFill.Height / 2f;
-
-		_nodeIntensities = new double[_nodeCount];
-		_nodeCenterX = new float[_nodeCount];
-		for (int i = 0; i < _nodeCount; i++)
-			_nodeCenterX[i] = startX + xPos[i] - shift + panelSize / 2f;
-
-		pnlProgressFill.Paint += (s, pe) =>
-		{
-			pe.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-			float pnlH = pnlProgressFill.Height / 2f;
-
-			for (int i = 0; i < _nodeCount; i++)
-			{
-				double intensity = Math.Max(_nodeIntensities[i], 0.01);
-				int sz = _nodeBaseSizes[i];
-				float cx = _nodeCenterX[i];
-				float cy2 = pnlH;
-
-				Color neonColor = _appColor == Color.Transparent || _appColor == Color.Empty
-					? Color.White : _appColor;
-
-				double posProgress = (double)(sz - standardSize) / (maxBaseSize - standardSize);
-
-				float gp = 2f + sz / 3f;
-				using (var path = new GraphicsPath())
-				{
-					path.AddEllipse(cx - sz / 2f - gp, cy2 - sz / 2f - gp, sz + gp * 2f, sz + gp * 2f);
-					using (var brush = new PathGradientBrush(path))
-					{
-						int glowAlpha = (int)(intensity * (60 + 120 * posProgress));
-						brush.CenterColor = Color.FromArgb(glowAlpha, neonColor);
-						brush.SurroundColors = new[] { Color.FromArgb(0, neonColor) };
-						pe.Graphics.FillPath(brush, path);
-					}
-				}
-
-				int fillAlpha = (int)(80 + intensity * 155);
-				using (var fill = new SolidBrush(Color.FromArgb(fillAlpha, neonColor)))
-					pe.Graphics.FillEllipse(fill, cx - sz / 2f, cy2 - sz / 2f, sz, sz);
-
-				int whiteSz = Math.Max(1, sz * 3 / 5);
-				using (var w = new SolidBrush(Color.FromArgb((int)(intensity * 100), Color.White)))
-					pe.Graphics.FillEllipse(w, cx - whiteSz / 2f, cy2 - whiteSz / 2f, whiteSz, whiteSz);
-			}
-		};
-
+		InitProgressNodeGeometry(pnlTaskInfo.Width);
+		pnlProgressFill.Paint += ProgressNodesPaint;
 		pnlProgressBg.Controls.Add(pnlProgressFill);
 		pnlTaskInfo.Controls.Add(pnlProgressBg);
 		tasksListPanel.Controls.Add(pnlTaskInfo);
+
 		pnlTopButtons.Controls.Remove(btnS);
 		pnlTopButtons.Controls.Remove(btnP);
 		base.Controls.Remove(picCincross);
@@ -735,20 +738,89 @@ private Button btnVolLow = null!;
 		picCincross.SizeMode = PictureBoxSizeMode.Zoom;
 		picCincross.Width = 85;
 		pnlTopButtons.Controls.Add(picCincross);
-		pnlTaskInfo.Controls.Clear();
+	}
 
-		lblTaskRemaining = new Label
+	private Font BuildNodeLabelFont()
+	{
+		try
 		{
-			Text = "",
-			BackColor = Color.Transparent,
-			ForeColor = Color.Gray
-		};
-		pnlProgressBg.Dock = DockStyle.Bottom;
-		pnlTaskInfo.Controls.Add(pnlProgressBg);
+			if (_pfc.Families.Length > 0)
+			{
+				return new Font(_pfc.Families[0], 8f, FontStyle.Bold);
+			}
+		}
+		catch { }
+		return new Font("Segoe UI", 8f, FontStyle.Bold);
+	}
 
-		// ── Row 1: TIME SELECTOR label ──
-		Panel row1 = new Panel { Height = 26, Width = ContentWidth, BackColor = Color.Transparent, Margin = new Padding(0) };
+	private void InitProgressNodeGeometry(int availableWidth)
+	{
+		_nodeCount = 16;
+		int panelExtra = 8;
+		int panelSize = NodeMaxBaseSize + panelExtra;
+		int gap = 5;
 
+		_nodeBaseSizes = new int[_nodeCount];
+		_nodeIntensities = new double[_nodeCount];
+		_nodeCenterX = new float[_nodeCount];
+
+		int[] xPos = new int[_nodeCount];
+		int xAcc = 0;
+		for (int i = 0; i < _nodeCount; i++)
+		{
+			double pos = (double)i / (_nodeCount - 1);
+			double baseScale = 1.0 + (NodeMaxScale - 1.0) * Math.Min(pos * 2, 1.0);
+			_nodeBaseSizes[i] = (int)(NodeStandardSize * baseScale);
+			xPos[i] = xAcc;
+			xAcc += _nodeBaseSizes[i] + gap;
+		}
+		int shift = panelExtra / 2;
+		int totalW = xPos[_nodeCount - 1] + panelSize;
+		int startX = Math.Max(2, (availableWidth - totalW) / 2);
+		for (int i = 0; i < _nodeCount; i++)
+		{
+			_nodeCenterX[i] = startX + xPos[i] - shift + panelSize / 2f;
+		}
+	}
+
+	private void ProgressNodesPaint(object? s, PaintEventArgs e)
+	{
+		Graphics g = e.Graphics;
+		g.SmoothingMode = SmoothingMode.AntiAlias;
+		float midY = pnlProgressFill.Height / 2f;
+		Color neonColor = _appColor == Color.Transparent || _appColor == Color.Empty ? Color.White : _appColor;
+
+		for (int i = 0; i < _nodeCount; i++)
+		{
+			double intensity = Math.Max(_nodeIntensities[i], 0.01);
+			int sz = _nodeBaseSizes[i];
+			float cx = _nodeCenterX[i];
+			double posProgress = (double)(sz - NodeStandardSize) / (NodeMaxBaseSize - NodeStandardSize);
+			float glowPad = 2f + sz / 3f;
+
+			using (var path = new GraphicsPath())
+			{
+				path.AddEllipse(cx - sz / 2f - glowPad, midY - sz / 2f - glowPad, sz + glowPad * 2f, sz + glowPad * 2f);
+				using (var brush = new PathGradientBrush(path))
+				{
+					brush.CenterColor = Color.FromArgb((int)(intensity * (60 + 120 * posProgress)), neonColor);
+					brush.SurroundColors = new[] { Color.FromArgb(0, neonColor) };
+					g.FillPath(brush, path);
+				}
+			}
+
+			using (var fill = new SolidBrush(Color.FromArgb((int)(80 + intensity * 155), neonColor)))
+				g.FillEllipse(fill, cx - sz / 2f, midY - sz / 2f, sz, sz);
+
+			int whiteSz = Math.Max(1, sz * 3 / 5);
+			using (var core = new SolidBrush(Color.FromArgb((int)(intensity * 100), Color.White)))
+				g.FillEllipse(core, cx - whiteSz / 2f, midY - whiteSz / 2f, whiteSz, whiteSz);
+		}
+	}
+
+	private Panel BuildTimeSelectorRow()
+	{
+		Panel row = new Panel { Height = 26, Width = ContentWidth, BackColor = Color.Transparent, Margin = new Padding(0) };
 		lblTimeSelector = new Label
 		{
 			Text = "",
@@ -758,113 +830,108 @@ private Button btnVolLow = null!;
 			TextAlign = ContentAlignment.MiddleCenter,
 			BackColor = Color.Transparent
 		};
-		lblTimeSelector.Paint += delegate(object? s, PaintEventArgs e)
-		{
-			if (s is not Label lbl || lbl.Text.Length == 0) return;
-			Rectangle rect = lbl.ClientRectangle;
-			TextRenderer.DrawText(e.Graphics, lbl.Text, lbl.Font,
-				new Rectangle(rect.X + 1, rect.Y + 1, rect.Width, rect.Height),
-				Color.FromArgb(120, 0, 0, 0),
-				TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-			TextRenderer.DrawText(e.Graphics, lbl.Text, lbl.Font, rect, lbl.ForeColor,
-				TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-		};
-		row1.Controls.Add(lblTimeSelector);
-		tasksListPanel.Controls.Add(row1);
-		tasksListPanel.Controls.SetChildIndex(row1, 1);
+		lblTimeSelector.Paint += TimeSelectorPaint;
+		row.Controls.Add(lblTimeSelector);
+		tasksListPanel.Controls.Add(row);
+		tasksListPanel.Controls.SetChildIndex(row, 1);
 		UpdateTimeSelectorInfo();
+		return row;
+	}
 
-		// ── Row 2 & 3: presets with same background ──
-		Color presetBg = Color.Transparent;
+	private void TimeSelectorPaint(object? s, PaintEventArgs e)
+	{
+		if (s is not Label lbl || lbl.Text.Length == 0) return;
+		Rectangle rect = lbl.ClientRectangle;
+		TextFormatFlags flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter;
+		TextRenderer.DrawText(e.Graphics, lbl.Text, lbl.Font,
+			new Rectangle(rect.X + 1, rect.Y + 1, rect.Width, rect.Height),
+			Color.FromArgb(120, 0, 0, 0), flags);
+		TextRenderer.DrawText(e.Graphics, lbl.Text, lbl.Font, rect, lbl.ForeColor, flags);
+	}
 
-		string[] hourPresets = ["1H", "2H", "3H", "4H"];
-		Panel row2 = new Panel { Height = 26, Width = ContentWidth, BackColor = presetBg, Margin = new Padding(0) };
-		for (int i = 0; i < hourPresets.Length; i++)
+	private static readonly string[] HourPresetLabels = ["1H", "2H", "3H", "4H"];
+
+	private static readonly string[] MinutePresetLabels = ["5M", "10M", "15M", "30M"];
+
+	private const int PresetButtonWidth = 58;
+
+	private const int PresetButtonGap = 5;
+
+	private enum PresetUnit
+	{
+		Hours,
+		Minutes
+	}
+
+	private Panel BuildPresetRow(string[] labels, PresetUnit unit, int childIndex)
+	{
+		Panel row = new Panel { Height = 26, Width = ContentWidth, BackColor = Color.Transparent, Margin = new Padding(0) };
+		int total = PresetButtonWidth * labels.Length + PresetButtonGap * (labels.Length - 1);
+		int startX = (ContentWidth - total) / 2;
+		for (int i = 0; i < labels.Length; i++)
 		{
-			string txt = hourPresets[i];
-			int h = int.Parse(txt[..^1]);
-			int idx = i;
-			Button btn = MakeRoundedBtn(txt);
-			btn.Click += (_, _) =>
-			{
-				if (_timerRunning)
-				{
-					_ = ShowPresetBlockMessage();
-					return;
-				}
-				_presetBlockMsg = false;
-				if (_hourPresetBtn == btn)
-				{
-					_manualHours = 0;
-					SetPresetSelected(btn, false);
-					_hourPresetBtn = null;
-				}
-				else
-				{
-					_manualHours = h;
-					if (_hourPresetBtn != null) SetPresetSelected(_hourPresetBtn, false);
-					SetPresetSelected(btn, true);
-					_hourPresetBtn = btn;
-				}
-				UpdateTimeSelectorInfo();
-			};
-			int total = 58 * hourPresets.Length + 5 * (hourPresets.Length - 1);
-			btn.Left = (ContentWidth - total) / 2 + i * (58 + 5);
+			int value = int.Parse(labels[i][..^1]);
+			Button btn = MakeRoundedBtn(labels[i]);
+			btn.Click += (_, _) => OnPresetClicked(unit, btn, value);
+			btn.Left = startX + i * (PresetButtonWidth + PresetButtonGap);
 			btn.Top = 2;
-			row2.Controls.Add(btn);
+			row.Controls.Add(btn);
 		}
-		tasksListPanel.Controls.Add(row2);
-		tasksListPanel.Controls.SetChildIndex(row2, 2);
+		tasksListPanel.Controls.Add(row);
+		tasksListPanel.Controls.SetChildIndex(row, childIndex);
+		return row;
+	}
 
-		string[] minPresets = ["5M", "10M", "15M", "30M"];
-		Panel row3 = new Panel { Height = 26, Width = ContentWidth, BackColor = presetBg, Margin = new Padding(0) };
-		for (int i = 0; i < minPresets.Length; i++)
+	private void OnPresetClicked(PresetUnit unit, Button btn, int value)
+	{
+		if (_timerRunning)
 		{
-			string txt = minPresets[i];
-			int m = int.Parse(txt[..^1]);
-			int idx = i;
-			Button btn = MakeRoundedBtn(txt);
-			btn.Click += (_, _) =>
-			{
-				if (_timerRunning)
-				{
-					_ = ShowPresetBlockMessage();
-					return;
-				}
-				_presetBlockMsg = false;
-				if (_minPresetBtn == btn)
-				{
-					_manualMinutes = 0;
-					SetPresetSelected(btn, false);
-					_minPresetBtn = null;
-				}
-				else
-				{
-					_manualMinutes = m;
-					if (_minPresetBtn != null) SetPresetSelected(_minPresetBtn, false);
-					SetPresetSelected(btn, true);
-					_minPresetBtn = btn;
-				}
-				UpdateTimeSelectorInfo();
-			};
-			int total = 58 * minPresets.Length + 5 * (minPresets.Length - 1);
-			btn.Left = (ContentWidth - total) / 2 + i * (58 + 5);
-			btn.Top = 2;
-			row3.Controls.Add(btn);
+			_ = ShowPresetBlockMessage();
+			return;
 		}
-		tasksListPanel.Controls.Add(row3);
-		tasksListPanel.Controls.SetChildIndex(row3, 3);
+		_presetBlockMsg = false;
+		if (unit == PresetUnit.Hours)
+		{
+			if (_hourPresetBtn == btn)
+			{
+				_manualHours = 0;
+				SetPresetSelected(btn, false);
+				_hourPresetBtn = null;
+			}
+			else
+			{
+				_manualHours = value;
+				if (_hourPresetBtn != null) SetPresetSelected(_hourPresetBtn, false);
+				SetPresetSelected(btn, true);
+				_hourPresetBtn = btn;
+			}
+		}
+		else if (_minPresetBtn == btn)
+		{
+			_manualMinutes = 0;
+			SetPresetSelected(btn, false);
+			_minPresetBtn = null;
+		}
+		else
+		{
+			_manualMinutes = value;
+			if (_minPresetBtn != null) SetPresetSelected(_minPresetBtn, false);
+			SetPresetSelected(btn, true);
+			_minPresetBtn = btn;
+		}
+		UpdateTimeSelectorInfo();
+	}
 
-		// ── Row 4: START / STOP (black, full row) ──
-		Panel row4 = new Panel { Height = 30, Width = ContentWidth, BackColor = Color.Transparent, Margin = new Padding(0) };
-
-		int btnGap2 = 12;
-		int startStopW = (ContentWidth - btnGap2) / 2;
+	private Panel BuildStartStopRow()
+	{
+		Panel row = new Panel { Height = 30, Width = ContentWidth, BackColor = Color.Transparent, Margin = new Padding(0) };
+		int gap = 12;
+		int startW = (ContentWidth - gap) / 2;
 
 		Button btnStart = new Button
 		{
 			Text = "START",
-			Size = new Size(startStopW, row4.Height),
+			Size = new Size(startW, row.Height),
 			Location = new Point(0, 0),
 			FlatStyle = FlatStyle.Flat,
 			FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Transparent, MouseDownBackColor = Color.Transparent },
@@ -875,33 +942,14 @@ private Button btnVolLow = null!;
 			TextAlign = ContentAlignment.MiddleCenter,
 			Cursor = Cursors.Hand
 		};
-		btnStart.Paint += (s, e) =>
-		{
-			if (s is not Button b) return;
-			e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-			e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
-			using (var border = new Pen(GetAccentColor(), 1.5f))
-				e.Graphics.DrawRectangle(border, 0, 0, b.Width - 1, b.Height - 1);
-			using var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-			using (var textBrush = new SolidBrush(Color.White))
-				e.Graphics.DrawString(b.Text, b.Font, textBrush, new RectangleF(0, 0, b.Width, b.Height), fmt);
-		};
-		btnStart.Click += (_, _) =>
-		{
-			_manualTotalSeconds = _manualHours * 3600 + _manualMinutes * 60;
-			_timeRemaining = TimeSpan.FromSeconds(_manualTotalSeconds);
-			UpdateTimerDisplay();
-			if (_timeRemaining.TotalSeconds > 0)
-				StartTimer();
-			UpdateTaskInfo();
-			UpdateTimeSelectorInfo();
-		};
+		btnStart.Paint += StartButtonPaint;
+		btnStart.Click += (_, _) => StartFromSelection();
 
 		Button btnStop = new Button
 		{
 			Text = "STOP",
-			Size = new Size(ContentWidth - startStopW - btnGap2, row4.Height),
-			Location = new Point(startStopW + btnGap2, 0),
+			Size = new Size(ContentWidth - startW - gap, row.Height),
+			Location = new Point(startW + gap, 0),
 			FlatStyle = FlatStyle.Flat,
 			FlatAppearance = { BorderSize = 0, MouseOverBackColor = Color.Transparent, MouseDownBackColor = Color.Transparent },
 			BackColor = Color.Transparent,
@@ -911,79 +959,94 @@ private Button btnVolLow = null!;
 			TextAlign = ContentAlignment.MiddleCenter,
 			Cursor = Cursors.Hand
 		};
-		btnStop.Paint += (s, e) =>
-		{
-			if (s is not Button b) return;
-			e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-			e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
-			using var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-			using (var textBrush = new SolidBrush(GetAccentColor()))
-				e.Graphics.DrawString(b.Text, b.Font, textBrush, new RectangleF(0, 0, b.Width, b.Height), fmt);
-		};
-		btnStop.Click += (_, _) =>
-		{
-			StopTimer();
-			_timeRemaining = TimeSpan.Zero;
-			_manualTotalSeconds = 0;
-			_manualHours = 0;
-			_manualMinutes = 0;
-			ClearPresetSelections();
-			UpdateTimerDisplay();
-			UpdateTaskInfo();
-			_presetBlockMsg = false;
-			UpdateTimeSelectorInfo();
-		};
+		btnStop.Paint += StopButtonPaint;
+		btnStop.Click += (_, _) => ResetFromSelection();
 
-		row4.Controls.Add(btnStart);
-		row4.Controls.Add(btnStop);
-		tasksListPanel.Controls.Add(row4);
-		tasksListPanel.Controls.SetChildIndex(row4, 0);
+		row.Controls.Add(btnStart);
+		row.Controls.Add(btnStop);
+		tasksListPanel.Controls.Add(row);
+		tasksListPanel.Controls.SetChildIndex(row, 0);
+		return row;
+	}
 
-		// ── TOOLS row: PDF / YT / LEARN (one line) ──
-		int toolMargin = 6;
-		int toolGap = 4;
+	private void StartButtonPaint(object? s, PaintEventArgs e)
+	{
+		if (s is not Button b) return;
+		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+		e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
+		using (var border = new Pen(GetAccentColor(), 1.5f))
+			e.Graphics.DrawRectangle(border, 0, 0, b.Width - 1, b.Height - 1);
+		using var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+		using (var textBrush = new SolidBrush(Color.White))
+			e.Graphics.DrawString(b.Text, b.Font, textBrush, new RectangleF(0, 0, b.Width, b.Height), fmt);
+	}
+
+	private void StopButtonPaint(object? s, PaintEventArgs e)
+	{
+		if (s is not Button b) return;
+		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+		e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
+		using var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+		using (var textBrush = new SolidBrush(GetAccentColor()))
+			e.Graphics.DrawString(b.Text, b.Font, textBrush, new RectangleF(0, 0, b.Width, b.Height), fmt);
+	}
+
+	private void StartFromSelection()
+	{
+		_manualTotalSeconds = _manualHours * 3600 + _manualMinutes * 60;
+		_timeRemaining = TimeSpan.FromSeconds(_manualTotalSeconds);
+		UpdateTimerDisplay();
+		if (_timeRemaining.TotalSeconds > 0)
+			StartTimer();
+		UpdateTaskInfo();
+		UpdateTimeSelectorInfo();
+	}
+
+	private void ResetFromSelection()
+	{
+		StopTimer();
+		_timeRemaining = TimeSpan.Zero;
+		_manualTotalSeconds = 0;
+		_manualHours = 0;
+		_manualMinutes = 0;
+		ClearPresetSelections();
+		UpdateTimerDisplay();
+		UpdateTaskInfo();
+		_presetBlockMsg = false;
+		UpdateTimeSelectorInfo();
+	}
+
+	private void ApplyCustomFontTo(params Control[] controls)
+	{
+		foreach (Control c in controls)
+		{
+			FontHelper.ApplyFont(c, 8f, FontStyle.Bold);
+		}
+	}
+
+	private void ApplyLearningData()
+	{
+		LearningData? loaded = LearningData.Load();
+		if (loaded != null)
+			_learningData = loaded;
+	}
+
+	private void BuildToolsRow()
+	{
+		const int toolMargin = 6;
+		const int toolGap = 4;
 		int toolW = (ContentWidth - toolMargin * 2 - toolGap * 2) / 3;
 
-		Button btnOpenPdf = new Button
-		{
-			Text = "PDF",
-			Width = toolW,
-			Height = 22,
-			FlatStyle = FlatStyle.Flat,
-			FlatAppearance = { BorderSize = 0 },
-			BackColor = Color.Transparent,
-			ForeColor = Color.FromArgb(200, 200, 200),
-			Font = new Font("Segoe UI", 7f, FontStyle.Bold),
-			UseVisualStyleBackColor = false,
-			TextAlign = ContentAlignment.MiddleCenter,
-			Cursor = Cursors.Hand
-		};
-		ApplyRoundedRegion(btnOpenPdf);
+		Button btnOpenPdf = CreateToolButton("PDF", toolW);
+		Button btnYoutube = CreateToolButton("YT", toolW);
+
 		string pdfPath = Path.Combine(Directory.GetCurrentDirectory(), "files", "pdf", "file.pdf");
 		btnOpenPdf.Click += (_, _) =>
 		{
-			if (File.Exists(pdfPath))
-			{
-				using var form = new FormPdfViewer(pdfPath, this);
-				form.ShowDialog();
-			}
+			if (!File.Exists(pdfPath)) return;
+			using var form = new FormPdfViewer(pdfPath, this);
+			form.ShowDialog();
 		};
-
-		Button btnYoutube = new Button
-		{
-			Text = "YT",
-			Width = toolW,
-			Height = 22,
-			FlatStyle = FlatStyle.Flat,
-			FlatAppearance = { BorderSize = 0 },
-			BackColor = Color.Transparent,
-			ForeColor = Color.FromArgb(200, 200, 200),
-			Font = new Font("Segoe UI", 7f, FontStyle.Bold),
-			UseVisualStyleBackColor = false,
-			TextAlign = ContentAlignment.MiddleCenter,
-			Cursor = Cursors.Hand
-		};
-		ApplyRoundedRegion(btnYoutube);
 		btnYoutube.Click += (_, _) =>
 		{
 			using var form = new FormYoutube(this);
@@ -999,37 +1062,39 @@ private Button btnVolLow = null!;
 		btnLearn.UseVisualStyleBackColor = false;
 		ApplyRoundedRegion(btnLearn);
 
-		btnOpenPdf.Left = toolMargin; btnOpenPdf.Top = 3;
-		btnYoutube.Left = toolMargin + toolW + toolGap; btnYoutube.Top = 3;
-		btnLearn.Left = toolMargin + 2 * (toolW + toolGap); btnLearn.Top = 3;
+		btnOpenPdf.Location = new Point(toolMargin, 3);
+		btnYoutube.Location = new Point(toolMargin + toolW + toolGap, 3);
+		btnLearn.Location = new Point(toolMargin + 2 * (toolW + toolGap), 3);
 		toolsRow.Controls.Add(btnOpenPdf);
 		toolsRow.Controls.Add(btnYoutube);
 		toolsRow.Controls.Add(btnLearn);
 		FontHelper.ApplyFont(btnOpenPdf, 7f, FontStyle.Bold);
 		FontHelper.ApplyFont(btnYoutube, 7f, FontStyle.Bold);
 		FontHelper.ApplyFont(btnLearn, 7f, FontStyle.Bold);
+	}
 
-		FontHelper.ApplyFont(row1, 8f, FontStyle.Bold);
-		FontHelper.ApplyFont(row2, 8f, FontStyle.Bold);
-		FontHelper.ApplyFont(row3, 8f, FontStyle.Bold);
-		FontHelper.ApplyFont(row4, 8f, FontStyle.Bold);
-
-		var loaded = LearningData.Load();
-		if (loaded != null)
-			_learningData = loaded;
-		ApplyCurrentTheme();
-		LoadThemesFile();
-		if (_cassettes.Count > 0)
+	private Button CreateToolButton(string text, int width)
+	{
+		Button btn = new Button
 		{
-			ApplyCassette(0);
-		}
-		else if (_m3uFiles.Count > 0)
-		{
-			LoadCurrentM3u();
-		}
-		SetVolumePreset(3);
+			Text = text,
+			Width = width,
+			Height = 22,
+			FlatStyle = FlatStyle.Flat,
+			FlatAppearance = { BorderSize = 0 },
+			BackColor = Color.Transparent,
+			ForeColor = Color.FromArgb(200, 200, 200),
+			Font = new Font("Segoe UI", 7f, FontStyle.Bold),
+			UseVisualStyleBackColor = false,
+			TextAlign = ContentAlignment.MiddleCenter,
+			Cursor = Cursors.Hand
+		};
+		ApplyRoundedRegion(btn);
+		return btn;
+	}
 
-		// === Reorganize pnlVolume (after theme applied) ===
+	private void ReorganizeVolumePanel()
+	{
 		pnlVolume.Controls.Remove(btnPlayPlayer);
 		pnlVolume.Controls.Remove(btnStopPlayer);
 		pnlVolume.Controls.Remove(pnlVolumeLine);
@@ -1038,8 +1103,8 @@ private Button btnVolLow = null!;
 		pnlVolume.Controls.Remove(btnVolMid);
 		pnlVolume.Controls.Remove(btnVolMax);
 
-		playerFooterPanel.Height = 306;
-		pnlVolume.Location = new Point(0, 304);
+		playerFooterPanel.Height = 292;
+		pnlVolume.Location = new Point(0, 290);
 		pnlVolume.Size = new Size(ContentWidth, 24);
 
 		base.Controls.Remove(pnlFullListRow);
@@ -1059,85 +1124,66 @@ private Button btnVolLow = null!;
 		pnlVolume.Controls.Add(txtCassetteNum);
 		pnlVolume.Controls.Add(lblCassetteTotal);
 		pnlVolume.Controls.Add(btnCassetteList);
+	}
 
-		// === Cassette: fila FULL LIST ❤ M3U arriba del cassette ===
-		int numRowY = 0;
-		int numRowH = 36;
-		int numGap = 4;
-		int numCount = 4;
-		int numW = (ContentWidth - numGap * (numCount - 1)) / numCount;
-		int numStartX = (ContentWidth - (numW * numCount + numGap * (numCount - 1))) / 2;
-		string[] cassLabels = ["FULL LIST", "\u2764", "M3U"];
-		int[] cassWidths = [numW * 2 + numGap, numW, numW];
-		string[] cassNames = ["btnCassFullList", "btnCassHeart", "btnCassM3u"];
-		int xAcc2 = numStartX;
-		for (int i = 0; i < cassLabels.Length; i++)
+	private void BuildCassetteShortcutRow()
+	{
+		const int rowH = 36;
+		const int gap = 4;
+		const int count = 4;
+		int w = (ContentWidth - gap * (count - 1)) / count;
+		int startX = (ContentWidth - (w * count + gap * (count - 1))) / 2;
+		string[] labels = ["FULL LIST", "\u2764", "M3U"];
+		int[] widths = [w * 2 + gap, w, w];
+		string[] names = ["btnCassFullList", "btnCassHeart", "btnCassM3u"];
+
+		int x = startX;
+		for (int i = 0; i < labels.Length; i++)
 		{
-			Button btnNum = MakeRoundedBtn(cassLabels[i]);
-			btnNum.Name = cassNames[i];
-			btnNum.Size = new Size(cassWidths[i], numRowH);
-			btnNum.Font = new Font(i == 1 ? "Segoe UI Emoji" : "Segoe UI", i == 1 ? 14f : 9f, FontStyle.Bold);
-			btnNum.Tag = true;
-			btnNum.Location = new Point(xAcc2, numRowY);
-			xAcc2 += cassWidths[i] + numGap;
-			ApplyRoundedRegion(btnNum);
-			playerFooterPanel.Controls.Add(btnNum);
+			Button btn = MakeRoundedBtn(labels[i]);
+			btn.Name = names[i];
+			btn.Size = new Size(widths[i], rowH);
+			btn.Font = new Font(i == 1 ? "Segoe UI Emoji" : "Segoe UI", i == 1 ? 14f : 9f, FontStyle.Bold);
+			btn.Tag = true;
+			btn.Location = new Point(x, 0);
+			x += widths[i] + gap;
+			ApplyRoundedRegion(btn);
+			playerFooterPanel.Controls.Add(btn);
 		}
+	}
 
-		// === Marquee: letrero desplazante debajo de la fila 1-4 (fondo negro, texto blanco, 88px) ===
-		pnlMarquee = new BufferedPanel
-		{
-			Name = "pnlMarquee",
-			Location = new Point(0, 38),
-			Size = new Size(ContentWidth, 37),
-			BackColor = Color.Black
-		};
-		pnlMarquee.Paint += MarqueePanel_Paint;
-		pnlMarquee.Resize += (_, _) => pnlMarquee.Invalidate();
-		lblM3uTitle.TextChanged += (_, _) => BuildMarqueeText();
-		playerFooterPanel.Controls.Add(pnlMarquee);
-		_marqueeTimer = new Timer { Interval = 40 };
-		_marqueeTimer.Tick += (_, _) =>
-		{
-			_marqueeOffset -= 1f;
-			if (_marqueeTextWidth > 0f && _marqueeOffset <= -_marqueeTextWidth)
-			{
-				_marqueeOffset = pnlMarquee.Width;
-			}
-			pnlMarquee?.Invalidate();
-		};
-		_marqueeTimer.Start();
-		_marqueeOffset = pnlMarquee.Width;
-		BuildMarqueeText();
-
-		// === Cassette: imagen a todo el ancho (proporción real) + transporte ⏮ ▶ ⏹ ⏭ en su propia fila ===
-		pnlCassetteContainer.Location = new Point(0, 76);
+	private void LayoutCassetteStage()
+	{
+		pnlCassetteContainer.Location = new Point(0, 62);
 		pnlCassetteContainer.Size = new Size(ContentWidth, 163);
 		picPlayer.Location = new Point(4, 19);
 		picPlayer.Size = new Size(198, 125);
 		picPlayer.SizeMode = PictureBoxSizeMode.Zoom;
 		picPlayerNext.Visible = false;
+	}
 
-		// === Perilla ABC (manejador de volumen vertical) al costado del cassette ===
-		int abcX = ContentWidth - 53;
-		int abcY = 19;
-		int abcW = 49;
-		int abcH = 39;
-		int abcGap = 4;
-		string[] abcNames = ["btnAbcA", "btnAbcB", "btnAbcC"];
-		string[] abcLabels = ["\u273A", "\u2738", "\u2736"];
-		int[] abcPresets = [15, 9, 3];
-		pnlCassetteContainer.Paint += (_, e) => AbcGrooveBackPaint(e.Graphics, abcX, abcY, abcW, abcH, abcGap);
+	private void BuildAbcPresetKnobs()
+	{
+		int x = ContentWidth - 53;
+		int y = 19;
+		int w = 49;
+		int h = 39;
+		int gap = 4;
+		string[] names = ["btnAbcA", "btnAbcB", "btnAbcC"];
+		string[] labels = ["\u273A", "\u2738", "\u2736"];
+		int[] presets = [15, 9, 3];
+
+		pnlCassetteContainer.Paint += (_, e) => AbcGrooveBackPaint(e.Graphics, x, y, w, h, gap);
 		for (int i = 0; i < 3; i++)
 		{
 			Button abc = new Button
 			{
-				Name = abcNames[i],
-				Text = abcLabels[i],
-				Left = abcX,
-				Top = abcY + i * (abcH + abcGap),
-				Width = abcW,
-				Height = abcH,
+				Name = names[i],
+				Text = labels[i],
+				Left = x,
+				Top = y + i * (h + gap),
+				Width = w,
+				Height = h,
 				FlatStyle = FlatStyle.Flat,
 				FlatAppearance = { BorderSize = 0 },
 				BackColor = Color.Transparent,
@@ -1152,66 +1198,62 @@ private Button btnVolLow = null!;
 			if (i == 0) btnAbcA = abc;
 			else if (i == 1) btnAbcB = abc;
 			else btnAbcC = abc;
-			int preset = abcPresets[i];
+			int preset = presets[i];
 			abc.Click += (_, _) => SetVolumePreset(preset);
 			pnlCassetteContainer.Controls.Add(abc);
 		}
+	}
 
-		int transpY = 240;
-		int transpH = 36;
-		int transpGap = 4;
-		int transpCount = 4;
-		int transpW = (ContentWidth - transpGap * (transpCount - 1)) / transpCount;
-		int transpX = (ContentWidth - (transpW * transpCount + transpGap * (transpCount - 1))) / 2;
-		string[] transpGlyphs = ["\uE892", "\uE768", "\uE71A", "\uE893"];
-		string[] transpNames = ["btnCassPrev", "btnCassPlay", "btnCassStop", "btnCassNext"];
-		for (int i = 0; i < transpCount; i++)
+	private void BuildTransportRow()
+	{
+		const int y = 226;
+		const int h = 36;
+		const int gap = 4;
+		const int count = 4;
+		int w = (ContentWidth - gap * (count - 1)) / count;
+		int startX = (ContentWidth - (w * count + gap * (count - 1))) / 2;
+		string[] glyphs = ["\uE892", "\uE768", "\uE71A", "\uE893"];
+		string[] names = ["btnCassPrev", "btnCassPlay", "btnCassStop", "btnCassNext"];
+
+		for (int i = 0; i < count; i++)
 		{
-			Button btnTransp = MakeRoundedBtn(transpGlyphs[i]);
-			btnTransp.Name = transpNames[i];
-			btnTransp.Size = new Size(transpW, transpH);
-			btnTransp.Font = new Font("Segoe MDL2 Assets", 11f, FontStyle.Bold);
-			btnTransp.Tag = true;
-			btnTransp.Location = new Point(transpX + i * (transpW + transpGap), transpY);
-			ApplyRoundedRegion(btnTransp);
+			Button btn = MakeRoundedBtn(glyphs[i]);
+			btn.Name = names[i];
+			btn.Size = new Size(w, h);
+			btn.Font = new Font("Segoe MDL2 Assets", 11f, FontStyle.Bold);
+			btn.Tag = true;
+			btn.Location = new Point(startX + i * (w + gap), y);
+			ApplyRoundedRegion(btn);
 			switch (i)
 			{
-				case 0: btnTransp.Click += (_, _) => ChangeCassette(-1); break;
-				case 1:
-					btnTransp.Click += async (_, _) =>
-					{
-						if (_isHlsStream && _hlsPlayer != null)
-						{
-							if (!_hlsPlayer.IsPlaying && _lastHlsUrl != null)
-								await _hlsPlayer.PlayAsync(_lastHlsUrl);
-						}
-						else
-						{
-							_wmp?.controls.play();
-						}
-						_isPlaying = true;
-					};
-					break;
-				case 2:
-					btnTransp.Click += (_, _) =>
-					{
-						StopM3u();
-						_isPlaying = false;
-					};
-					break;
-				case 3: btnTransp.Click += (_, _) => ChangeCassette(1); break;
+				case 0: btn.Click += (_, _) => ChangeCassette(-1); break;
+				case 1: btn.Click += async (_, _) => await ResumePlaybackAsync(); break;
+				case 2: btn.Click += (_, _) => StopPlayback(); break;
+				case 3: btn.Click += (_, _) => ChangeCassette(1); break;
 			}
-			playerFooterPanel.Controls.Add(btnTransp);
+			playerFooterPanel.Controls.Add(btn);
 		}
+	}
 
-		pnlEqualizer.Location = new Point(0, 278);
+	private void BuildJackPanel()
+	{
+		pnlEqualizer.Location = new Point(0, 264);
 		pnlEqualizer.Size = new Size(ContentWidth, 24);
 		lblM3uTitle.Location = new Point(-500, -500);
 		lblM3uTitle.Visible = true;
-		lblM3uTitle.TextChanged += (_, _) => pnlEqualizer?.Invalidate();
+		pnlStationTitle = new BufferedPanel
+		{
+			Name = "pnlStationTitle",
+			Location = new Point(0, 38),
+			Size = new Size(ContentWidth, 24),
+			BackColor = Color.Black
+		};
+		pnlStationTitle.Paint += (_, e) => DrawStationTitleOverlay(e.Graphics, pnlStationTitle!.Width, pnlStationTitle.Height);
+		playerFooterPanel.Controls.Add(pnlStationTitle);
+		lblM3uTitle.TextChanged += (_, _) => pnlStationTitle?.Invalidate();
 		lblMetadata.Location = new Point(-500, -500);
 		lblExtraMetadata.Location = new Point(-500, -500);
-		pnlVolume.Location = new Point(5, 304);
+		pnlVolume.Location = new Point(5, 290);
 		pnlVolume.Visible = false;
 
 		Label lblNro = new Label
@@ -1229,12 +1271,12 @@ private Button btnVolLow = null!;
 		lblNro.BringToFront();
 		pnlVolume.Controls.Add(lblNro);
 
-		btnVolLow.Paint += VolumeKnobPaint;
-		btnVolMid.Paint += VolumeKnobPaint;
-		btnVolMax.Paint += VolumeKnobPaint;
-		btnVolLow.Invalidate();
-		btnVolMid.Invalidate();
-		btnVolMax.Invalidate();
+		Button[] knobs = [btnVolLow, btnVolMid, btnVolMax];
+		foreach (Button knob in knobs)
+		{
+			knob.Paint += VolumeKnobPaint;
+			knob.Invalidate();
+		}
 
 		Color[] jackColors =
 		[
@@ -1261,36 +1303,15 @@ private Button btnVolLow = null!;
 
 		picPlayer.Paint += CassetteGlassPaint;
 		picPlayerNext.Paint += CassetteGlassPaint;
-
-		// === Fila inferior: X CLOSE (cerrar) ===
-		btnCloseApp.Height = 60;
-		btnCloseApp.Dock = DockStyle.Bottom;
-
-		// === Agrandar la app para alojar la marquesina debajo de la fila 1-4 ===
-		base.ClientSize = new Size(base.Width, base.ClientSize.Height + 36);
-		base.Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, base.Width, base.Height, 12, 12));
-
-		ApplyRadioSkin();
 	}
 
-	private Button MakeMiniBtn(string text)
+	private void FinalizeFooterLayout()
 	{
-		Button btn = new Button
-		{
-			Text = text,
-			Width = 22,
-			Height = 22,
-			FlatStyle = FlatStyle.Flat,
-			FlatAppearance = { BorderSize = 0 },
-			BackColor = Color.FromArgb(60, 60, 60),
-			ForeColor = Color.White,
-			Font = new Font("Segoe UI", 8f, FontStyle.Bold),
-			UseVisualStyleBackColor = false,
-			TextAlign = ContentAlignment.MiddleCenter,
-			Cursor = Cursors.Hand
-		};
-		ApplyRoundedRegion(btn);
-		return btn;
+		btnCloseApp.Height = 60;
+		btnCloseApp.Dock = DockStyle.Bottom;
+		base.ClientSize = new Size(base.Width, base.ClientSize.Height + 22);
+		ApplyRoundedFormRegion();
+		ApplyRadioSkin();
 	}
 
 	private Button MakeRoundedBtn(string text)
@@ -1443,91 +1464,6 @@ private Button btnVolLow = null!;
 		}
 	}
 
-	private void RoundButtonPaint(object? s, PaintEventArgs e)
-	{
-	}
-
-	private void OutlinedButtonPaint(object? s, PaintEventArgs e)
-	{
-		if (s is Button b)
-		{
-			using var pen = new Pen(Color.FromArgb(80, b.ForeColor), 1.5f);
-			e.Graphics.DrawRectangle(pen, 2, 2, b.Width - 4, b.Height - 4);
-		}
-	}
-
-	private void BuildMarqueeText()
-	{
-		string title = lblM3uTitle.Text;
-		if (string.IsNullOrWhiteSpace(title) || title == "M3U TITLE")
-		{
-			title = _currentCassetteTitle;
-		}
-		if (string.IsNullOrWhiteSpace(title)) title = "RADIO";
-		_marqueeText = $"++   WE ARE LISTENING {title}   --";
-		_marqueeTextWidth = 0f;
-		try
-		{
-			_marqueeFont?.Dispose();
-			_marqueeFont = FontHelper.CreateDdiscoFont(18f, FontStyle.Bold);
-		}
-		catch
-		{
-			_marqueeFont = null;
-		}
-		pnlMarquee?.Invalidate();
-	}
-
-	private void MarqueePanel_Paint(object? sender, PaintEventArgs e)
-	{
-		if (pnlMarquee == null) return;
-		Graphics g = e.Graphics;
-		g.SmoothingMode = SmoothingMode.AntiAlias;
-		g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-		using (var bg = new SolidBrush(Color.Black))
-			g.FillRectangle(bg, pnlMarquee.ClientRectangle);
-		if (string.IsNullOrEmpty(_marqueeText) || _marqueeFont == null) return;
-		float textW = g.MeasureString(_marqueeText, _marqueeFont).Width;
-		if (textW <= 0f) return;
-		_marqueeTextWidth = textW;
-		float y = pnlMarquee.Height / 2f;
-		using (var fmt = new StringFormat { LineAlignment = StringAlignment.Center })
-		{
-			using (var outer = new SolidBrush(Color.FromArgb(38, 255, 255, 255)))
-			{
-				for (int i = 2; i <= 3; i++)
-				{
-					g.DrawString(_marqueeText, _marqueeFont, outer, _marqueeOffset - i, y, fmt);
-					g.DrawString(_marqueeText, _marqueeFont, outer, _marqueeOffset + i, y, fmt);
-					g.DrawString(_marqueeText, _marqueeFont, outer, _marqueeOffset, y - i, fmt);
-					g.DrawString(_marqueeText, _marqueeFont, outer, _marqueeOffset, y + i, fmt);
-				}
-			}
-			using (var inner = new SolidBrush(Color.FromArgb(85, 255, 255, 255)))
-			{
-				g.DrawString(_marqueeText, _marqueeFont, inner, _marqueeOffset - 1, y, fmt);
-				g.DrawString(_marqueeText, _marqueeFont, inner, _marqueeOffset + 1, y, fmt);
-				g.DrawString(_marqueeText, _marqueeFont, inner, _marqueeOffset, y - 1, fmt);
-				g.DrawString(_marqueeText, _marqueeFont, inner, _marqueeOffset, y + 1, fmt);
-			}
-			g.DrawString(_marqueeText, _marqueeFont, Brushes.White, _marqueeOffset, y, fmt);
-		}
-		using (var scan = new SolidBrush(Color.FromArgb(22, 0, 0, 0)))
-		{
-			for (int sy = 0; sy < pnlMarquee.Height; sy += 3)
-				g.FillRectangle(scan, 0, sy, pnlMarquee.Width, 1);
-		}
-		int fadeW = Math.Max(40, pnlMarquee.Width / 4);
-		using (var leftFade = new LinearGradientBrush(
-			new Rectangle(0, 0, fadeW + 2, pnlMarquee.Height),
-			Color.Black, Color.FromArgb(0, Color.Black), LinearGradientMode.Horizontal))
-			g.FillRectangle(leftFade, 0, 0, fadeW, pnlMarquee.Height);
-		using (var rightFade = new LinearGradientBrush(
-			new Rectangle(pnlMarquee.Width - fadeW - 2, 0, fadeW + 2, pnlMarquee.Height),
-			Color.FromArgb(0, Color.Black), Color.Black, LinearGradientMode.Horizontal))
-			g.FillRectangle(rightFade, pnlMarquee.Width - fadeW, 0, fadeW, pnlMarquee.Height);
-	}
-
 	private void ApplyRoundedRegion(Control c)
 	{
 		using var path = new System.Drawing.Drawing2D.GraphicsPath();
@@ -1554,7 +1490,6 @@ private Button btnVolLow = null!;
 				_spriteTimer?.Stop();
 				_metaTimer?.Stop();
 				_m3u8WatchTimer?.Stop();
-				_marqueeTimer?.Stop();
 			}
 			catch (Exception ex) { Logger.Error("Form1.Dispose.StopTimers", ex); }
 			try
@@ -1573,10 +1508,7 @@ private Button btnVolLow = null!;
 				_spriteTimer?.Dispose();
 				_metaTimer?.Dispose();
 				_m3u8WatchTimer?.Dispose();
-				_marqueeTimer?.Dispose();
 				_pfc?.Dispose();
-				_marqueeFont?.Dispose();
-				_marqueeFont = null;
 			}
 			catch (Exception ex) { Logger.Error("Form1.Dispose.Timers", ex); }
 			try
@@ -1589,8 +1521,6 @@ private Button btnVolLow = null!;
 				_nextCassetteImage = null;
 				_playerImage?.Dispose();
 				_playerImage = null;
-				foreach (var img in _themeImages) img.Dispose();
-				_themeImages.Clear();
 				foreach (var img in _cassetteImages) img.Dispose();
 				_cassetteImages.Clear();
 				lock (_imageCacheLock)
@@ -1632,7 +1562,6 @@ private Button btnVolLow = null!;
 		this.pnlTimerControls = new System.Windows.Forms.Panel();
 		this.btnTheme = new System.Windows.Forms.Button();
 		this.btnImage = new System.Windows.Forms.Button();
-		this.btnStyle = new System.Windows.Forms.Button();
 		this.btnColor = new System.Windows.Forms.Button();
 		this.pnlTopButtons = new BufferedPanel();
 		this.lblHours = new BufferedLabel();
@@ -1678,6 +1607,7 @@ private Button btnVolLow = null!;
 		this.pnlGrip.Height = 20;
 		this.pnlGrip.Name = "pnlGrip";
 		this.pnlGrip.TabIndex = 6;
+		this.pnlGrip.Visible = false;
 		this.pnlGrip.Paint += new System.Windows.Forms.PaintEventHandler(pnlGrip_Paint);
 		this.btnCloseApp.BackColor = System.Drawing.Color.Black;
 		this.btnCloseApp.Dock = System.Windows.Forms.DockStyle.Bottom;
@@ -1862,7 +1792,7 @@ private Button btnVolLow = null!;
 		this.tasksHeaderPanel.BackColor = System.Drawing.Color.Transparent;
 		this.tasksHeaderPanel.Controls.Add(this.lblTasks);
 		this.tasksHeaderPanel.Dock = System.Windows.Forms.DockStyle.Top;
-		this.tasksHeaderPanel.Location = new System.Drawing.Point(0, 385);
+		this.tasksHeaderPanel.Location = new System.Drawing.Point(0, 365);
 		this.tasksHeaderPanel.Name = "tasksHeaderPanel";
 		this.tasksHeaderPanel.Size = new System.Drawing.Size(260, 25);
 		this.tasksHeaderPanel.TabIndex = 2;
@@ -1877,7 +1807,7 @@ private Button btnVolLow = null!;
 		this.toolsHeaderPanel.BackColor = System.Drawing.Color.Transparent;
 		this.toolsHeaderPanel.Controls.Add(this.lblTools);
 		this.toolsHeaderPanel.Dock = System.Windows.Forms.DockStyle.Top;
-		this.toolsHeaderPanel.Location = new System.Drawing.Point(0, 360);
+		this.toolsHeaderPanel.Location = new System.Drawing.Point(0, 340);
 		this.toolsHeaderPanel.Name = "toolsHeaderPanel";
 		this.toolsHeaderPanel.Size = new System.Drawing.Size(260, 25);
 		this.toolsHeaderPanel.TabIndex = 9;
@@ -2104,14 +2034,14 @@ private Button btnVolLow = null!;
 		this.tasksListPanel.AutoScroll = true;
 		this.tasksListPanel.BackColor = System.Drawing.Color.FromArgb(255, 12, 12, 15);
 		this.tasksListPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-		this.tasksListPanel.Location = new System.Drawing.Point(0, 410);
+		this.tasksListPanel.Location = new System.Drawing.Point(0, 390);
 		this.tasksListPanel.Name = "tasksListPanel";
 		this.tasksListPanel.Size = new System.Drawing.Size(260, 840);
 		this.tasksListPanel.TabIndex = 5;
 
 		base.AutoScaleDimensions = new System.Drawing.SizeF(10f, 25f);
 		base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-		base.ClientSize = new System.Drawing.Size(280, 780);
+		base.ClientSize = new System.Drawing.Size(280, 760);
 		base.Controls.Add(this.cassettesHeaderPanel);
 		base.Controls.Add(this.pnlFullListRow);
 		base.Controls.Add(this.playerFooterPanel);

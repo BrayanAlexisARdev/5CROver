@@ -8,8 +8,8 @@ namespace _5CRXmod;
 
 public static class FontHelper
 {
-	private static PrivateFontCollection _pfc;
-	private static PrivateFontCollection _pfcDdisco;
+	private static readonly PrivateFontCollection _pfc = new PrivateFontCollection();
+	private static PrivateFontCollection? _pfcDdisco;
 
 	public static FontFamily? CustomFontFamily { get; private set; }
 
@@ -17,7 +17,6 @@ public static class FontHelper
 
 	static FontHelper()
 	{
-		_pfc = new PrivateFontCollection();
 		LoadFont();
 		LoadDdisco();
 	}
@@ -37,11 +36,6 @@ public static class FontHelper
 			_pfc.AddFontFile(nasaPath);
 			if (_pfc.Families.Length != 0)
 			{
-				FontFamily[] families = _pfc.Families;
-				for (int i = 0; i < families.Length; i++)
-				{
-					_ = families[i];
-				}
 				CustomFontFamily = _pfc.Families[0];
 			}
 		}

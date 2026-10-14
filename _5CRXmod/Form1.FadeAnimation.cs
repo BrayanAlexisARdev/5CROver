@@ -120,8 +120,7 @@ partial class Form1
 			case 28: DrawEqCoinStacks(e.Graphics, w, h, neonColor, _eqAnimationOffset); break;
 			case 29: DrawEqChirp(e.Graphics, w, h, neonColor, _eqAnimationOffset); break;
 			default: DrawEqSoftWave(e.Graphics, w, h, neonColor, _eqAnimationOffset); break;
-		}
-		DrawStationTitleOverlay(e.Graphics, w, h);
+	}
 	}
 
 	private void DrawStationTitleOverlay(Graphics g, int w, int h)
@@ -906,19 +905,6 @@ else
 		return bmp;
 	}
 
-	private void SetupButtonGlow(Button btn)
-	{
-		btn.MouseEnter += delegate
-		{
-			btn.FlatAppearance.BorderSize = 0;
-			btn.BackColor = Color.FromArgb(50, Color.White);
-		};
-		btn.MouseLeave += delegate
-		{
-			btn.BackColor = Color.FromArgb(20, 20, 20);
-		};
-	}
-
 	private void DrawGlow(object? sender, PaintEventArgs e)
 	{
 		if (!(sender is Label lbl))
@@ -927,7 +913,14 @@ else
 		}
 		e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
 		string text = lbl.Text;
-		Font font = lbl.Font;
+
+		// Validación segura del font con fallback a SystemFonts
+		Font font = lbl.Font ?? SystemFonts.DefaultFont;
+		if (font == null || font.Size <= 0)
+		{
+			font = SystemFonts.DefaultFont;
+		}
+
 		Color glowColor = (_appColor != Color.Transparent) ? _appColor : Color.Cyan;
 		for (int i = 1; i <= 2; i++)
 		{

@@ -12,7 +12,6 @@ partial class Form1
 	private static readonly Color _radioBrassLight = Color.FromArgb(224, 186, 108);
 	private static readonly Color _radioBrassDark = Color.FromArgb(112, 86, 42);
 	private static readonly Color _radioRecess = Color.FromArgb(14, 14, 16);
-	private static readonly Color _radioSlot = Color.FromArgb(26, 26, 29);
 
 	private void ApplyRadioSkin()
 	{
@@ -110,94 +109,6 @@ partial class Form1
 			e.Graphics.DrawString(b.Text, b.Font, brush, new RectangleF(0, 0, b.Width, b.Height), fmt);
 	}
 
-	private void MetalButtonPaint(object? sender, PaintEventArgs e)
-	{
-		if (sender is not Button b) return;
-		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-		RectangleF rect = new RectangleF(1.5f, 1.5f, b.Width - 3f, b.Height - 3f);
-		using (var path = RoundedPath(rect, 7f))
-		{
-			using (var brush = MetalBrush(rect))
-				e.Graphics.FillPath(brush, path);
-			using (var brass = new Pen(Color.FromArgb(170, 196, 164, 92), 1.2f))
-				e.Graphics.DrawPath(brass, path);
-			using (var hi = new Pen(Color.FromArgb(70, 255, 255, 255), 1f))
-				e.Graphics.DrawLine(hi, rect.X + 3f, rect.Y + 1f, rect.Right - 3f, rect.Y + 1f);
-		}
-		using (var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
-		using (var brush = new SolidBrush(Color.White))
-			e.Graphics.DrawString(b.Text, b.Font, brush, new RectangleF(0, 0, b.Width, b.Height), fmt);
-	}
-
-	private readonly bool[] _cassetteNavHover = new bool[2];
-	private readonly bool[] _cassetteNavPress = new bool[2];
-
-	private void CassetteNavPaint(object? sender, PaintEventArgs e)
-	{
-		if (sender is not Button b) return;
-		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-		int idx = b.Name == "btnPrevM3u" ? 0 : 1;
-
-		RectangleF rect = new RectangleF(0, 0, b.Width, b.Height);
-		using (var bg = MetalBrush(rect))
-			e.Graphics.FillRectangle(bg, rect);
-		DrawBrushed(e.Graphics, b.ClientRectangle);
-
-		bool hover = _cassetteNavHover[idx];
-		bool press = _cassetteNavPress[idx];
-		float cx = b.Width / 2f;
-		float cy = b.Height / 2f;
-
-		if (hover)
-		{
-			float glowR = Math.Min(b.Width, b.Height) * 0.55f;
-			Color glowCenter = press
-				? Color.FromArgb(25, 224, 186, 108)
-				: Color.FromArgb(14, 224, 186, 108);
-			using (var path = new GraphicsPath())
-			{
-				path.AddEllipse(cx - glowR, cy - glowR, glowR * 2f, glowR * 2f);
-				using (var blend = new PathGradientBrush(path))
-				{
-					blend.CenterColor = glowCenter;
-					blend.SurroundColors = [Color.FromArgb(0, 224, 186, 108)];
-					e.Graphics.FillPath(blend, path);
-				}
-			}
-		}
-
-		float h = b.Height * 0.32f;
-		float w = h * 0.78f;
-		PointF[] tri;
-		if (idx == 0)
-		{
-			tri =
-			[
-				new PointF(cx + w * 0.4f, cy),
-				new PointF(cx - w * 0.6f, cy - h),
-				new PointF(cx - w * 0.6f, cy + h)
-			];
-		}
-		else
-		{
-			tri =
-			[
-				new PointF(cx - w * 0.4f, cy),
-				new PointF(cx + w * 0.6f, cy - h),
-				new PointF(cx + w * 0.6f, cy + h)
-			];
-		}
-
-		float penAlpha = press ? 220f : hover ? 180f : 100f;
-		using (var triPath = new GraphicsPath())
-		{
-			triPath.AddPolygon(tri);
-			Color brass = Color.FromArgb((int)penAlpha, 196, 164, 92);
-			using (var pen = new Pen(brass, 1.4f) { LineJoin = LineJoin.Round, StartCap = LineCap.Round, EndCap = LineCap.Round })
-				e.Graphics.DrawPath(pen, triPath);
-		}
-	}
-
 	private void ClosePlatePaint(object? sender, PaintEventArgs e)
 	{
 		if (sender is not Button b) return;
@@ -211,55 +122,6 @@ partial class Form1
 		using (var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
 		using (var brush = new SolidBrush(Color.White))
 			e.Graphics.DrawString(b.Text, b.Font, brush, new RectangleF(0, 0, b.Width, b.Height), fmt);
-	}
-
-	private void SpeakerCirclePaint(object? sender, PaintEventArgs e)
-	{
-		if (sender is not Control c) return;
-		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-		float cx = c.Width / 2f;
-		float cy = c.Height / 2f;
-		float r = Math.Min(c.Width, c.Height) / 2f - 1f;
-		RectangleF rimRect = new RectangleF(cx - r, cy - r, r * 2f, r * 2f);
-		using (var rim = MetalBrush(rimRect))
-			e.Graphics.FillEllipse(rim, rimRect);
-		using (var chrome = new Pen(Color.FromArgb(200, 224, 214, 190), 1.5f))
-			e.Graphics.DrawEllipse(chrome, rimRect.X + 0.5f, rimRect.Y + 0.5f, rimRect.Width - 1f, rimRect.Height - 1f);
-		using (var face = new SolidBrush(Color.FromArgb(22, 22, 25)))
-			e.Graphics.FillEllipse(face, cx - r + 3f, cy - r + 3f, r * 2f - 6f, r * 2f - 6f);
-		float inset = r * 0.2f;
-		RectangleF inner = new RectangleF(cx - r + inset, cy - r + inset, r * 2f - inset * 2f, r * 2f - inset * 2f);
-		float hr = inner.Width / 2f;
-		float step = inner.Width / 6f;
-		float dotR = step * 0.32f;
-		using (var hole = new SolidBrush(Color.FromArgb(190, 5, 5, 7)))
-		{
-			for (float y = inner.Y + step / 2f; y < inner.Bottom; y += step)
-			{
-				for (float x = inner.X + step / 2f; x < inner.Right; x += step)
-				{
-					float dx = (x - cx) / hr;
-					float dy = (y - cy) / hr;
-					if (dx * dx + dy * dy <= 1.0f)
-						e.Graphics.FillEllipse(hole, x - dotR, y - dotR, dotR * 2f, dotR * 2f);
-				}
-			}
-		}
-		float capR = r * 0.24f;
-		using (var groove = new SolidBrush(Color.FromArgb(8, 8, 10)))
-			e.Graphics.FillEllipse(groove, cx - capR * 0.88f, cy - capR * 0.88f, capR * 1.76f, capR * 1.76f);
-		RectangleF capRect = new RectangleF(cx - capR, cy - capR, capR * 2f, capR * 2f);
-		using (var cap = MetalBrush(capRect))
-			e.Graphics.FillEllipse(cap, capRect);
-		using (var ringPen = new Pen(Color.FromArgb(120, 196, 164, 92), 1f))
-		{
-			e.Graphics.DrawEllipse(ringPen, cx - capR * 0.6f, cy - capR * 0.6f, capR * 1.2f, capR * 1.2f);
-			e.Graphics.DrawEllipse(ringPen, cx - capR * 0.35f, cy - capR * 0.35f, capR * 0.7f, capR * 0.7f);
-		}
-		using (var hi = new SolidBrush(Color.FromArgb(65, 255, 255, 255)))
-			e.Graphics.FillEllipse(hi, capRect.X, capRect.Y, capRect.Width, capRect.Height * 0.4f);
-		using (var capRim = new Pen(Color.FromArgb(160, 214, 200, 170), 1f))
-			e.Graphics.DrawEllipse(capRim, capRect);
 	}
 
 	private void VolumeKnobPaint(object? sender, PaintEventArgs e)
@@ -380,23 +242,6 @@ partial class Form1
 				g.FillEllipse(i % 2 == 0 ? light : dark, x - dotR, y - dotR, dotR * 2f, dotR * 2f);
 			}
 		}
-	}
-
-	private void LiveButtonPaint(object? sender, PaintEventArgs e)
-	{
-		if (sender is not Button b) return;
-		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-		RectangleF rect = new RectangleF(1f, 1f, b.Width - 2f, b.Height - 2f);
-		using (var path = RoundedPath(rect, 6f))
-		{
-			using (var recess = new SolidBrush(_radioRecess))
-				e.Graphics.FillPath(recess, path);
-			using (var brass = new Pen(Color.FromArgb(160, 196, 164, 92), 1f))
-				e.Graphics.DrawPath(brass, path);
-		}
-		using (var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
-		using (var brush = new SolidBrush(b.ForeColor))
-			e.Graphics.DrawString(b.Text, b.Font, brush, new RectangleF(0, 0, b.Width, b.Height), fmt);
 	}
 
 	private void JackSocketPaint(object? sender, PaintEventArgs e)

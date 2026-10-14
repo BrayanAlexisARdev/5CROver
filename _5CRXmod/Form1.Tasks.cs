@@ -119,27 +119,7 @@ partial class Form1
 		taskPanel.Controls.Add(lblTaskTime);
 		taskPanel.Controls.Add(picTask);
 
-		int index = tasksListPanel.Controls.Count;
-		for (int i2 = 0; i2 < tasksListPanel.Controls.Count; i2++)
-		{
-			if (tasksListPanel.Controls[i2].Name == "pnlAddSlot")
-			{
-				index = i2;
-				break;
-			}
-		}
-		if (index < tasksListPanel.Controls.Count)
-		{
-			Control slot = tasksListPanel.Controls[index];
-			tasksListPanel.Controls.Remove(slot);
-			tasksListPanel.Controls.Add(taskPanel);
-			tasksListPanel.Controls.SetChildIndex(taskPanel, index);
-			slot.Dispose();
-		}
-		else
-		{
-			tasksListPanel.Controls.Add(taskPanel);
-		}
+		tasksListPanel.Controls.Add(taskPanel);
 		UpdateControlContrast(taskPanel, theme.Item2);
 	}
 
@@ -232,63 +212,5 @@ partial class Form1
 		if (t.TotalHours >= 1.0)
 			return $"{(int)t.TotalHours}H {t.Minutes}M";
 		return $"{(int)t.TotalMinutes} MIN";
-	}
-
-	private void AddAutoButtons()
-	{
-		Panel pnlAuto = new Panel
-		{
-			Dock = DockStyle.Right,
-			Width = 80,
-			BackColor = Color.FromArgb(20, 20, 20)
-		};
-		tasksHeaderPanel.Controls.Add(pnlAuto);
-		for (int i = 0; i < 2; i++)
-		{
-			Button btnAuto = new Button
-			{
-				Text = "AUTO",
-				Width = 35,
-				Height = 20,
-				Top = 2,
-				Left = 5 + i * 40,
-				FlatStyle = FlatStyle.Flat,
-				Font = new Font("Segoe UI", 5f, FontStyle.Bold),
-				BackColor = Color.FromArgb(50, Color.Gray),
-				ForeColor = Color.White
-			};
-			btnAuto.FlatAppearance.BorderSize = 0;
-			pnlAuto.Controls.Add(btnAuto);
-		}
-		lblTasks.SendToBack();
-	}
-
-	private void AddEmptySlot()
-	{
-		Panel pnlAdd = new Panel
-		{
-			Height = 60,
-			Width = base.Width / 2,
-			BackColor = Color.Transparent,
-			BorderStyle = BorderStyle.None,
-			Margin = new Padding(0),
-			Name = "pnlAddSlot"
-		};
-		Button btnPlus = new Button
-		{
-			Text = "+",
-			Dock = DockStyle.Fill,
-			FlatStyle = FlatStyle.Flat,
-			Font = new Font("Segoe UI", 20f, FontStyle.Bold),
-			ForeColor = Color.White,
-			BackColor = Color.FromArgb(20, 20, 20)
-		};
-		btnPlus.FlatAppearance.BorderSize = 0;
-		btnPlus.Click += delegate(object? s, EventArgs e)
-		{
-			btnAddTask_Click(s, e);
-		};
-		pnlAdd.Controls.Add(btnPlus);
-		tasksListPanel.Controls.Add(pnlAdd);
 	}
 }
